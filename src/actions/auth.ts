@@ -15,6 +15,7 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
+    console.error('[DEBUG SUPABASE AUTH]', error)
     return { error: error.message }
   }
 

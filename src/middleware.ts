@@ -35,13 +35,18 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
-  const isLoginRoute = request.nextUrl.pathname === '/login'
+  const { pathname } = request.nextUrl
 
-  if (!user && isDashboardRoute) {
+  // Rotas que exigem autenticação
+  const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/editor')
+  const isLoginRoute = pathname === '/login'
+
+  // 1. Deslogado tentando acessar rota protegida -> Login
+  if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // 2. Logado tentando acessar login -> Dashboard
   if (user && isLoginRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }

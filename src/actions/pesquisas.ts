@@ -1,0 +1,76 @@
+"use server"
+
+import prisma from "@/lib/prisma"
+import { createClient } from "@/lib/supabase/server"
+import { PesquisaInput } from "@/types/pesquisa"
+
+export async function salvarPesquisa(dados: PesquisaInput) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { 
+        success: false, 
+        message: "Usuário não autenticado. Por favor, faça login novamente." 
+      }
+    }
+
+    // 1. Verificar a Existência do Usuário e Empresa (Tenant Check)
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
+      select: { empresaId: true }
+    })
+
+    if (!dbUser || !dbUser.empresaId) {
+      return { 
+        success: false, 
+        message: "Perfil de usuário ou empresa não encontrado. Acesse o Dashboard primeiro para inicializar sua conta." 
+      }
+    }
+
+    const { empresaId } = dbUser
+
+    // 2. Transação para salvar Pesquisa e Perguntas
+    const resultado = await prisma.$transaction(async (tx) => {
+      const novaPesquisa = await tx.pesquisa.create({
+        data: {
+          titulo: dados.titulo,
+          descricao: dados.descricao,
+          empresaId: empresaId,
+          perguntas: {
+            create: dados.perguntas.map((p, index) => {
+              // Garantir que 'opcoes' seja null se não for múltipla escolha
+              const precisaDeOpcoes = p.tipo === 'MULTIPLA_ESCOLHA'
+              const opcoesTratadas = precisaDeOpcoes ? (p.opcoes || []) : null
+
+              return {
+                titulo: p.titulo,
+                tipo: p.tipo,
+                opcoes: opcoesTratadas,
+                obrigatoria: p.obrigatoria,
+                ordem: index,
+              }
+            })
+          }
+        },
+        include: {
+          perguntas: true
+        }
+      })
+
+      return novaPesquisa
+    })
+
+    console.log(`[PESQUISA CRIADA] ID: ${resultado.id} por Usuário: ${user.id}`)
+    return { success: true, id: resultado.id }
+
+  } catch (error: any) {
+    console.error("[ERRO SALVAR PESQUISA]", error)
+    return { 
+      success: false, 
+      message: "Ocorreu um erro técnico ao salvar a pesquisa.",
+      details: error.message 
+    }
+  }
+}
