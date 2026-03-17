@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum StatusEnvio {
+  PENDENTE
+  PROCESSANDO
+  ENVIADO
+  ERRO
+  RESPONDIDO
+  EXPIRADO
+}
+
+enum TipoPergunta {
+  TEXTO_LIVRE
+  MULTIPLA_ESCOLHA
+  ESCALA_NPS
+  ESTRELAS
+}
+
+model Empresa {
+  id        String     @id @default(uuid())
+  nome      String
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  usuarios  Usuario[]
+  pesquisas Pesquisa[]
+
+  @@map("empresas")
+}
+
+model Usuario {
+  id        String   @id
+  email     String   @unique
+  nome      String
+  role      Role     @default(MEMBER)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  empresaId String
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("usuarios")
+}
+
+model Pesquisa {
+  id        String     @id @default(uuid())
+  titulo    String
+  descricao String?
+  ativa     Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  empresaId String
+  empresa   Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  perguntas Pergunta[]
+  envios    Envio[]
+
+  @@map("pesquisas")
+}
+
+model Pergunta {
+  id          String       @id @default(uuid())
+  titulo      String
+  tipo        TipoPergunta
+  opcoes      Json?
+  obrigatoria Boolean      @default(true)
+  ordem       Int          @default(0)
+  pesquisaId  String
+  pesquisa    Pesquisa     @relation(fields: [pesquisaId], references: [id], onDelete: Cascade)
+
+  @@map("perguntas")
+}
+
+model Envio {
+  id                String      @id @default(uuid())
+  emailDestinatario String
+  nomeDestinatario  String?
+  status            StatusEnvio @default(PENDENTE)
+  token             String      @unique
+  jobId             String?
+  erroLog           String?
+  createdAt         DateTime    @default(now())
+  enviadoEm         DateTime?
+  pesquisaId        String
+  pesquisa          Pesquisa    @relation(fields: [pesquisaId], references: [id], onDelete: Cascade)
+  resposta          Resposta?
+
+  @@unique([pesquisaId, emailDestinatario])
+  @@map("envios")
+}
+
+model Resposta {
+  id           String   @id @default(uuid())
+  dados        Json
+  respondidoEm DateTime @default(now())
+  envioId      String   @unique
+  envio        Envio    @relation(fields: [envioId], references: [id], onDelete: Cascade)
+
+  @@map("respostas")
+}
