@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { 
   ArrowLeft, 
   Plus, 
@@ -43,6 +44,9 @@ export default function EditorPage() {
     setPerguntas(perguntas.map(p => p.id === id ? { ...p, ...updates } : p))
   }
 
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [pesquisaIdCriada, setPesquisaIdCriada] = useState<string | null>(null)
+
   const handleSalvar = async () => {
     if (!titulo.trim()) {
       alert('Por favor, insira um título para a pesquisa.')
@@ -58,8 +62,8 @@ export default function EditorPage() {
       })
 
       if (result.success) {
-        alert('Pesquisa salva com sucesso!')
-        router.push('/dashboard')
+        setPesquisaIdCriada(result.id ?? null)
+        setShowSuccess(true)
       } else {
         alert('Erro ao salvar: ' + (result.message || 'Erro desconhecido'))
         if (result.details) console.error('Detalhes do erro:', result.details)
@@ -69,6 +73,37 @@ export default function EditorPage() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl shadow-indigo-500/10 p-10 text-center space-y-8 animate-in fade-in zoom-in duration-500">
+          <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <Save size={48} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Pesquisa Salva!</h1>
+            <p className="text-gray-500 font-medium">O que você deseja fazer agora?</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link 
+              href={`/envios?pesquisaId=${pesquisaIdCriada}`}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2 group"
+            >
+              <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+              Adicionar Clientes e Disparar
+            </Link>
+            <Link 
+              href="/dashboard"
+              className="px-8 py-3 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200"
+            >
+              Voltar ao Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -199,7 +234,12 @@ function AddButton({ onClick, icon, label }: { onClick: () => void, icon: React.
   )
 }
 
-function QuestionCard({ pergunta, index, onRemove, onChange }: any) {
+function QuestionCard({ pergunta, index, onRemove, onChange }: { 
+  pergunta: PerguntaInput, 
+  index: number, 
+  onRemove: () => void, 
+  onChange: (updates: Partial<PerguntaInput>) => void 
+}) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 group relative hover:shadow-md transition-all">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-200 transition-colors">
