@@ -12,9 +12,11 @@ import {
   BarChart3,
   User,
   ChevronRight,
-  Star
+  Star,
+  AlertCircle
 } from 'lucide-react'
 import { formatDate, calculateNPS, getNPSColor } from '@/lib/utils'
+import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -92,6 +94,7 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
             <div className={`w-3 h-3 rounded-full bg-emerald-500`} />
             <span className="text-sm font-bold text-gray-700">Ativa</span>
           </div>
+          <DeleteSurveyButton surveyId={pesquisa.id} surveyTitle={pesquisa.titulo} redirectToList variant="full" />
         </div>
       </div>
 
@@ -166,16 +169,35 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
                       </div>
                     </td>
                     <td className="px-8 py-4 text-center text-sm font-medium text-gray-500">
-                      {formatDate(envio.enviadoEm)}
+                      {formatDate(envio.enviadoEm || envio.createdAt)}
                     </td>
                     <td className="px-8 py-4 text-center">
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border ${
-                        envio.status === 'RESPONDIDO' 
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                          : 'bg-amber-50 text-amber-600 border-amber-100'
-                      }`}>
-                        {envio.status}
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border flex items-center gap-1.5 ${
+                          envio.status === 'RESPONDIDO' 
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                            : envio.status === 'PROCESSANDO'
+                            ? 'bg-blue-50 text-blue-600 border-blue-100'
+                            : envio.status === 'ERRO'
+                            ? 'bg-red-50 text-red-600 border-red-100'
+                            : 'bg-amber-50 text-amber-600 border-amber-100'
+                        }`}>
+                          {envio.status === 'PROCESSANDO' && (
+                            <div className="w-2 h-2 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+                          )}
+                          {envio.status}
+                        </span>
+                        
+                        {envio.status === 'ERRO' && envio.erroLog && (
+                          <div 
+                            className="flex items-center gap-1 text-[9px] text-red-400 font-bold cursor-help bg-red-50/50 px-1.5 py-0.5 rounded shadow-sm hover:bg-red-100 transition-colors"
+                            title={envio.erroLog}
+                          >
+                            <AlertCircle size={10} />
+                            Ver Erro
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-8 py-4 text-center">
                       {notaNps !== null ? (

@@ -10,6 +10,7 @@ import {
   BarChart3,
   Clock
 } from 'lucide-react'
+import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 
 export default async function PesquisasPage() {
   const supabase = await createClient()
@@ -55,9 +56,14 @@ export default async function PesquisasPage() {
       {pesquisas.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pesquisas.map((p) => (
-            <div key={p.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+            <div key={p.id} className="relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
+                {/* Botão de Excluir (Fora do Link para evitar erro de hidratação) */}
+                <div className="absolute top-4 right-4 z-20">
+                  <DeleteSurveyButton surveyId={p.id} surveyTitle={p.titulo} />
+                </div>
+
                 <Link href={`/pesquisas/${p.id}`} className="p-6 flex-1 block">
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-4 pr-10">
                     <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
                       p.ativa ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-100 text-gray-600 border border-gray-200'
                     }`}>

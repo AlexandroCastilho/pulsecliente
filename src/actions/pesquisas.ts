@@ -74,3 +74,51 @@ export async function salvarPesquisa(dados: PesquisaInput) {
     }
   }
 }
+
+export async function excluirPesquisa(id: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, message: "Usuário não autenticado." }
+    }
+
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
+      select: { empresaId: true }
+    })
+
+    if (!dbUser) {
+      return { success: false, message: "Perfil não encontrado." }
+    }
+
+    // 1. Verificar se a pesquisa pertence à empresa do usuário
+    const pesquisa = await prisma.pesquisa.findFirst({
+      where: { 
+        id,
+        empresaId: dbUser.empresaId
+      }
+    })
+
+    if (!pesquisa) {
+      return { success: false, message: "Pesquisa não encontrada ou acesso negado." }
+    }
+
+    // 2. Excluir (Cascata cuidará das perguntas e envios se configurado no prisma)
+    await prisma.pesquisa.delete({
+      where: { id }
+    })
+
+    console.log(`[PESQUISA EXCLUÍDA] ID: ${id} por Usuário: ${user.id}`)
+    return { success: true, message: "Pesquisa excluída com sucesso." }
+
+  } catch (error: any) {
+    console.error("[ERRO EXCLUIR PESQUISA]", error)
+    return { 
+      success: false, 
+      message: "Erro ao excluir a pesquisa.",
+      details: error.message 
+    }
+  }
+}
