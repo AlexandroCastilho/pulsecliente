@@ -56,33 +56,33 @@ export default async function PesquisasPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pesquisas.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col">
-              <div className="p-6 flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
-                    p.ativa ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-100 text-gray-600 border border-gray-200'
-                  }`}>
-                    {p.ativa ? 'Ativa' : 'Inativa'}
+                <Link href={`/pesquisas/${p.id}`} className="p-6 flex-1 block">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
+                      p.ativa ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-100 text-gray-600 border border-gray-200'
+                    }`}>
+                      {p.ativa ? 'Ativa' : 'Inativa'}
+                    </div>
+                    <div className="text-gray-300 group-hover:text-indigo-200 transition-colors">
+                      <BarChart3 size={20} />
+                    </div>
                   </div>
-                  <div className="text-gray-300 group-hover:text-indigo-200 transition-colors">
-                    <BarChart3 size={20} />
+                  
+                  <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                    {p.titulo}
+                  </h3>
+                  
+                  <div className="flex items-center gap-4 text-xs text-gray-500 font-medium mt-auto">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={14} className="text-gray-400" />
+                      {new Date(p.createdAt).toLocaleDateString('pt-BR')}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-gray-400" />
+                      Acompanhar resultados
+                    </div>
                   </div>
-                </div>
-                
-                <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">
-                  {p.titulo}
-                </h3>
-                
-                <div className="flex items-center gap-4 text-xs text-gray-500 font-medium mt-auto">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar size={14} className="text-gray-400" />
-                    {new Date(p.createdAt).toLocaleDateString('pt-BR')}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock size={14} className="text-gray-400" />
-                    Modificado recentemente
-                  </div>
-                </div>
-              </div>
+                </Link>
 
               <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
                 <Link 

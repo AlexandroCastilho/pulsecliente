@@ -37,7 +37,7 @@ export function Sidebar({ user }: SidebarProps) {
         <NavItem href="/editor" icon={<PieChart size={20} />} label="Novo Editor" />
         <NavItem href="/pesquisas" icon={<Activity size={20} />} label="Minhas Pesquisas" />
         <NavItem href="/envios" icon={<Send size={20} />} label="Envios" />
-        <NavItem href="/clientes" icon={<Users size={20} />} label="Clientes" />
+        <NavItem href="/equipa" icon={<Users size={20} />} label="Equipa" />
         <NavItem href="/configuracoes" icon={<Settings size={20} />} label="Configurações" />
       </nav>
 

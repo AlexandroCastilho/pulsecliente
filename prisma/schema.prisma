@@ -31,13 +31,14 @@ enum TipoPergunta {
 }
 
 model Empresa {
-  id        String     @id @default(uuid())
+  id        String      @id @default(uuid())
   nome      String
-  slug      String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  slug      String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   usuarios  Usuario[]
   pesquisas Pesquisa[]
+  smtpConfig SmtpConfig?
 
   @@map("empresas")
 }
@@ -110,4 +111,20 @@ model Resposta {
   envio        Envio    @relation(fields: [envioId], references: [id], onDelete: Cascade)
 
   @@map("respostas")
+}
+
+model SmtpConfig {
+  id        String   @id @default(uuid())
+  host      String
+  port      Int      @default(587)
+  user      String
+  pass      String
+  fromName  String
+  fromEmail String
+  empresaId String   @unique
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("smtp_configs")
 }

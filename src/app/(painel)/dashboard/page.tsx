@@ -18,6 +18,7 @@ import {
   Activity
 } from 'lucide-react'
 import { logout } from '@/actions/auth'
+import { calculateNPS, formatPercent } from '@/lib/utils'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -58,12 +59,57 @@ export default async function DashboardPage() {
     })
   }
 
-  // Buscar pesquisas reais da empresa do usuário
+  // 1. Buscar pesquisas reais para listar
   const pesquisas = await prisma.pesquisa.findMany({
     where: { empresaId: dbUser.empresaId },
     orderBy: { createdAt: 'desc' },
+    include: {
+      _count: {
+        select: { envios: { where: { status: 'RESPONDIDO' } } }
+      }
+    },
     take: 5
   })
+
+  // 2. Buscar métricas globais de envios
+  const totalEnvios = await prisma.envio.count({
+    where: { pesquisa: { empresaId: dbUser.empresaId } }
+  })
+
+  const totalRespondidos = await prisma.envio.count({
+    where: { 
+      pesquisa: { empresaId: dbUser.empresaId },
+      status: 'RESPONDIDO'
+    }
+  })
+
+  const taxaResposta = totalEnvios > 0 ? (totalRespondidos / totalEnvios) * 100 : 0
+
+  // 3. Calcular NPS Geral (Média de todas as pesquisas da empresa)
+  // Buscamos todas as respostas de perguntas do tipo ESCALA_NPS vinculadas à empresa
+  const respostasNPS = await prisma.resposta.findMany({
+    where: {
+      envio: {
+        pesquisa: { empresaId: dbUser.empresaId }
+      }
+      // Opcional: filtrar apenas dados que são números se necessário, 
+      // mas vamos assumir que o tipo ESCALA_NPS no editor garante isso
+    },
+    select: { dados: true }
+  })
+
+  // Extrair as notas de NPS do JSON de respostas
+  const notasNPS: number[] = []
+  respostasNPS.forEach(r => {
+    const dados = r.dados as Record<string, any>
+    // Iteramos sobre as chaves (IDs das perguntas) para achar valores numéricos
+    Object.values(dados).forEach(val => {
+      if (typeof val === 'number') notasNPS.push(val)
+    })
+  })
+
+  const npsGeral = calculateNPS(notasNPS)
+  const npsLabel = notasNPS.length > 0 ? npsGeral.toString() : '--'
 
   return (
     <div className="space-y-8">
@@ -77,23 +123,23 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard 
           label="NPS Geral" 
-          value="--" 
-          trend="0%" 
-          subtext="Aguardando dados"
+          value={npsLabel} 
+          trend="Equilibrado" 
+          subtext={`${notasNPS.length} avaliações recebidas`}
           icon={<TrendingUp className="text-emerald-500" size={24} />}
         />
         <MetricCard 
           label="Taxa de Resposta" 
-          value="0%" 
-          trend="0%" 
-          subtext="Inicie uma campanha"
+          value={formatPercent(taxaResposta)} 
+          trend="Real" 
+          subtext={`${totalRespondidos} de ${totalEnvios} envios`}
           icon={<MessageSquare className="text-indigo-500" size={24} />}
         />
         <MetricCard 
           label="Total de Disparos" 
-          value="0" 
-          trend="0%" 
-          subtext="Sem disparos ativos"
+          value={totalEnvios.toString()} 
+          trend="Total" 
+          subtext="Histórico acumulado"
           icon={<Send className="text-blue-500" size={24} />}
         />
       </div>
@@ -110,9 +156,10 @@ export default async function DashboardPage() {
               pesquisas.map((p) => (
                 <SurveyRow 
                   key={p.id}
+                  id={p.id}
                   title={p.titulo} 
                   date={new Date(p.createdAt).toLocaleDateString('pt-BR')} 
-                  responses={0} 
+                  responses={p._count.envios} 
                   status="Ativa" 
                 />
               ))
@@ -175,9 +222,9 @@ function MetricCard({ label, value, trend, subtext, icon }: any) {
   )
 }
 
-function SurveyRow({ title, date, responses, status }: any) {
+function SurveyRow({ id, title, date, responses, status }: any) {
   return (
-    <div className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
+    <Link href={`/pesquisas/${id}`} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:shadow-sm transition-all">
           <MessageSquare size={18} />
@@ -195,7 +242,7 @@ function SurveyRow({ title, date, responses, status }: any) {
         </span>
         <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-400 transform group-hover:translate-x-1 transition-all" />
       </div>
-    </div>
+    </Link>
   )
 }
 

@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rotas que exigem autenticação
-  const publicRoutes = ['/login', '/auth', '/p/']
+  const publicRoutes = ['/login', '/auth', '/responder/']
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
   const isProtectedRoute = (pathname.startsWith('/dashboard') || pathname.startsWith('/editor')) && !isPublicRoute
