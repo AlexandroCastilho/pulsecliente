@@ -15,10 +15,13 @@ import {
   ChevronRight,
   TrendingUp,
   MessageSquare,
-  Activity
+  Activity,
+  Clock,
+  CheckCircle2
 } from 'lucide-react'
 import { logout } from '@/actions/auth'
 import { calculateNPS, formatPercent } from '@/lib/utils'
+import { criarNotificacao } from '@/actions/notifications'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -59,6 +62,18 @@ export default async function DashboardPage() {
     })
   }
 
+  // Lógica de Primeira Notificação (Teste)
+  const countNotif = await prisma.notificacao.count({ where: { usuarioId: dbUser.id } })
+  
+  if (countNotif === 0) {
+    await criarNotificacao(
+      dbUser.id, 
+      "Bem-vindo ao Pulse 7.0!", 
+      "Seu sistema de notificações está ativo. Aqui você receberá alertas sobre novas respostas e status de disparos.",
+      "SISTEMA"
+    )
+  }
+
   // 1. Buscar pesquisas reais para listar
   const pesquisas = await prisma.pesquisa.findMany({
     where: { empresaId: dbUser.empresaId },
@@ -76,71 +91,109 @@ export default async function DashboardPage() {
     where: { pesquisa: { empresaId: dbUser.empresaId } }
   })
 
-  const totalRespondidos = await prisma.envio.count({
+  const respondidas = await prisma.envio.count({
     where: { 
       pesquisa: { empresaId: dbUser.empresaId },
       status: 'RESPONDIDO'
     }
   })
 
-  const taxaResposta = totalEnvios > 0 ? (totalRespondidos / totalEnvios) * 100 : 0
-
-  // 3. Calcular NPS Geral (Média de todas as pesquisas da empresa)
-  // Buscamos todas as respostas de perguntas do tipo ESCALA_NPS vinculadas à empresa
-  const respostasNPS = await prisma.resposta.findMany({
-    where: {
-      envio: {
-        pesquisa: { empresaId: dbUser.empresaId }
-      }
-      // Opcional: filtrar apenas dados que são números se necessário, 
-      // mas vamos assumir que o tipo ESCALA_NPS no editor garante isso
-    },
-    select: { dados: true }
+  const aResponder = await prisma.envio.count({
+    where: { 
+      pesquisa: { empresaId: dbUser.empresaId },
+      status: 'ENVIADO'
+    }
   })
 
-  // Extrair as notas de NPS do JSON de respostas
-  const notasNPS: number[] = []
-  respostasNPS.forEach(r => {
-    const dados = r.dados as Record<string, any>
-    // Iteramos sobre as chaves (IDs das perguntas) para achar valores numéricos
-    Object.values(dados).forEach(val => {
-      if (typeof val === 'number') notasNPS.push(val)
-    })
+  const finalizadas = await prisma.envio.count({
+    where: { 
+      pesquisa: { empresaId: dbUser.empresaId },
+      status: { in: ['RESPONDIDO', 'EXPIRADO'] }
+    }
   })
 
-  const npsGeral = calculateNPS(notasNPS)
-  const npsLabel = notasNPS.length > 0 ? npsGeral.toString() : '--'
+  // Contagem de clientes únicos alcançados
+  const alcanceGroup = await prisma.envio.groupBy({
+    by: ['emailDestinatario'],
+    where: { pesquisa: { empresaId: dbUser.empresaId } },
+  })
+  const clientesAlcancados = alcanceGroup.length
+
+  const taxaResposta = totalEnvios > 0 ? (respondidas / totalEnvios) * 100 : 0
+
+  // 4. Métricas para o relatório de barras (Status dos Disparos)
+  const statusCounts = await prisma.envio.groupBy({
+    by: ['status'],
+    where: { pesquisa: { empresaId: dbUser.empresaId } },
+    _count: { _all: true }
+  })
+
+  const getCount = (status: string) => statusCounts.find(s => s.status === status)?._count._all || 0
+
+  const countEnviados = getCount('ENVIADO') + getCount('RESPONDIDO') + getCount('EXPIRADO')
+  const countErros = getCount('ERRO')
+  
+  const percEnviados = totalEnvios > 0 ? Math.round((countEnviados / totalEnvios) * 100) : 0
+  const percRespondidos = totalEnvios > 0 ? Math.round((respondidas / totalEnvios) * 100) : 0
+  const percSucesso = totalEnvios > 0 ? Math.round(((totalEnvios - countErros) / totalEnvios) * 100) : 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12">
       {/* Welcome Header (Local) */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
-        <p className="text-sm text-gray-500 font-medium">Bem-vindo de volta, {dbUser.nome.split(' ')[0]}!</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard de Operações</h1>
+          <p className="text-sm text-gray-500 font-medium">Bem-vindo de volta, {dbUser.nome.split(' ')[0]}! Veja o desempenho dos seus disparos.</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
+          <Activity size={18} className="text-indigo-600" />
+          <span className="text-xs font-bold text-indigo-700 uppercase tracking-widest whitespace-nowrap">Status Geral</span>
+        </div>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Metrics Grid - 6 Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard 
-          label="NPS Geral" 
-          value={npsLabel} 
-          trend="Equilibrado" 
-          subtext={`${notasNPS.length} avaliações recebidas`}
-          icon={<TrendingUp className="text-emerald-500" size={24} />}
+          label="Pesquisas Respondidas" 
+          value={respondidas.toString()} 
+          trend="Feedback" 
+          subtext="Total de respostas recebidas"
+          icon={<MessageSquare className="text-emerald-500" size={24} />}
         />
         <MetricCard 
-          label="Taxa de Resposta" 
+          label="A Responder" 
+          value={aResponder.toString()} 
+          trend="Pendente" 
+          subtext="Aguardando abertura/resposta"
+          icon={<Clock className="text-amber-500" size={24} />}
+        />
+        <MetricCard 
+          label="Finalizadas" 
+          value={finalizadas.toString()} 
+          trend="Concluído" 
+          subtext="Participações encerradas"
+          icon={<CheckCircle2 className="text-indigo-500" size={24} />}
+        />
+        <MetricCard 
+          label="Taxa de Respostas" 
           value={formatPercent(taxaResposta)} 
-          trend="Real" 
-          subtext={`${totalRespondidos} de ${totalEnvios} envios`}
-          icon={<MessageSquare className="text-indigo-500" size={24} />}
+          trend="Conversão" 
+          subtext="Engajamento dos clientes"
+          icon={<TrendingUp className="text-blue-500" size={24} />}
         />
         <MetricCard 
-          label="Total de Disparos" 
+          label="Quantidade de Disparos" 
           value={totalEnvios.toString()} 
-          trend="Total" 
-          subtext="Histórico acumulado"
-          icon={<Send className="text-blue-500" size={24} />}
+          trend="Volume" 
+          subtext="Total de e-mails enviados"
+          icon={<Send className="text-slate-500" size={24} />}
+        />
+        <MetricCard 
+          label="Clientes Alcançados" 
+          value={clientesAlcancados.toString()} 
+          trend="Alcance" 
+          subtext="Contatos únicos atingidos"
+          icon={<Users className="text-purple-500" size={24} />}
         />
       </div>
 
@@ -178,9 +231,9 @@ export default async function DashboardPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <h3 className="font-bold text-gray-900 mb-6">Status dos Disparos</h3>
           <div className="space-y-6">
-            <StatusItem label="E-mails Enviados" percentage={85} color="bg-indigo-600" />
-            <StatusItem label="Pesquisas Respondidas" percentage={62} color="bg-emerald-500" />
-            <StatusItem label="Taxa de Abertura" percentage={92} color="bg-blue-500" />
+            <StatusItem label="E-mails Enviados" percentage={percEnviados} color="bg-indigo-600" />
+            <StatusItem label="Pesquisas Respondidas" percentage={percRespondidos} color="bg-emerald-500" />
+            <StatusItem label="Taxa de Entrega" percentage={percSucesso} color="bg-blue-500" />
           </div>
         </div>
       </div>

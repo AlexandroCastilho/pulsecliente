@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { formatDate, calculateNPS, getNPSColor } from '@/lib/utils'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
+import { CopySurveyLink } from '@/components/CopySurveyLink'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -209,9 +210,7 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
                       )}
                     </td>
                     <td className="px-8 py-4 text-right">
-                      <button className="p-2 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                        <ChevronRight size={18} />
-                      </button>
+                      <CopySurveyLink token={envio.token} status={envio.status} />
                     </td>
                   </tr>
                 )

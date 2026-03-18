@@ -71,3 +71,79 @@ export async function importarContatos(
     }
   }
 }
+
+export async function getHistoricoEnvios() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
+      select: { empresaId: true }
+    })
+
+    if (!dbUser) return []
+
+    return await prisma.envio.findMany({
+      where: {
+        pesquisa: { empresaId: dbUser.empresaId }
+      },
+      include: {
+        pesquisa: {
+          select: { titulo: true }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 100
+    })
+  } catch (error) {
+    console.error('[ERRO HISTÓRICO ENVIOS]', error)
+    return []
+  }
+}
+
+export async function getStatsEnvios() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
+      select: { empresaId: true }
+    })
+
+    if (!dbUser) return null
+
+    const stats = await prisma.envio.groupBy({
+      by: ['status'],
+      where: {
+        pesquisa: { empresaId: dbUser.empresaId }
+      },
+      _count: {
+        _all: true
+      }
+    })
+
+    const total = stats.reduce((acc, curr) => acc + curr._count._all, 0)
+    const respondidas = stats.find(s => s.status === 'RESPONDIDO')?._count._all || 0
+    const erros = stats.find(s => s.status === 'ERRO')?._count._all || 0
+    const pendentes = stats.find(s => s.status === 'PENDENTE' || s.status === 'PROCESSANDO')?._count._all || 0
+
+    return {
+      total,
+      respondidas,
+      erros,
+      pendentes,
+      taxaSucesso: total > 0 ? Math.round(((total - erros) / total) * 100) : 0
+    }
+  } catch (error) {
+    console.error('[ERRO STATS ENVIOS]', error)
+    return null
+  }
+}
