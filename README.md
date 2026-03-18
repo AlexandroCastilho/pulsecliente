@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💎 PulseCliente 7.0
 
-## Getting Started
+O PulseCliente é uma plataforma SaaS premium para gestão de pesquisas de satisfação e feedback de clientes (NPS, Estrelas, Múltipla Escolha e Texto Livre), desenvolvida com foco em performance, segurança e experiência do usuário de alto nível.
 
-First, run the development server:
+## 🚀 Funcionalidades Principais
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **📊 Dashboard de Elite**: Métricas consolidadas em tempo real com carregamento otimizado.
+- **✉️ Motor de E-mails Asíncrono**: Disparos em massa processados em background para evitar timeouts.
+- **🛡️ Segurança de Multi-Tenant**: Isolamento total de dados entre diferentes empresas.
+- **👥 Gestão de Equipe**: Controle de membros com diferentes níveis de acesso (Owner, Admin, Member).
+- **🎨 Design Moderno**: Interface responsiva, com suporte a Dark Mode e micro-animações fluidas.
+- **⌨️ Acessibilidade (A11y)**: Navegação otimizada por teclado em pesquisas públicas.
+- **⚙️ Configuração SMTP**: Gestão personalizada de servidores de envio de e-mail por empresa.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js 16.1.7 (App Router)](https://nextjs.org)
+- **Linguagem**: TypeScript
+- **Banco de Dados**: PostgreSQL (via [Supabase](https://supabase.com))
+- **ORM**: [Prisma](https://prisma.io)
+- **Estilização**: Tailwind CSS v4 & Framer Motion
+- **Notificações**: Sonner
+- **Validação**: Zod
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏁 Como Começar
 
-## Learn More
+### Pré-requisitos
+- Node.js 20+
+- Instância do Supabase (PostgreSQL)
 
-To learn more about Next.js, take a look at the following resources:
+### Instalação
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone o repositório
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Configure o arquivo `.env` baseando-se no `.env.example`.
+4. Sincronize o banco de dados e gere o cliente Prisma:
+   ```bash
+   npx prisma db push
+   npx prisma generate
+   ```
+5. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🌍 Deploy (Vercel)
 
-## Deploy on Vercel
+A aplicação está otimizada para a Vercel. O script `postinstall` garante que o Prisma seja configurado automaticamente no ambiente serverless. Veja o [Guia de Deploy Vercel](C:\Users\alexa\.gemini\antigravity\brain\52a36fed-aee5-4832-928b-dba5017e0792\walkthrough_vercel.md) para detalhes de variáveis de ambiente.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Desenvolvido com foco em excelência técnica e experiência do cliente. 🚀
