@@ -102,7 +102,7 @@ export default async function PesquisasPage() {
         </div>
       ) : (
         <EmptyState 
-          icon={Plus}
+          icon={<Plus size={40} />}
           title="Sua lista de pesquisas está vazia"
           description="Você ainda não criou nenhuma pesquisa. Comece agora para ouvir seus clientes e tomar decisões baseadas em dados!"
           actionLabel="Criar Primeira Pesquisa"

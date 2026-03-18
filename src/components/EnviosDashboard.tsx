@@ -129,7 +129,7 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
           ) : (
             <div className="p-12">
               <EmptyState 
-                icon={Mail}
+                icon={<Mail size={40} />}
                 title="Sua lista de disparos está vazia"
                 description="Você ainda não realizou nenhum disparo para seus clientes. Selecione uma pesquisa e comece a coletar feedbacks agora mesmo!"
                 actionLabel="Selecionar Pesquisa"
