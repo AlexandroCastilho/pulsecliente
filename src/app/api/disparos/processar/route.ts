@@ -4,7 +4,15 @@ import nodemailer from 'nodemailer'
 
 export async function POST(req: NextRequest) {
   try {
-    const { pesquisaId } = await req.json()
+    const authHeader = req.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const { pesquisaId } = body;
 
     if (!pesquisaId) {
       return NextResponse.json({ error: 'pesquisaId é obrigatório' }, { status: 400 })

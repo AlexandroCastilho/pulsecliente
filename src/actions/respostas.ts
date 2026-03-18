@@ -14,6 +14,10 @@ export async function salvarResposta(envioId: string, dados: any) {
       return { success: false, message: 'Link de pesquisa inválido.' }
     }
 
+    if (!envio.pesquisa.ativa) {
+      return { success: false, message: 'Esta pesquisa não está mais aceitando respostas.' }
+    }
+
     if (envio.status === 'RESPONDIDO') {
       return { success: false, message: 'Esta pesquisa já foi respondida. Obrigado!' }
     }

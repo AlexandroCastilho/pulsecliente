@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { CopySurveyLink } from './CopySurveyLink'
+import { EmptyState } from './EmptyState'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -82,19 +83,19 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50/50">
-              <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                <th className="px-8 py-4">Destinatário</th>
-                <th className="px-8 py-4">Pesquisa</th>
-                <th className="px-8 py-4">Data de Envio</th>
-                <th className="px-8 py-4">Status</th>
-                <th className="px-8 py-4 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {historico.length > 0 ? (
-                historico.map((envio) => (
+          {historico.length > 0 ? (
+            <table className="w-full text-left">
+              <thead className="bg-gray-50/50">
+                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                  <th className="px-8 py-4">Destinatário</th>
+                  <th className="px-8 py-4">Pesquisa</th>
+                  <th className="px-8 py-4">Data de Envio</th>
+                  <th className="px-8 py-4">Status</th>
+                  <th className="px-8 py-4 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {historico.map((envio) => (
                   <tr key={envio.id} className="group hover:bg-gray-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex flex-col">
@@ -122,22 +123,20 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-20 text-center">
-                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                      <Mail size={32} />
-                    </div>
-                    <p className="text-gray-400 text-sm font-semibold">Nenhum envio realizado ainda.</p>
-                    <Link href="/pesquisas" className="text-indigo-600 text-xs font-bold mt-2 inline-block hover:underline">
-                      Selecionar uma pesquisa para disparar
-                    </Link>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-12">
+              <EmptyState 
+                icon={Mail}
+                title="Sua lista de disparos está vazia"
+                description="Você ainda não realizou nenhum disparo para seus clientes. Selecione uma pesquisa e comece a coletar feedbacks agora mesmo!"
+                actionLabel="Selecionar Pesquisa"
+                actionHref="/pesquisas"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

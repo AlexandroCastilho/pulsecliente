@@ -21,33 +21,45 @@ export default async function PainelLayout({
     redirect('/login')
   }
 
-  // Buscar dados dinâmicos para a Sidebar
-  const dbUser = await prisma.usuario.findUnique({
+  // 1. Verificar ou Criar Usuário (Auto-Bootstrap)
+  let dbUser = await prisma.usuario.findUnique({
     where: { id: user.id },
     include: { empresa: true }
   })
 
-  // Se o usuário não existir no Prisma (mas estiver logado no Supabase), 
-  // o dashboard/page.tsx cuidará do bootstrap. 
-  // Por enquanto, passamos dados básicos ou nulos.
-  
-  const userData = dbUser ? {
+  if (!dbUser) {
+    // Criar empresa padrão e usuário OWNER
+    const empresa = await prisma.empresa.create({
+      data: {
+        nome: "Minha Empresa",
+        slug: `org-${Date.now()}`
+      }
+    })
+
+    dbUser = await prisma.usuario.create({
+      data: {
+        id: user.id,
+        email: user.email!,
+        nome: user.user_metadata?.full_name || "Membro",
+        role: "OWNER",
+        empresaId: empresa.id
+      },
+      include: { empresa: true }
+    })
+  }
+
+  const userData = {
     nome: dbUser.nome,
     email: dbUser.email,
     empresa: dbUser.empresa.nome,
     iniciais: dbUser.nome.charAt(0).toUpperCase()
-  } : {
-    nome: user.user_metadata.full_name || "Admin",
-    email: user.email!,
-    empresa: "Carregando...",
-    iniciais: "A"
   }
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar user={userData} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
+        <Header user={userData} />
         <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           {children}
         </main>

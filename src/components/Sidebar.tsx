@@ -39,28 +39,23 @@ export function Sidebar({ user }: SidebarProps) {
         <NavItem href="/envios" icon={<Send size={20} />} label="Envios" />
         <NavItem href="/equipe" icon={<Users size={20} />} label="Equipe" />
         <NavItem href="/configuracoes" icon={<Settings size={20} />} label="Configurações" />
+        
+        <div className="pt-4 mt-4 border-t border-slate-800/50">
+          <button 
+            onClick={() => logout()}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all group cursor-pointer"
+          >
+            <LogOut size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+            Sair da Conta
+          </button>
+        </div>
       </nav>
 
-      <div className="p-4 border-t border-slate-800 bg-slate-900/50">
-        <div className="flex items-center gap-3 mb-4 px-2">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold border-2 border-slate-700 shadow-inner">
-            {user.iniciais}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-medium text-white truncate">{user.nome}</span>
-            <span className="text-xs text-slate-400 truncate">{user.empresa}</span>
-          </div>
-        </div>
-        <form action={logout}>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all group">
-            <LogOut size={18} className="group-hover:text-red-400 transition-colors" />
-            Sair da conta
-          </button>
-        </form>
-      </div>
     </aside>
   )
 }
+
+// Sidebar atualizada para nova estrutura de navegação e labels consistentes.
 
 function NavItem({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) {
   return (

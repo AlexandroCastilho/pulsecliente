@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Settings, 
   Mail, 
@@ -8,26 +8,24 @@ import {
   Lock, 
   User, 
   Save, 
-  CheckCircle2,
   AlertCircle,
   ShieldCheck,
   Globe,
   UserCircle
 } from 'lucide-react'
-import { getSmtpConfig, saveSmtpConfig } from '@/actions/settings'
-import { useEffect } from 'react'
+import { toast } from 'sonner'
+import { getSettingsData, saveSettings } from '@/actions/settings'
 
 export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [config, setConfig] = useState<any>(null)
+  const [data, setData] = useState<any>(null)
 
   useEffect(() => {
-    async function loadConfig() {
-      const data = await getSmtpConfig()
-      if (data) setConfig(data)
+    async function loadData() {
+      const settings = await getSettingsData()
+      if (settings) setData(settings)
     }
-    loadConfig()
+    loadData()
   }, [])
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -36,15 +34,35 @@ export default function ConfiguracoesPage() {
     
     const formData = new FormData(e.currentTarget)
     try {
-      await saveSmtpConfig(formData)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      const res = await saveSettings(formData)
+      if (res.success) {
+        toast.success("Configurações salvas com sucesso!", {
+          description: "Os dados do seu perfil e da empresa foram atualizados."
+        })
+        
+        // Recarrega os dados para garantir que a UI está em sincronia
+        const updated = await getSettingsData()
+        if (updated) setData(updated)
+      }
     } catch (error) {
       console.error(error)
-      alert("Erro ao salvar configurações")
+      toast.error("Erro ao salvar", {
+        description: "Não foi possível persistir as alterações. Tente novamente."
+      })
     } finally {
       setLoading(false)
     }
+  }
+
+  if (!data) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 animate-pulse">
+        <div className="h-8 w-48 bg-gray-200 rounded-lg mb-2" />
+        <div className="h-4 w-64 bg-gray-100 rounded-lg" />
+        <div className="bg-white h-64 rounded-3xl border border-gray-100 mt-8" />
+        <div className="bg-white h-96 rounded-3xl border border-gray-100 mt-8" />
+      </div>
+    )
   }
 
   return (
@@ -57,7 +75,7 @@ export default function ConfiguracoesPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         
-        {/* Bloco 1: SEU PERFIL (E-mail do Usuário) */}
+        {/* Bloco 1: SEU PERFIL */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-8 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
             <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
@@ -71,7 +89,8 @@ export default function ConfiguracoesPage() {
               <label className="text-sm font-bold text-gray-700">O seu Nome</label>
               <input 
                 type="text" 
-                defaultValue="Alexandro Castilho"
+                name="userName"
+                defaultValue={data.user.nome}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-sm font-medium"
               />
             </div>
@@ -80,16 +99,16 @@ export default function ConfiguracoesPage() {
               <label className="text-sm font-bold text-gray-700">E-mail de Login</label>
               <input 
                 type="email" 
-                defaultValue="alexmachado1607@gmail.com"
+                value={data.user.email}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed outline-none text-sm font-medium"
-                disabled
+                readOnly
               />
               <p className="text-[10px] text-gray-400 font-medium italic">O e-mail de login não pode ser alterado por aqui.</p>
             </div>
           </div>
         </div>
 
-        {/* Bloco 2: INFRAESTRUTURA SMTP (E-mail do Servidor) */}
+        {/* Bloco 2: INFRAESTRUTURA SMTP */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-8 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -98,7 +117,9 @@ export default function ConfiguracoesPage() {
               </div>
               <h3 className="font-bold text-gray-900">Configuração de Disparo (SMTP)</h3>
             </div>
-            <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full">Requer Atenção</span>
+            <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${data.smtp ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              {data.smtp ? 'Configurado' : 'Pendente'}
+            </span>
           </div>
           
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -110,7 +131,7 @@ export default function ConfiguracoesPage() {
               <input 
                 type="text" 
                 name="host"
-                defaultValue={config?.host || ''}
+                defaultValue={data.smtp?.host || ''}
                 placeholder="ex: smtp.sendgrid.net"
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
               />
@@ -124,7 +145,7 @@ export default function ConfiguracoesPage() {
               <input 
                 type="number" 
                 name="port"
-                defaultValue={config?.port || 587}
+                defaultValue={data.smtp?.port || 587}
                 placeholder="587"
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
               />
@@ -138,7 +159,7 @@ export default function ConfiguracoesPage() {
               <input 
                 type="text" 
                 name="user"
-                defaultValue={config?.user || ''}
+                defaultValue={data.smtp?.user || ''}
                 placeholder="apikey ou e-mail do servidor"
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
               />
@@ -152,7 +173,7 @@ export default function ConfiguracoesPage() {
               <input 
                 type="password" 
                 name="pass"
-                defaultValue={config?.pass || ''}
+                defaultValue={data.smtp?.pass || ''}
                 placeholder="••••••••••••"
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
               />
@@ -166,7 +187,7 @@ export default function ConfiguracoesPage() {
               <input 
                 type="text" 
                 name="fromName"
-                defaultValue={config?.fromName || ''}
+                defaultValue={data.smtp?.fromName || ''}
                 placeholder="Ex: PulseCliente"
                 className="w-full px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
               />
@@ -180,7 +201,7 @@ export default function ConfiguracoesPage() {
               <input 
                 type="text" 
                 name="fromEmail"
-                defaultValue={config?.fromEmail || ''}
+                defaultValue={data.smtp?.fromEmail || ''}
                 placeholder="Ex: contato@pulsecliente.com.br"
                 className="w-full px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
               />
@@ -202,7 +223,8 @@ export default function ConfiguracoesPage() {
               <label className="text-sm font-bold text-gray-700">Nome da Organização</label>
               <input 
                 type="text" 
-                defaultValue="Minha Empresa"
+                name="companyName"
+                defaultValue={data.empresa.nome}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
               />
             </div>
@@ -211,12 +233,6 @@ export default function ConfiguracoesPage() {
 
         {/* Ações */}
         <div className="flex items-center justify-end gap-4 pt-4">
-          {success && (
-            <span className="flex items-center gap-2 text-emerald-600 text-sm font-bold animate-in fade-in slide-in-from-right-2">
-              <CheckCircle2 size={16} />
-              Configurações salvas!
-            </span>
-          )}
           <button 
             type="submit"
             disabled={loading}

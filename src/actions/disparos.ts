@@ -47,14 +47,16 @@ export async function processarDisparo(pesquisaId: string) {
       data: { status: 'PROCESSANDO' }
     })
 
-    // 5. Chamar o Worker em Segundo Plano (Fire-and-Forget)
-    // Usamos o cabeçalho base de URL do env ou localhost
+    // Chamar o Worker com o segredo de segurança
+    const cronSecret = process.env.CRON_SECRET
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     
-    // Disparamos o fetch SEM o await para não bloquear o retorno da Action
     fetch(`${appUrl}/api/disparos/processar`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cronSecret}`
+      },
       body: JSON.stringify({ pesquisaId })
     }).catch(err => console.error('[FETCH WORKER ERROR]', err))
 

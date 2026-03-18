@@ -4,7 +4,7 @@ async function main() {
   try {
     const config = await prisma.smtpConfig.findFirst()
     console.log('SmtpConfig is accessible runtime:', !!config || true)
-  } catch (e) {
+  } catch (e: any) {
     console.error('SmtpConfig is NOT accessible at runtime:', e.message)
   }
 }

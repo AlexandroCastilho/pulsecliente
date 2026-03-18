@@ -17,16 +17,19 @@ export const metadata: Metadata = {
   description: "Plataforma de pesquisas de satisfação e NPS",
 };
 
+import { ToasterProvider } from '@/components/ToastProvider'
+
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="pt-BR">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
+      <body className="antialiased">
+        <ToasterProvider />
         {children}
       </body>
     </html>
-  );
+  )
 }

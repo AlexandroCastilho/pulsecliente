@@ -34,47 +34,46 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Lógica de Bootstrap: Buscar ou criar usuário no Prisma
-  let dbUser = await prisma.usuario.findUnique({
+  // Buscar o dbUser (agora garantido pelo layout, mas precisamos dele aqui para o ID da empresa)
+  const dbUser = await prisma.usuario.findUnique({
     where: { id: user.id },
-    include: { empresa: true }
+    select: { empresaId: true, nome: true }
   })
 
-  if (!dbUser) {
-    // Criar empresa padrão
-    const empresa = await prisma.empresa.create({
-      data: {
-        nome: "Minha Empresa",
-        slug: `minha-empresa-${Date.now()}`
-      }
-    })
+  if (!dbUser) redirect('/login')
 
-    // Criar usuário como OWNER
-    dbUser = await prisma.usuario.create({
-      data: {
-        id: user.id,
-        email: user.email!,
-        nome: user.user_metadata.full_name || "Admin",
-        role: "OWNER",
-        empresaId: empresa.id
-      },
-      include: { empresa: true }
-    })
-  }
+  // 1. Buscar métricas consolidadas (Otimização de Performance)
+  // Substituímos múltiplos prisma.count() por queries mais eficientes
+  const statusStats = await prisma.envio.groupBy({
+    by: ['status'],
+    where: { pesquisa: { empresaId: dbUser.empresaId } },
+    _count: { _all: true }
+  })
 
-  // Lógica de Primeira Notificação (Teste)
-  const countNotif = await prisma.notificacao.count({ where: { usuarioId: dbUser.id } })
+  const getS = (s: string) => statusStats.find(x => x.status === s)?._count._all || 0
   
-  if (countNotif === 0) {
-    await criarNotificacao(
-      dbUser.id, 
-      "Bem-vindo ao Pulse 7.0!", 
-      "Seu sistema de notificações está ativo. Aqui você receberá alertas sobre novas respostas e status de disparos.",
-      "SISTEMA"
-    )
-  }
+  const respondidas = getS('RESPONDIDO')
+  const aResponder = getS('ENVIADO')
+  const finalizadas = respondidas + getS('EXPIRADO')
+  const totalEnvios = statusStats.reduce((acc, curr) => acc + curr._count._all, 0)
+  
+  // Contagem de clientes únicos (Mantida separada por ser groupBy diferente)
+  const alcanceGroup = await prisma.envio.groupBy({
+    by: ['emailDestinatario'],
+    where: { pesquisa: { empresaId: dbUser.empresaId } },
+  })
+  const clientesAlcancados = alcanceGroup.length
 
-  // 1. Buscar pesquisas reais para listar
+  const taxaResposta = totalEnvios > 0 ? (respondidas / totalEnvios) * 100 : 0
+  
+  const countEnviados = respondidas + aResponder + getS('EXPIRADO')
+  const countErros = getS('ERRO')
+  
+  const percEnviados = totalEnvios > 0 ? Math.round((countEnviados / totalEnvios) * 100) : 0
+  const percRespondidos = totalEnvios > 0 ? Math.round((respondidas / totalEnvios) * 100) : 0
+  const percSucesso = totalEnvios > 0 ? Math.round(((totalEnvios - countErros) / totalEnvios) * 100) : 0
+
+  // 2. Buscar pesquisas recentes (Lista)
   const pesquisas = await prisma.pesquisa.findMany({
     where: { empresaId: dbUser.empresaId },
     orderBy: { createdAt: 'desc' },
@@ -85,57 +84,6 @@ export default async function DashboardPage() {
     },
     take: 5
   })
-
-  // 2. Buscar métricas globais de envios
-  const totalEnvios = await prisma.envio.count({
-    where: { pesquisa: { empresaId: dbUser.empresaId } }
-  })
-
-  const respondidas = await prisma.envio.count({
-    where: { 
-      pesquisa: { empresaId: dbUser.empresaId },
-      status: 'RESPONDIDO'
-    }
-  })
-
-  const aResponder = await prisma.envio.count({
-    where: { 
-      pesquisa: { empresaId: dbUser.empresaId },
-      status: 'ENVIADO'
-    }
-  })
-
-  const finalizadas = await prisma.envio.count({
-    where: { 
-      pesquisa: { empresaId: dbUser.empresaId },
-      status: { in: ['RESPONDIDO', 'EXPIRADO'] }
-    }
-  })
-
-  // Contagem de clientes únicos alcançados
-  const alcanceGroup = await prisma.envio.groupBy({
-    by: ['emailDestinatario'],
-    where: { pesquisa: { empresaId: dbUser.empresaId } },
-  })
-  const clientesAlcancados = alcanceGroup.length
-
-  const taxaResposta = totalEnvios > 0 ? (respondidas / totalEnvios) * 100 : 0
-
-  // 4. Métricas para o relatório de barras (Status dos Disparos)
-  const statusCounts = await prisma.envio.groupBy({
-    by: ['status'],
-    where: { pesquisa: { empresaId: dbUser.empresaId } },
-    _count: { _all: true }
-  })
-
-  const getCount = (status: string) => statusCounts.find(s => s.status === status)?._count._all || 0
-
-  const countEnviados = getCount('ENVIADO') + getCount('RESPONDIDO') + getCount('EXPIRADO')
-  const countErros = getCount('ERRO')
-  
-  const percEnviados = totalEnvios > 0 ? Math.round((countEnviados / totalEnvios) * 100) : 0
-  const percRespondidos = totalEnvios > 0 ? Math.round((respondidas / totalEnvios) * 100) : 0
-  const percSucesso = totalEnvios > 0 ? Math.round(((totalEnvios - countErros) / totalEnvios) * 100) : 0
 
   return (
     <div className="space-y-8 pb-12">

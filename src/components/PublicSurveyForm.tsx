@@ -118,7 +118,10 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                 <button
                   key={i}
                   onClick={() => handleUpdateResposta(i)}
-                  className={`aspect-square sm:aspect-auto sm:h-12 rounded-xl font-bold transition-all flex items-center justify-center border-2 ${
+                  onKeyDown={(e) => {
+                    if (e.key === i.toString()) handleUpdateResposta(i)
+                  }}
+                  className={`aspect-square sm:aspect-auto sm:h-12 rounded-xl font-bold transition-all flex items-center justify-center border-2 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none ${
                     respostas[perguntaAtual.id] === i 
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105' 
                     : 'bg-white border-gray-100 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
