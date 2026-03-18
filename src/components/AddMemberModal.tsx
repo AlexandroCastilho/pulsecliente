@@ -62,7 +62,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                 type="text" 
                 required
                 placeholder="Ex: João Silva"
-                className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
+                className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
             </div>
           </div>
@@ -76,7 +76,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                 type="email" 
                 required
                 placeholder="joao@empresa.com"
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
+import { processarDisparo } from './disparos'
 
 export async function importarContatos(
   pesquisaId: string, 
@@ -145,5 +146,62 @@ export async function getStatsEnvios() {
   } catch (error) {
     console.error('[ERRO STATS ENVIOS]', error)
     return null
+  }
+}
+
+export async function editarEReenviarEnvio(id: string, novoEmail: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, message: 'Usuário não autenticado.' }
+    }
+
+    // 1. Validar empresa do usuário
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
+      select: { empresaId: true }
+    })
+
+    if (!dbUser) {
+      return { success: false, message: 'Perfil não encontrado.' }
+    }
+
+    // 2. Localizar o envio e garantir que pertence à empresa
+    const envio = await prisma.envio.findFirst({
+      where: {
+        id,
+        pesquisa: { empresaId: dbUser.empresaId }
+      }
+    })
+
+    if (!envio) {
+      return { success: false, message: 'Envio não encontrado ou acesso negado.' }
+    }
+
+    // 3. Atualizar o envio para PENDENTE e novo email
+    await prisma.envio.update({
+      where: { id },
+      data: {
+        emailDestinatario: novoEmail,
+        status: 'PENDENTE',
+        erroLog: null,
+        enviadoEm: null,
+        jobId: null
+      }
+    })
+
+    // 4. Disparar novamente
+    await processarDisparo(envio.pesquisaId)
+
+    return { success: true, message: 'E-mail atualizado e reenvio iniciado com sucesso!' }
+
+  } catch (error: any) {
+    console.error('[ERRO EDITAR E REENVIAR]', error)
+    if (error.code === 'P2002') {
+      return { success: false, message: 'Este e-mail já existe na lista desta pesquisa.' }
+    }
+    return { success: false, message: 'Erro ao processar edição e reenvio.' }
   }
 }

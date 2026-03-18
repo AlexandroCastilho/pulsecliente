@@ -91,7 +91,7 @@ export default function ConfiguracoesPage() {
                 type="text" 
                 name="userName"
                 defaultValue={data.user.nome}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-sm font-medium"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
             </div>
 
@@ -133,7 +133,7 @@ export default function ConfiguracoesPage() {
                 name="host"
                 defaultValue={data.smtp?.host || ''}
                 placeholder="ex: smtp.sendgrid.net"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm text-gray-900"
               />
             </div>
 
@@ -147,7 +147,7 @@ export default function ConfiguracoesPage() {
                 name="port"
                 defaultValue={data.smtp?.port || 587}
                 placeholder="587"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm text-gray-900"
               />
             </div>
 
@@ -161,7 +161,7 @@ export default function ConfiguracoesPage() {
                 name="user"
                 defaultValue={data.smtp?.user || ''}
                 placeholder="apikey ou e-mail do servidor"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm text-gray-900"
               />
             </div>
 
@@ -175,7 +175,7 @@ export default function ConfiguracoesPage() {
                 name="pass"
                 defaultValue={data.smtp?.pass || ''}
                 placeholder="••••••••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm text-gray-900"
               />
             </div>
 
@@ -189,7 +189,7 @@ export default function ConfiguracoesPage() {
                 name="fromName"
                 defaultValue={data.smtp?.fromName || ''}
                 placeholder="Ex: PulseCliente"
-                className="w-full px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
+                className="w-full px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
             </div>
 
@@ -203,7 +203,7 @@ export default function ConfiguracoesPage() {
                 name="fromEmail"
                 defaultValue={data.smtp?.fromEmail || ''}
                 placeholder="Ex: contato@pulsecliente.com.br"
-                className="w-full px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
+                className="w-full px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
               <p className="text-[10px] text-indigo-400 font-medium italic">Este endereço deve estar autorizado no seu provedor de e-mail.</p>
             </div>
@@ -225,7 +225,7 @@ export default function ConfiguracoesPage() {
                 type="text" 
                 name="companyName"
                 defaultValue={data.empresa.nome}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
             </div>
           </div>

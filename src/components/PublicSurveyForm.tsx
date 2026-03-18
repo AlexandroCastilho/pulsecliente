@@ -153,7 +153,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           {/* Texto Livre */}
           {perguntaAtual.tipo === 'TEXTO_LIVRE' && (
             <textarea
-              className="w-full h-32 p-4 bg-gray-50 border-2 border-transparent border-gray-100 rounded-2xl focus:border-indigo-600 focus:bg-white outline-none transition-all placeholder:text-gray-400 font-medium"
+              className="w-full h-32 p-4 bg-gray-50 border-2 border-transparent border-gray-100 rounded-2xl focus:border-indigo-600 focus:bg-white outline-none transition-all placeholder:text-gray-400 text-gray-900 font-medium"
               placeholder="Sua resposta aqui..."
               value={respostas[perguntaAtual.id] || ''}
               onChange={(e) => handleUpdateResposta(e.target.value)}

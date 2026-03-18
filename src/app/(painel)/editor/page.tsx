@@ -143,7 +143,7 @@ export default function EditorPage() {
                   type="text" 
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all sm:text-sm text-gray-900"
                 />
               </div>
               <div>
@@ -152,7 +152,7 @@ export default function EditorPage() {
                   rows={3}
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all sm:text-sm resize-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all sm:text-sm resize-none text-gray-900"
                   placeholder="Explique o objetivo desta pesquisa..."
                 />
               </div>
@@ -302,7 +302,7 @@ function QuestionCard({ pergunta, index, onRemove, onChange }: {
                     newOpts[i] = e.target.value
                     onChange({ opcoes: newOpts })
                   }}
-                  className="flex-1 text-sm text-gray-700 outline-none border-b border-transparent focus:border-indigo-500"
+                  className="flex-1 text-sm text-gray-900 outline-none border-b border-transparent focus:border-indigo-500"
                  />
                </div>
              ))}
