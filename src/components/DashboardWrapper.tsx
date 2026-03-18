@@ -54,17 +54,18 @@ export function DashboardWrapper({ children, userData }: DashboardWrapperProps) 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header Mobile */}
         <div className="md:hidden flex items-center justify-between px-6 h-16 bg-white border-b border-gray-100">
-           <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                 <Activity className="text-white w-5 h-5" />
-              </div>
-           </div>
            <button 
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 text-gray-500 hover:bg-gray-50 rounded-xl transition-all"
            >
               <Menu size={24} />
            </button>
+
+           <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                 <Activity className="text-white w-5 h-5" />
+              </div>
+           </div>
         </div>
 
         <Header user={userData} />
