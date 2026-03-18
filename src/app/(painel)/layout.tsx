@@ -3,8 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/Sidebar'
-import { Header } from '@/components/Header'
+import { DashboardWrapper } from '@/components/DashboardWrapper'
 
 export default async function PainelLayout({
   children,
@@ -56,14 +55,8 @@ export default async function PainelLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar user={userData} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header user={userData} />
-        <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardWrapper userData={userData}>
+      {children}
+    </DashboardWrapper>
   )
 }

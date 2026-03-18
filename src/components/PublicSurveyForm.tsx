@@ -90,7 +90,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-8 md:p-12 relative overflow-hidden flex flex-col min-h-[400px]">
+    <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-5 sm:p-8 md:p-12 relative overflow-hidden flex flex-col min-h-[400px]">
       {/* Barra de Progresso */}
       <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-100">
         <div 
@@ -104,7 +104,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           Pergunta {currentStep + 1} de {totalPerguntas}
         </span>
         
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 leading-tight">
+        <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight break-words">
           {perguntaAtual.titulo}
         </h2>
 
@@ -113,7 +113,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           
           {/* NPS (0-10) */}
           {perguntaAtual.tipo === 'ESCALA_NPS' && (
-            <div className="grid grid-cols-6 sm:grid-cols-11 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-11 gap-2">
               {[...Array(11)].map((_, i) => (
                 <button
                   key={i}
@@ -121,7 +121,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                   onKeyDown={(e) => {
                     if (e.key === i.toString()) handleUpdateResposta(i)
                   }}
-                  className={`aspect-square sm:aspect-auto sm:h-12 rounded-xl font-bold transition-all flex items-center justify-center border-2 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none ${
+                  className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl font-bold transition-all flex items-center justify-center border-2 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none text-base ${
                     respostas[perguntaAtual.id] === i 
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105' 
                     : 'bg-white border-gray-100 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
@@ -153,7 +153,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           {/* Texto Livre */}
           {perguntaAtual.tipo === 'TEXTO_LIVRE' && (
             <textarea
-              className="w-full h-32 p-4 bg-gray-50 border-2 border-transparent border-gray-100 rounded-2xl focus:border-indigo-600 focus:bg-white outline-none transition-all placeholder:text-gray-400 text-gray-900 font-medium"
+              className="w-full h-40 p-4 bg-gray-50 border-2 border-transparent border-gray-100 rounded-2xl focus:border-indigo-600 focus:bg-white outline-none transition-all placeholder:text-gray-400 text-gray-900 font-medium text-base resize-none"
               placeholder="Sua resposta aqui..."
               value={respostas[perguntaAtual.id] || ''}
               onChange={(e) => handleUpdateResposta(e.target.value)}
@@ -167,18 +167,18 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                 <button
                   key={idx}
                   onClick={() => handleUpdateResposta(opcao)}
-                  className={`p-4 rounded-2xl font-bold text-left transition-all border-2 flex items-center gap-3 ${
+                  className={`p-5 rounded-2xl font-bold text-left transition-all border-2 flex items-center gap-3 min-h-[56px] ${
                     respostas[perguntaAtual.id] === opcao
                     ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm'
                     : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
                   }`}
                 >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
                     respostas[perguntaAtual.id] === opcao ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'
                   }`}>
-                    {respostas[perguntaAtual.id] === opcao && <div className="w-2 h-2 bg-white rounded-full" />}
+                    {respostas[perguntaAtual.id] === opcao && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                   </div>
-                  {opcao}
+                  <span className="text-base">{opcao}</span>
                 </button>
               ))}
             </div>
@@ -206,7 +206,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
         <button
           onClick={handleNext}
           disabled={respostas[perguntaAtual.id] === undefined || enviando}
-          className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all shadow-xl disabled:opacity-50 disabled:shadow-none ${
+          className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl disabled:opacity-50 disabled:shadow-none min-h-[48px] ${
             currentStep === totalPerguntas - 1 
             ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20' 
             : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/10'
@@ -217,7 +217,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           ) : (
             <>
               {currentStep === totalPerguntas - 1 ? 'Enviar Resposta' : 'Próxima'}
-              {currentStep === totalPerguntas - 1 ? <SendHorizontal size={20} /> : <ChevronRight size={20} />}
+              {currentStep === totalPerguntas - 1 ? <SendHorizontal size={18} /> : <ChevronRight size={18} />}
             </>
           )}
         </button>

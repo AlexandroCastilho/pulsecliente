@@ -189,9 +189,9 @@ export default function EditorPage() {
         {/* Preview do Formulário (Direita) */}
         <main className="flex-1 overflow-y-auto p-12 bg-gray-50 custom-scrollbar">
           <div className="max-w-2xl mx-auto space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border-t-8 border-t-indigo-600 border border-gray-200 p-8 space-y-4">
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{titulo}</h1>
-              <p className="text-gray-500 whitespace-pre-wrap">{descricao}</p>
+            <div className="bg-white rounded-2xl shadow-sm border-t-8 border-t-indigo-600 border border-gray-200 p-8 space-y-4 overflow-hidden">
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight break-words">{titulo}</h1>
+              <p className="text-gray-500 whitespace-pre-wrap break-words">{descricao}</p>
             </div>
 
             {perguntas.length === 0 ? (
@@ -248,11 +248,16 @@ function QuestionCard({ pergunta, index, onRemove, onChange }: {
 
       <div className="flex justify-between items-start mb-6 gap-6 pl-2">
         <div className="flex-1">
-          <input 
-            type="text"
+          <textarea 
+            rows={1}
             value={pergunta.titulo}
-            onChange={(e) => onChange({ titulo: e.target.value })}
-            className="w-full text-lg font-bold text-gray-900 outline-none border-b-2 border-transparent focus:border-indigo-500 bg-transparent transition-all placeholder-gray-300 py-1"
+            onChange={(e) => {
+              onChange({ titulo: e.target.value })
+              // Auto-resize logic
+              e.target.style.height = 'auto'
+              e.target.style.height = e.target.scrollHeight + 'px'
+            }}
+            className="w-full text-lg font-bold text-gray-900 outline-none border-b-2 border-transparent focus:border-indigo-500 bg-transparent transition-all placeholder-gray-300 py-1 resize-none break-words whitespace-pre-wrap flex items-center h-auto"
             placeholder="Digite o título da pergunta..."
           />
         </div>

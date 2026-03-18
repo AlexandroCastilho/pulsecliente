@@ -20,17 +20,20 @@ interface SidebarProps {
     empresa: string
     iniciais: string
   }
+  isMobile?: boolean
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, isMobile }: SidebarProps) {
   return (
-    <aside className="w-64 bg-slate-900 flex flex-col shadow-2xl z-20 transition-all duration-300">
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <Activity className="text-white w-5 h-5" />
+    <aside className={`${isMobile ? 'w-full' : 'w-64'} bg-slate-900 flex flex-col h-full shadow-2xl z-20 transition-all duration-300`}>
+      {!isMobile && (
+        <div className="p-6 flex items-center gap-3">
+          <div className="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <Activity className="text-white w-5 h-5" />
+          </div>
+          <span className="text-xl font-bold text-white tracking-tight">PulseCliente</span>
         </div>
-        <span className="text-xl font-bold text-white tracking-tight">PulseCliente</span>
-      </div>
+      )}
 
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
         <NavItem href="/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
@@ -49,8 +52,20 @@ export function Sidebar({ user }: SidebarProps) {
             Sair da Conta
           </button>
         </div>
-      </nav>
 
+        {/* Info do Usuário no Mobile (Opcional) */}
+        {isMobile && (
+          <div className="p-6 border-t border-slate-800/50 flex items-center gap-3 mt-auto">
+             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-xs">
+                {user.iniciais}
+             </div>
+             <div className="flex flex-col">
+                <span className="text-sm font-bold text-white">{user.nome}</span>
+                <span className="text-[10px] text-slate-500 uppercase font-black">{user.empresa}</span>
+             </div>
+          </div>
+        )}
+      </nav>
     </aside>
   )
 }

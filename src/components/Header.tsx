@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { Search, Settings, User as UserIcon, LogOut } from 'lucide-react'
+import { Search, Settings, User as UserIcon } from 'lucide-react'
 import { NotificationDropdown } from './NotificationDropdown'
 import { logout } from '@/actions/auth'
 
@@ -16,7 +16,7 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   return (
-    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-10 shadow-sm shrink-0">
+    <header className="h-16 md:h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 z-10 shadow-sm shrink-0">
       <div className="flex-1" />
 
       <div className="flex items-center gap-6">
@@ -41,17 +41,6 @@ export function Header({ user }: HeaderProps) {
             {user.iniciais || "A"}
           </div>
         </Link>
-        
-        <div className="h-4 w-[1px] bg-gray-100 mx-1" />
-
-        {/* Botão Sair */}
-        <button 
-          onClick={() => logout()}
-          className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 group cursor-pointer"
-          title="Sair"
-        >
-          <LogOut size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-        </button>
       </div>
     </header>
   )
