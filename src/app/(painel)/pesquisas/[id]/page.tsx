@@ -245,7 +245,7 @@ function QuestionAnalyticsCard({ pergunta, index, envios }: any) {
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-3">
                 <NPSBreakdownItem 
-                  label="Promotores" 
+                  label="Satisfeitos" 
                   count={respostas.filter((r: any) => Number(r) >= 9).length}
                   total={total}
                   color="bg-emerald-500"
@@ -259,18 +259,32 @@ function QuestionAnalyticsCard({ pergunta, index, envios }: any) {
                   sub="7-8"
                 />
                 <NPSBreakdownItem 
-                  label="Detratores" 
+                  label="Insatisfeitos" 
                   count={respostas.filter((r: any) => Number(r) <= 6).length}
                   total={total}
                   color="bg-red-500"
                   sub="0-6"
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">NPS da Pergunta</span>
-                <span className={`text-2xl font-black ${getNPSColor(calculateNPS(respostas.map(Number))).split(' ')[0]}`}>
-                  {calculateNPS(respostas.map(Number))}
-                </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col items-center p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">NPS Score</span>
+                  <span className={`text-2xl font-black ${calculateNPS(respostas.map(Number)) < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                    {calculateNPS(respostas.map(Number))}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nota Média</span>
+                  <span className="text-2xl font-black text-gray-700">
+                    {(respostas.reduce((a: number, b: any) => a + Number(b), 0) / total).toFixed(1)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
+                <p className="text-[10px] text-indigo-600/80 leading-relaxed font-bold uppercase tracking-wide">
+                  O NPS varia de -100 a 100. Score negativo indica que há mais clientes insatisfeitos (detratores) que satisfeitos (promotores).
+                </p>
               </div>
             </div>
           )}
@@ -321,7 +335,9 @@ function NPSBreakdownItem({ label, count, total, color, sub }: any) {
         <span className="text-lg font-black text-gray-900 relative z-10">{count}</span>
         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter relative z-10">{sub}</span>
       </div>
-      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{label}</span>
+      <div className="text-center">
+        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none grow">{label}</p>
+      </div>
       <span className="text-[9px] font-bold text-indigo-500">{percent.toFixed(0)}%</span>
     </div>
   )
@@ -341,10 +357,10 @@ function MiniStatCard({ label, value, icon, color, description }: any) {
           {icon}
         </div>
       </div>
-      <p className="text-[11px] font-bold text-gray-400 mt-4 flex items-center gap-1.5 relative z-10">
+      <div className="text-[11px] font-bold text-gray-400 mt-4 flex items-center gap-1.5 relative z-10">
         <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
         {description}
-      </p>
+      </div>
       {/* Decoração sutil */}
       <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-gray-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-1000" />
     </div>

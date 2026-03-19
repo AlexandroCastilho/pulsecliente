@@ -86,42 +86,44 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="">
           {historico.length > 0 ? (
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead className="bg-gray-50/50">
                 <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                  <th className="px-8 py-4">Destinatário</th>
-                  <th className="px-8 py-4">Pesquisa</th>
-                  <th className="px-8 py-4">Data de Envio</th>
-                  <th className="px-8 py-4">Status</th>
-                  <th className="px-8 py-4 text-center">Ações</th>
+                  <th className="w-[30%] px-4 py-4">Destinatário</th>
+                  <th className="w-[30%] px-4 py-4">Pesquisa</th>
+                  <th className="w-[20%] px-4 py-4">Data de Envio</th>
+                  <th className="w-[12%] px-4 py-4 text-center">Status</th>
+                  <th className="w-[8%] px-4 py-4 text-center">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {historico.map((envio) => (
                   <tr key={envio.id} className="group hover:bg-gray-50/50 transition-colors">
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900">{envio.nomeDestinatario || 'Sem nome'}</span>
-                        <span className="text-xs text-gray-400 font-medium">{envio.emailDestinatario}</span>
+                    <td className="px-4 py-5 overflow-hidden">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-gray-900 truncate">{envio.nomeDestinatario || 'Sem nome'}</span>
+                        <span className="text-xs text-gray-400 font-medium truncate">{envio.emailDestinatario}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500">
+                    <td className="px-4 py-5 overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500 shrink-0">
                           <Mail size={14} />
                         </div>
-                        <span className="text-sm font-bold text-gray-700 line-clamp-1">{envio.pesquisa.titulo}</span>
+                        <span className="text-sm font-bold text-gray-700 truncate">{envio.pesquisa.titulo}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm font-medium text-gray-500">
+                    <td className="px-4 py-5 text-sm font-medium text-gray-500 truncate">
                       {format(new Date(envio.createdAt), "dd 'de' MMM, HH:mm", { locale: ptBR })}
                     </td>
-                    <td className="px-8 py-5">
-                      <StatusBadge status={envio.status} />
+                    <td className="px-4 py-5 text-center">
+                      <div className="flex justify-center">
+                        <StatusBadge status={envio.status} />
+                      </div>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 py-5 text-center">
                       <div className="flex justify-center gap-2">
                          {envio.status === 'ERRO' && (
                            <button 

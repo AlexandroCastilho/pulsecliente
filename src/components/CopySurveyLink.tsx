@@ -56,17 +56,17 @@ export function CopySurveyLink({ token, status }: CopySurveyLinkProps) {
 
       {/* Tooltip de "Já Respondido" */}
       {isRespondido && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-30">
+        <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-30">
           Cliente já respondeu a pesquisa.
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900" />
+          <div className="absolute top-full right-4 border-8 border-transparent border-t-slate-900" />
         </div>
       )}
 
       {/* Tooltip de "Copia Link" */}
       {!isRespondido && !copied && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-30">
+        <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-30">
           Gerar Link Manual
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-indigo-600" />
+          <div className="absolute top-full right-4 border-8 border-transparent border-t-indigo-600" />
         </div>
       )}
     </div>
