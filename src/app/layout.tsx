@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PulseCliente 7.0",
-  description: "Plataforma de pesquisas de satisfação e NPS",
+  title: "Opinaloop - Plataforma de Pesquisas",
+  description: "Entenda seus clientes de verdade com o Opinaloop",
 };
 
 import { ToasterProvider } from '@/components/ToastProvider'

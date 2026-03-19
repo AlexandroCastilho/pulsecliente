@@ -188,7 +188,7 @@ export default function ConfiguracoesPage() {
                 type="text" 
                 name="fromName"
                 defaultValue={data.smtp?.fromName || ''}
-                placeholder="Ex: PulseCliente"
+                placeholder="Ex: Opinaloop"
                 className="w-full px-4 py-3 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-base font-medium text-gray-900"
               />
             </div>
@@ -202,7 +202,7 @@ export default function ConfiguracoesPage() {
                 type="text" 
                 name="fromEmail"
                 defaultValue={data.smtp?.fromEmail || ''}
-                placeholder="Ex: contato@pulsecliente.com.br"
+                placeholder="Ex: contato@opinaloop.com.br"
                 className="w-full px-4 py-3 rounded-xl border border-indigo-100 bg-indigo-50/30 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-base font-medium text-gray-900"
               />
               <p className="text-[10px] text-indigo-400 font-medium italic">Este endereço deve estar autorizado no seu provedor de e-mail.</p>

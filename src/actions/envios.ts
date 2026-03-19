@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
 import { processarDisparo } from './disparos'
+import { revalidatePath } from 'next/cache'
 
 export async function importarContatos(
   pesquisaId: string, 
@@ -56,7 +57,12 @@ export async function importarContatos(
     })
 
     console.log(`[IMPORTAÇÃO] ${result.count} novos contatos importados para a pesquisa ${pesquisaId}`)
-
+    
+    // Revalidar rotas afetadas
+    revalidatePath(`/pesquisas/${pesquisaId}`)
+    revalidatePath('/envios')
+    revalidatePath('/dashboard')
+    
     return { 
       success: true, 
       count: result.count,
@@ -194,7 +200,12 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
 
     // 4. Disparar novamente
     await processarDisparo(envio.pesquisaId)
-
+    
+    // Revalidar rotas afetadas
+    revalidatePath(`/pesquisas/${envio.pesquisaId}`)
+    revalidatePath('/envios')
+    revalidatePath('/dashboard')
+    
     return { success: true, message: 'E-mail atualizado e reenvio iniciado com sucesso!' }
 
   } catch (error: any) {

@@ -3,6 +3,7 @@
 import nodemailer from 'nodemailer'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export async function processarDisparo(pesquisaId: string) {
   try {
@@ -59,6 +60,11 @@ export async function processarDisparo(pesquisaId: string) {
       },
       body: JSON.stringify({ pesquisaId })
     }).catch(err => console.error('[FETCH WORKER ERROR]', err))
+
+    // Revalidar para que a UI mostre 'PROCESSANDO' imediatamente
+    revalidatePath(`/pesquisas/${pesquisaId}`)
+    revalidatePath('/envios')
+    revalidatePath('/dashboard')
 
     return { 
       success: true, 

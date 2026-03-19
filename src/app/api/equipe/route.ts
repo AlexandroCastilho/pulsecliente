@@ -28,9 +28,18 @@ export async function GET() {
       ]
     })
 
+    const convites = await prisma.convite.findMany({
+      where: { 
+        empresaId: dbUser.empresaId,
+        status: 'PENDING'
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
     return NextResponse.json({
       user: dbUser,
-      membros
+      membros,
+      convites
     })
   } catch (error) {
     console.error('[API EQUIPE ERROR]', error)

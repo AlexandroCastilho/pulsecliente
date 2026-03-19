@@ -65,7 +65,7 @@ export default async function PublicSurveyPage({ params }: PageProps) {
         {/* Footer */}
         <div className="mt-12 text-center text-gray-400 text-xs font-medium flex items-center justify-center gap-2">
           <span>Powered by</span>
-          <span className="font-bold text-indigo-600/50">PulseCliente</span>
+          <span className="font-bold text-indigo-600/50">Opinaloop</span>
         </div>
       </div>
     </div>

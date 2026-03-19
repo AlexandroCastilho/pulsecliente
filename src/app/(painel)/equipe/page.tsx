@@ -8,7 +8,8 @@ import {
   UserCheck,
   UserCog,
   User,
-  ShieldAlert
+  ShieldAlert,
+  X
 } from 'lucide-react'
 import { EquipeHeader } from '@/components/EquipeHeader'
 import { MemberActions } from '@/components/MemberActions'
@@ -18,17 +19,17 @@ import { toast } from 'sonner'
 export default function EquipePage() {
   const [loading, setLoading] = useState(true)
   const [membros, setMembros] = useState<any[]>([])
+  const [convites, setConvites] = useState<any[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => {
     async function loadEquipe() {
       try {
-        // Buscamos os dados via fetch para permitir o estado de loading no cliente
-        // Nota: Criaremos uma API Route simples ou usaremos uma Server Action chamada no useEffect
         const response = await fetch('/api/equipe')
         if (!response.ok) throw new Error("Erro ao carregar equipe")
         const data = await response.json()
         setMembros(data.membros)
+        setConvites(data.convites || [])
         setCurrentUser(data.user)
       } catch (error) {
         console.error(error)
@@ -51,90 +52,216 @@ export default function EquipePage() {
     )
   }
 
+  async function handleCancelarConvite(id: string) {
+    if (!confirm("Tem certeza que deseja cancelar este convite?")) return
+
+    try {
+      const { removerConvite } = await import('@/actions/equipe')
+      const res = await removerConvite(id)
+      if (res.success) {
+        toast.success("Convite cancelado.")
+        setConvites(convites.filter(c => c.id !== id))
+      } else {
+        toast.error(res.message || "Erro ao cancelar convite")
+      }
+    } catch (err) {
+      toast.error("Erro ao processar cancelamento")
+    }
+  }
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-10 animate-in fade-in duration-500 pb-12">
       <EquipeHeader />
+
+      {/* Seção de Convites Pendentes (se existirem) */}
+      {convites.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-4">
+            <Mail size={16} className="text-indigo-500" />
+            <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">Convites Pendentes</h2>
+            <span className="bg-indigo-100 text-indigo-600 text-[10px] font-black px-2 py-0.5 rounded-full">
+              {convites.length}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {convites.map((convite) => (
+              <div key={convite.id} className="bg-white border border-indigo-100 rounded-3xl p-6 shadow-sm shadow-indigo-500/5 flex items-center justify-between group hover:border-indigo-300 transition-all">
+                <div className="flex items-center gap-4 overflow-hidden">
+                  <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 shrink-0">
+                    <Mail size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 truncate text-sm">{convite.nome}</p>
+                    <p className="text-[10px] text-gray-400 font-medium truncate">{convite.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[8px] font-black bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                        {convite.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button 
+                    onClick={() => handleCancelarConvite(convite.id)}
+                    title="Cancelar Convite"
+                    className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl transition-all"
+                   >
+                     <X size={18} />
+                   </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <h3 className="font-bold text-gray-900 flex items-center gap-2">
             <Users size={18} className="text-gray-400" />
-            Membros da Organização
+            Membros Ativos
           </h3>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
             {membros.length} Utilizadores
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Utilizador</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Função</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Estado</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {membros.map((membro) => (
-                <tr key={membro.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${
-                        membro.role === 'OWNER' ? 'bg-indigo-50 border-indigo-100 text-indigo-500' : 'bg-white border-gray-100 text-gray-400'
-                      }`}>
-                        {membro.role === 'OWNER' ? <Shield size={18} /> : <User size={18} />}
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                          {membro.nome}
-                          {membro.id === currentUser?.id && (
-                            <span className="px-1.5 py-0.5 bg-gray-100 text-[8px] font-black text-gray-400 rounded-md uppercase tracking-tighter">EU</span>
-                          )}
+        <div className="overflow-hidden">
+          {/* Tabela Desktop */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Utilizador</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Função</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Estado</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {membros.map((membro) => (
+                  <tr key={membro.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${
+                          membro.role === 'OWNER' ? 'bg-indigo-50 border-indigo-100 text-indigo-500' : 'bg-white border-gray-100 text-gray-400'
+                        }`}>
+                          {membro.role === 'OWNER' ? <Shield size={18} /> : <User size={18} />}
                         </div>
-                        <div className="text-[10px] text-gray-400 font-medium">PulseCliente Team</div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-gray-900 flex items-center gap-2 truncate">
+                            {membro.nome}
+                            {membro.id === currentUser?.id && (
+                              <span className="px-1.5 py-0.5 bg-gray-100 text-[8px] font-black text-gray-400 rounded-md uppercase tracking-tighter shrink-0">EU</span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-gray-400 font-medium whitespace-nowrap">PulseCliente Team</div>
+                        </div>
                       </div>
+                    </td>
+                    <td className="px-8 py-5 text-sm font-medium text-gray-500">
+                      <div className="flex items-center gap-2 truncate max-w-[200px]" title={membro.email}>
+                        <Mail size={14} className="text-gray-300 shrink-0" />
+                        <span className="truncate">{membro.email}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-center px-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${
+                        membro.role === 'OWNER'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                          : membro.role === 'ADMIN'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                      }`}>
+                        {membro.role}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                         <span className={`w-2 h-2 rounded-full ring-4 ${membro.ativo ? 'bg-emerald-500 ring-emerald-50' : 'bg-red-500 ring-red-50'}`}></span>
+                         <span className={`text-[8px] font-black uppercase tracking-widest ${membro.ativo ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {membro.ativo ? 'Ativo' : 'Bloqueado'}
+                         </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <MemberActions 
+                        memberId={membro.id} 
+                        currentRole={membro.role} 
+                        currentStatus={membro.ativo}
+                        isSelf={membro.id === currentUser?.id}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Versão Card Mobile */}
+          <div className="md:hidden divide-y divide-gray-100">
+            {membros.map((membro) => (
+              <div key={membro.id} className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${
+                      membro.role === 'OWNER' ? 'bg-indigo-50 border-indigo-100 text-indigo-500' : 'bg-white border-gray-100 text-gray-400'
+                    }`}>
+                      {membro.role === 'OWNER' ? <Shield size={18} /> : <User size={18} />}
                     </div>
-                  </td>
-                  <td className="px-8 py-5 text-sm font-medium text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Mail size={14} className="text-gray-300" />
+                    <div>
+                      <div className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        {membro.nome}
+                        {membro.id === currentUser?.id && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 text-[8px] font-black text-gray-400 rounded-md uppercase tracking-tighter">EU</span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-gray-400 font-medium">PulseCliente Team</div>
+                    </div>
+                  </div>
+                  <MemberActions 
+                    memberId={membro.id} 
+                    currentRole={membro.role} 
+                    currentStatus={membro.ativo}
+                    isSelf={membro.id === currentUser?.id}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail</span>
+                    <div className="text-sm font-medium text-gray-500 truncate" title={membro.email}>
                       {membro.email}
                     </div>
-                  </td>
-                  <td className="px-8 py-5 text-center">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${
-                      membro.role === 'OWNER'
-                        ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                        : membro.role === 'ADMIN'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                          : 'bg-slate-50 text-slate-500 border-slate-200'
-                    }`}>
-                      {membro.role}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                       <span className={`w-2 h-2 rounded-full ring-4 ${membro.ativo ? 'bg-emerald-500 ring-emerald-50' : 'bg-red-500 ring-red-50'}`}></span>
-                       <span className={`text-[8px] font-black uppercase tracking-widest ${membro.ativo ? 'text-emerald-500' : 'text-red-500'}`}>
-                          {membro.ativo ? 'Ativo' : 'Bloqueado'}
-                       </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Função</span>
+                    <div>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold border ${
+                        membro.role === 'OWNER'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                          : membro.role === 'ADMIN'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                      }`}>
+                        {membro.role}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <MemberActions 
-                      memberId={membro.id} 
-                      currentRole={membro.role} 
-                      currentStatus={membro.ativo}
-                      isSelf={membro.id === currentUser?.id}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <span className={`w-2 h-2 rounded-full ring-4 ${membro.ativo ? 'bg-emerald-500 ring-emerald-50' : 'bg-red-500 ring-red-50'}`}></span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${membro.ativo ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {membro.ativo ? 'Ativo' : 'Bloqueado'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

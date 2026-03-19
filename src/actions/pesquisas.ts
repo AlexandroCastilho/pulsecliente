@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import { createClient } from "@/lib/supabase/server"
 import { PesquisaInput } from "@/types/pesquisa"
+import { revalidatePath } from "next/cache"
 
 export async function salvarPesquisa(dados: PesquisaInput) {
   try {
@@ -63,6 +64,11 @@ export async function salvarPesquisa(dados: PesquisaInput) {
     })
 
     console.log(`[PESQUISA CRIADA] ID: ${resultado.id} por Usuário: ${user.id}`)
+    
+    // Revalidar as rotas que dependem das pesquisas
+    revalidatePath('/pesquisas')
+    revalidatePath('/dashboard')
+    
     return { success: true, id: resultado.id }
 
   } catch (error: any) {
@@ -111,6 +117,11 @@ export async function excluirPesquisa(id: string) {
     })
 
     console.log(`[PESQUISA EXCLUÍDA] ID: ${id} por Usuário: ${user.id}`)
+    
+    // Revalidar as rotas que dependem das pesquisas
+    revalidatePath('/pesquisas')
+    revalidatePath('/dashboard')
+    
     return { success: true, message: "Pesquisa excluída com sucesso." }
 
   } catch (error: any) {

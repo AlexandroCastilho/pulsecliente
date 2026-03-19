@@ -1,31 +1,37 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { X, UserPlus, Mail, Shield, Loader2 } from 'lucide-react'
-import { addMembro } from '@/actions/equipe'
+import { toast } from 'sonner'
+import { convidarMembro } from '@/actions/equipe'
 
 export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const [loading, setLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
     setError(null)
     
     const formData = new FormData(e.currentTarget)
-    try {
-      const res = await addMembro(formData)
-      if (res.success) {
-        onClose()
+    
+    startTransition(async () => {
+      try {
+        const res = await convidarMembro(formData)
+        if (res.success) {
+          toast.success("Convite enviado com sucesso!", {
+            description: "O novo membro receberá as instruções por e-mail."
+          })
+          onClose()
+        } else {
+          setError(res.message || "Erro ao enviar convite")
+        }
+      } catch (err: any) {
+        setError(err.message || "Erro ao enviar convite")
       }
-    } catch (err: any) {
-      setError(err.message || "Erro ao adicionar membro")
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
   return (
@@ -36,7 +42,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
              <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                 <UserPlus size={20} />
              </div>
-             <h3 className="font-bold text-gray-900">Novo Membro</h3>
+             <h3 className="font-bold text-gray-900">Convidar Membro</h3>
           </div>
           <button 
             onClick={onClose}
@@ -48,14 +54,14 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
 
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-xs font-bold flex items-center gap-2">
+            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black uppercase flex items-center gap-2">
                <AlertCircle size={14} />
                {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Nome Completo</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Nome Completo</label>
             <div className="relative">
               <input 
                 name="nome"
@@ -68,7 +74,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">E-mail Corporativo</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">E-mail Corporativo</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
@@ -82,7 +88,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Função na Equipe</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Função na Equipe</label>
             <div className="relative">
               <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <select 
@@ -100,15 +106,15 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           <div className="pt-4">
             <button 
               type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2"
+              disabled={isPending}
+              className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
+              {isPending ? (
                 <Loader2 className="animate-spin" size={18} />
               ) : (
                 <>
                   <UserPlus size={18} />
-                  Adicionar à Equipe
+                  Enviar Convite
                 </>
               )}
             </button>

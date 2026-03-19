@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useTransition } from 'react'
 import { MoreVertical, Shield, UserCog, Trash2, Power, UserCheck, Loader2 } from 'lucide-react'
 import { updateMembroRole, toggleMembroStatus, removerMembro } from '@/actions/equipe'
 import { Role } from '@prisma/client'
@@ -14,7 +14,8 @@ interface MemberActionsProps {
 
 export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: MemberActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [activeAction, setActiveAction] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -27,16 +28,22 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: 
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleAction = async (action: () => Promise<any>) => {
-    setLoading(true)
-    try {
-      await action()
-      setIsOpen(false)
-    } catch (err: any) {
-      alert(err.message || "Erro ao realizar ação")
-    } finally {
-      setLoading(false)
-    }
+  const handleAction = async (name: string, action: () => Promise<any>) => {
+    setActiveAction(name)
+    startTransition(async () => {
+      try {
+        const res = await action()
+        if (res?.success) {
+          setIsOpen(false)
+        } else if (res?.message) {
+          alert(res.message)
+        }
+      } catch (err: any) {
+        alert(err.message || "Erro ao realizar ação")
+      } finally {
+        setActiveAction(null)
+      }
+    })
   }
 
   return (
@@ -56,21 +63,27 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: 
             {!isSelf && (
               <>
                 <button 
-                  onClick={() => handleAction(() => updateMembroRole(memberId, currentRole === 'ADMIN' ? 'MEMBER' : 'ADMIN'))}
-                  disabled={loading}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => handleAction('role', () => updateMembroRole(memberId, currentRole === 'ADMIN' ? 'MEMBER' : 'ADMIN'))}
+                  disabled={isPending}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  <UserCog size={16} className="text-gray-400" />
-                  Tornar {currentRole === 'ADMIN' ? 'Membro' : 'Admin'}
+                  <div className="flex items-center gap-3">
+                    <UserCog size={16} className="text-gray-400" />
+                    Tornar {currentRole === 'ADMIN' ? 'Membro' : 'Admin'}
+                  </div>
+                  {isPending && activeAction === 'role' && <Loader2 size={14} className="animate-spin text-indigo-500" />}
                 </button>
 
                 <button 
-                  onClick={() => handleAction(() => updateMembroRole(memberId, 'OWNER'))}
-                  disabled={loading || currentRole === 'OWNER'}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => handleAction('owner', () => updateMembroRole(memberId, 'OWNER'))}
+                  disabled={isPending || currentRole === 'OWNER'}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  <Shield size={16} className="text-indigo-500" />
-                  Tornar Owner
+                  <div className="flex items-center gap-3">
+                    <Shield size={16} className="text-indigo-500" />
+                    Tornar Owner
+                  </div>
+                  {isPending && activeAction === 'owner' && <Loader2 size={14} className="animate-spin text-indigo-500" />}
                 </button>
 
                 <div className="h-px bg-gray-50 my-1" />
@@ -79,12 +92,15 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: 
 
             {/* Alternar Status */}
             <button 
-              onClick={() => handleAction(() => toggleMembroStatus(memberId, currentStatus))}
-              disabled={loading || isSelf}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-bold rounded-lg transition-colors ${currentStatus ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`}
+              onClick={() => handleAction('status', () => toggleMembroStatus(memberId, currentStatus))}
+              disabled={isPending || isSelf}
+              className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg transition-colors disabled:opacity-50 ${currentStatus ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`}
             >
-              <Power size={16} />
-              {currentStatus ? 'Desativar Acesso' : 'Ativar Acesso'}
+              <div className="flex items-center gap-3">
+                <Power size={16} />
+                {currentStatus ? 'Desativar Acesso' : 'Ativar Acesso'}
+              </div>
+              {isPending && activeAction === 'status' && <Loader2 size={14} className="animate-spin" />}
             </button>
 
             {/* Remover */}
@@ -92,14 +108,17 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: 
               <button 
                 onClick={() => {
                   if(confirm("Tem certeza que deseja remover este membro definitivamente?")) {
-                    handleAction(() => removerMembro(memberId))
+                    handleAction('delete', () => removerMembro(memberId))
                   }
                 }}
-                disabled={loading}
-                className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                disabled={isPending}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
               >
-                <Trash2 size={16} />
-                Remover da Equipe
+                <div className="flex items-center gap-3">
+                  <Trash2 size={16} />
+                  Remover da Equipe
+                </div>
+                {isPending && activeAction === 'delete' && <Loader2 size={14} className="animate-spin text-red-500" />}
               </button>
             )}
 
@@ -109,11 +128,7 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: 
               </div>
             )}
             
-            {loading && (
-              <div className="flex justify-center p-2">
-                <Loader2 className="animate-spin text-indigo-500" size={16} />
-              </div>
-            )}
+
           </div>
         </div>
       )}

@@ -38,7 +38,7 @@ export function DashboardWrapper({ children, userData }: DashboardWrapperProps) 
               <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
                 <Activity className="text-white w-5 h-5" />
               </div>
-              <span className="text-lg font-bold text-white tracking-tight">PulseCliente</span>
+              <span className="text-lg font-bold text-white tracking-tight">Opinaloop</span>
             </div>
             <button 
               onClick={() => setIsSidebarOpen(false)}

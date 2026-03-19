@@ -12,7 +12,8 @@ import {
   Hash, 
   ListChecks, 
   Star,
-  GripVertical
+  GripVertical,
+  Loader2
 } from 'lucide-react'
 import { PerguntaInput, TipoPergunta } from '@/types/pesquisa'
 import { salvarPesquisa } from '@/actions/pesquisas'
@@ -124,10 +125,19 @@ export default function EditorPage() {
         <button
           onClick={handleSalvar}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50"
+          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Save size={18} />
-          {isSaving ? 'Salvando...' : 'Salvar Pesquisa'}
+          {isSaving ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              <span>Salvando...</span>
+            </>
+          ) : (
+            <>
+              <Save size={18} />
+              <span>Salvar Pesquisa</span>
+            </>
+          )}
         </button>
       </header>
 

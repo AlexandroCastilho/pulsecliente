@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   Upload, 
@@ -34,7 +34,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
   const [step, setStep] = useState<Step>('UPLOAD')
   const [contatos, setContatos] = useState<Contato[]>([])
   const [loading, setLoading] = useState(false)
-  const [processando, setProcessando] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [erro, setErro] = useState<string | null>(null)
   const [countImportados, setCountImportados] = useState(0)
 
@@ -73,40 +73,38 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
   }
 
   const handleImportarContatos = async () => {
-    setProcessando(true)
     setErro(null)
     
-    try {
-      const res = await importarContatos(pesquisaId, contatos)
-      if (res.success) {
-        setCountImportados(res.count || contatos.length)
-        setStep('DISPARO')
-      } else {
-        setErro(res.message || 'Erro ao importar contatos.')
+    startTransition(async () => {
+      try {
+        const res = await importarContatos(pesquisaId, contatos)
+        if (res.success) {
+          setCountImportados(res.count || contatos.length)
+          setStep('DISPARO')
+        } else {
+          setErro(res.message || 'Erro ao importar contatos.')
+        }
+      } catch (err: any) {
+        setErro(err.message || 'Erro inesperado na importação.')
       }
-    } catch (err: any) {
-      setErro(err.message || 'Erro inesperado na importação.')
-    } finally {
-      setProcessando(false)
-    }
+    })
   }
 
   const handleDispararPesquisas = async () => {
-    setProcessando(true)
     setErro(null)
 
-    try {
-      const res = await processarDisparo(pesquisaId)
-      if (res.success) {
-        setStep('SUCESSO')
-      } else {
-        setErro(res.message || 'Erro ao processar disparo.')
+    startTransition(async () => {
+      try {
+        const res = await processarDisparo(pesquisaId)
+        if (res.success) {
+          setStep('SUCESSO')
+        } else {
+          setErro(res.message || 'Erro ao processar disparo.')
+        }
+      } catch (err: any) {
+        setErro(err.message || 'Erro inesperado no disparo.')
       }
-    } catch (err: any) {
-      setErro(err.message || 'Erro inesperado no disparo.')
-    } finally {
-      setProcessando(false)
-    }
+    })
   }
 
   const renderStepsHeader = () => {
@@ -258,16 +256,16 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
               <button 
                 onClick={() => setStep('UPLOAD')}
                 className="px-8 py-3 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200"
-                disabled={processando}
+                disabled={isPending}
               >
                 Refazer Upload
               </button>
               <button 
                 onClick={handleImportarContatos}
-                disabled={processando}
+                disabled={isPending}
                 className="bg-slate-900 hover:bg-slate-800 text-white px-10 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-slate-900/10 disabled:opacity-50 flex items-center gap-2 group"
               >
-                {processando ? <Loader2 size={20} className="animate-spin" /> : <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />}
+                {isPending ? <Loader2 size={20} className="animate-spin" /> : <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />}
                 Próxima Etapa
               </button>
             </div>
@@ -298,16 +296,16 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
            <div className="flex flex-col gap-4 max-w-sm mx-auto pt-4">
               <button 
                 onClick={handleDispararPesquisas}
-                disabled={processando}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-5 rounded-3xl font-black text-lg transition-all shadow-2xl shadow-indigo-600/30 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 disabled:opacity-50 group"
+                disabled={isPending}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-5 rounded-3xl font-black text-lg transition-all shadow-2xl shadow-indigo-600/30 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 disabled:opacity-50 group disabled:cursor-not-allowed"
               >
-                {processando ? <Loader2 size={24} className="animate-spin" /> : <SendHorizontal size={24} />}
-                {processando ? 'Processando Envio...' : `Disparar para ${countImportados} Clientes Agora`}
+                {isPending ? <Loader2 size={24} className="animate-spin" /> : <SendHorizontal size={24} />}
+                {isPending ? 'Processando Envio...' : `Disparar para ${countImportados} Clientes Agora`}
               </button>
               <button 
                 onClick={() => setStep('REVISAO')}
-                disabled={processando}
-                className="text-gray-400 hover:text-gray-600 font-bold transition-colors"
+                disabled={isPending}
+                className="text-gray-400 hover:text-gray-600 font-bold transition-colors disabled:opacity-50"
               >
                 Voltar e Revisar
               </button>

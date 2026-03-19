@@ -13,11 +13,16 @@ import {
   User,
   ChevronRight,
   Star,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  PieChart,
+  List,
+  Target
 } from 'lucide-react'
 import { formatDate, calculateNPS, getNPSColor } from '@/lib/utils'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 import { CopySurveyLink } from '@/components/CopySurveyLink'
+import { SurveyResponseTable } from '@/components/SurveyResponseTable'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -48,25 +53,28 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
           resposta: true
         }
       },
-      perguntas: true
+      perguntas: {
+        orderBy: { ordem: 'asc' }
+      }
     }
   })
 
   if (!pesquisa) notFound()
 
-  // 2. Calcular Métricas
+  // 1. Métricas de Resumo
   const totalEnvios = pesquisa.envios.length
   const totalRespondidos = pesquisa.envios.filter(e => e.status === 'RESPONDIDO').length
-  const totalPendentes = totalEnvios - totalRespondidos
   const taxaResposta = totalEnvios > 0 ? (totalRespondidos / totalEnvios) * 100 : 0
 
-  // 3. Calcular NPS da Pesquisa Específica
+  // NPS Geral da Pesquisa
+  const npsQuestionsIds = pesquisa.perguntas.filter(p => p.tipo === 'ESCALA_NPS').map(p => p.id)
   const notasNPS: number[] = []
+  
   pesquisa.envios.forEach(e => {
     if (e.resposta) {
       const dados = e.resposta.dados as Record<string, any>
-      Object.values(dados).forEach(val => {
-        if (typeof val === 'number') notasNPS.push(val)
+      npsQuestionsIds.forEach(qId => {
+        if (typeof dados[qId] === 'number') notasNPS.push(dados[qId])
       })
     }
   })
@@ -74,180 +82,263 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
   const npsScore = calculateNPS(notasNPS)
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-10 animate-in fade-in duration-500 pb-20 font-inter">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link 
             href="/pesquisas"
-            className="p-2 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 rounded-xl transition-all text-gray-400 hover:text-gray-900"
+            className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 rounded-2xl transition-all text-gray-400 hover:text-gray-900 group"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={22} className="group-hover:-translate-x-0.5 transition-transform" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{pesquisa.titulo}</h1>
-            <p className="text-sm text-gray-500 font-medium">Resultados e análise de engajamento</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100">Analytics</span>
+              <span className="text-gray-300">•</span>
+              <span className="text-xs text-gray-400 font-bold">{formatDate(pesquisa.createdAt)}</span>
+            </div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-none">{pesquisa.titulo}</h1>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="px-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full bg-emerald-500`} />
-            <span className="text-sm font-bold text-gray-700">Ativa</span>
+          <div className="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 flex items-center gap-2.5 shadow-sm">
+            <div className={`w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse`} />
+            <span className="text-xs font-black uppercase tracking-wider">Pesquisa Ativa</span>
           </div>
           <DeleteSurveyButton surveyId={pesquisa.id} surveyTitle={pesquisa.titulo} redirectToList variant="full" />
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Camada 1: Resumo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <MiniStatCard 
+          label="Total de Respostas" 
+          value={totalRespondidos.toString()} 
+          icon={<Users size={24} />}
+          color="text-slate-600 bg-slate-50 border-slate-100"
+          description={`${totalEnvios} envios totais`}
+        />
         <MiniStatCard 
           label="NPS Score" 
           value={notasNPS.length > 0 ? npsScore.toString() : '--'} 
-          icon={<BarChart3 size={18} />}
-          color="text-indigo-600 bg-indigo-50"
+          icon={<Target size={24} />}
+          color={notasNPS.length > 0 && npsScore < 0 ? "text-red-600 bg-red-50 border-red-100" : "text-indigo-600 bg-indigo-50 border-indigo-100"}
+          description={notasNPS.length > 0 ? "Média de satisfação" : "Aguardando respostas"}
         />
         <MiniStatCard 
-          label="Respondidos" 
-          value={totalRespondidos.toString()} 
-          icon={<CheckCircle2 size={18} />}
-          color="text-emerald-600 bg-emerald-50"
-        />
-        <MiniStatCard 
-          label="Pendentes" 
-          value={totalPendentes.toString()} 
-          icon={<Clock size={18} />}
-          color="text-amber-600 bg-amber-50"
-        />
-        <MiniStatCard 
-          label="Taxa de Resposta" 
+          label="Taxa de Conversão" 
           value={`${taxaResposta.toFixed(1)}%`} 
-          icon={<Users size={18} />}
-          color="text-blue-600 bg-blue-50"
+          icon={<TrendingUp size={24} />}
+          color="text-emerald-600 bg-emerald-50 border-emerald-100"
+          description="Abertura x Resposta"
         />
       </div>
 
-      {/* Tabela de Clientes e Respostas */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/30 flex justify-between items-center">
-          <h3 className="font-bold text-gray-900">Respostas Individuais</h3>
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{pesquisa.envios.length} Envios Totais</span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Data</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Nota NPS</th>
-                <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {pesquisa.envios.map((envio) => {
-                // Tenta extrair a nota NPS se existir resposta
-                let notaNps: number | null = null
-                if (envio.resposta) {
-                  const dados = envio.resposta.dados as Record<string, any>
-                  Object.values(dados).forEach(v => {
-                    if (typeof v === 'number') notaNps = v
-                  })
-                }
-
-                return (
-                  <tr key={envio.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-8 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-50">
-                          <User size={20} />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 leading-none mb-1">{envio.nomeDestinatario}</div>
-                          <div className="text-xs text-gray-400 font-medium">{envio.emailDestinatario}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-4 text-center text-sm font-medium text-gray-500">
-                      {formatDate(envio.enviadoEm || envio.createdAt)}
-                    </td>
-                    <td className="px-8 py-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border flex items-center gap-1.5 ${
-                          envio.status === 'RESPONDIDO' 
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                            : envio.status === 'PROCESSANDO'
-                            ? 'bg-blue-50 text-blue-600 border-blue-100'
-                            : envio.status === 'ERRO'
-                            ? 'bg-red-50 text-red-600 border-red-100'
-                            : 'bg-amber-50 text-amber-600 border-amber-100'
-                        }`}>
-                          {envio.status === 'PROCESSANDO' && (
-                            <div className="w-2 h-2 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-                          )}
-                          {envio.status}
-                        </span>
-                        
-                        {envio.status === 'ERRO' && envio.erroLog && (
-                          <div 
-                            className="flex items-center gap-1 text-[9px] text-red-400 font-bold cursor-help bg-red-50/50 px-1.5 py-0.5 rounded shadow-sm hover:bg-red-100 transition-colors"
-                            title={envio.erroLog}
-                          >
-                            <AlertCircle size={10} />
-                            Ver Erro
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-8 py-4 text-center">
-                      {notaNps !== null ? (
-                        <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl font-bold border-2 transition-transform group-hover:scale-110 ${getNPSColor(notaNps)}`}>
-                          {notaNps}
-                        </span>
-                      ) : (
-                        <span className="text-gray-300 text-xs font-medium italic">Sem nota</span>
-                      )}
-                    </td>
-                    <td className="px-8 py-4 text-right">
-                      <CopySurveyLink token={envio.token} status={envio.status} />
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-          
-          {pesquisa.envios.length === 0 && (
-            <div className="p-20 text-center space-y-4">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
-                <Mail size={32} />
-              </div>
-              <p className="text-gray-400 font-medium">Nenhum envio realizado para esta pesquisa.</p>
-              <Link 
-                href={`/envios?pesquisaId=${pesquisa.id}`}
-                className="text-indigo-600 font-bold text-sm hover:underline"
-              >
-                Configurar disparos agora
-              </Link>
+      {/* Camada 2: Visão por Pergunta */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-600/20">
+              <PieChart size={20} />
             </div>
-          )}
+            <div>
+              <h2 className="text-xl font-black text-gray-900 leading-none">Análise por Pergunta</h2>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Desempenho quantitativo e qualitativo</p>
+            </div>
+          </div>
+          <div className="h-px bg-gray-100 flex-1 mx-8 hidden sm:block" />
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {pesquisa.perguntas.map((pergunta, index) => (
+            <QuestionAnalyticsCard 
+              key={pergunta.id} 
+              pergunta={pergunta} 
+              index={index}
+              envios={pesquisa.envios}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Camada 3: Tabela Detalhada */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-800/20">
+            <List size={20} />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 leading-none">Detalhamento Individual</h2>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Visão completa por cliente e pergunta</p>
+          </div>
+        </div>
+        
+        <SurveyResponseTable 
+          envios={pesquisa.envios} 
+          perguntas={pesquisa.perguntas} 
+        />
       </div>
     </div>
   )
 }
 
-function MiniStatCard({ label, value, icon, color }: any) {
+function QuestionAnalyticsCard({ pergunta, index, envios }: any) {
+  const respostas = envios
+    .filter((e: any) => e.status === 'RESPONDIDO' && e.resposta)
+    .map((e: any) => e.resposta.dados[pergunta.id])
+    .filter((r: any) => r !== undefined && r !== null)
+
+  const total = respostas.length
+
   return (
-    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-      <div className={`p-3 rounded-xl ${color}`}>
-        {icon}
+    <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:border-indigo-200 transition-colors group">
+      <div className="flex items-start justify-between mb-6">
+        <div className="space-y-1">
+          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Pergunta {index + 1}</span>
+          <h3 className="text-lg font-bold text-gray-900 leading-tight">{pergunta.titulo}</h3>
+        </div>
+        <div className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-gray-400 border border-gray-100 shrink-0">
+          {total} resps.
+        </div>
       </div>
-      <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">{label}</p>
-        <p className="text-xl font-black text-gray-900 leading-none">{value}</p>
+
+      {total === 0 ? (
+        <div className="py-8 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+          <p className="text-sm font-medium text-gray-400">Nenhuma resposta disponível ainda.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {pergunta.tipo === 'MULTIPLA_ESCOLHA' && (
+            <div className="space-y-4">
+              {(pergunta.opcoes as string[]).map((opcao) => {
+                const count = respostas.filter((r: any) => r === opcao).length
+                const percent = (count / total) * 100
+                return (
+                  <div key={opcao} className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-gray-600">{opcao}</span>
+                      <span className="text-indigo-600">{percent.toFixed(0)}%</span>
+                    </div>
+                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-indigo-500 rounded-full transition-all duration-1000" 
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {pergunta.tipo === 'ESCALA_NPS' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-3">
+                <NPSBreakdownItem 
+                  label="Promotores" 
+                  count={respostas.filter((r: any) => Number(r) >= 9).length}
+                  total={total}
+                  color="bg-emerald-500"
+                  sub="9-10"
+                />
+                <NPSBreakdownItem 
+                  label="Neutros" 
+                  count={respostas.filter((r: any) => Number(r) >= 7 && Number(r) <= 8).length}
+                  total={total}
+                  color="bg-amber-400"
+                  sub="7-8"
+                />
+                <NPSBreakdownItem 
+                  label="Detratores" 
+                  count={respostas.filter((r: any) => Number(r) <= 6).length}
+                  total={total}
+                  color="bg-red-500"
+                  sub="0-6"
+                />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">NPS da Pergunta</span>
+                <span className={`text-2xl font-black ${getNPSColor(calculateNPS(respostas.map(Number))).split(' ')[0]}`}>
+                  {calculateNPS(respostas.map(Number))}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {pergunta.tipo === 'ESTRELAS' && (
+            <div className="flex flex-col items-center py-4 bg-amber-50/30 rounded-2xl border border-amber-100/50">
+              <span className="text-4xl font-black text-amber-500">
+                {(respostas.reduce((a: number, b: any) => a + Number(b), 0) / total).toFixed(1)}
+              </span>
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((s: number) => (
+                  <Star 
+                    key={s} 
+                    size={20} 
+                    className={s <= Math.round(respostas.reduce((a: number, b: any) => a + Number(b), 0) / total) ? 'fill-amber-400 text-amber-400' : 'text-gray-200'} 
+                  />
+                ))}
+              </div>
+              <span className="text-[10px] font-bold text-amber-600/60 uppercase tracking-widest mt-2">Média de Avaliação</span>
+            </div>
+          )}
+
+          {pergunta.tipo === 'TEXTO_LIVRE' && (
+            <div className="space-y-3">
+              {respostas.slice(0, 3).map((resp: any, i: number) => (
+                <div key={i} className="p-3 bg-gray-50 rounded-xl text-xs font-medium text-gray-600 border border-gray-100 italic">
+                  "{resp}"
+                </div>
+              ))}
+              {total > 3 && <p className="text-[10px] text-gray-400 text-center font-bold">Mais {total - 3} respostas ocultas</p>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function NPSBreakdownItem({ label, count, total, color, sub }: any) {
+  const percent = (count / total) * 100
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="w-full h-20 bg-gray-50 rounded-2xl relative overflow-hidden flex flex-col items-center justify-end pb-3">
+        <div 
+          className={`absolute bottom-0 w-full ${color} opacity-20 transition-all duration-700`} 
+          style={{ height: `${percent}%` }}
+        />
+        <span className="text-lg font-black text-gray-900 relative z-10">{count}</span>
+        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter relative z-10">{sub}</span>
       </div>
+      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{label}</span>
+      <span className="text-[9px] font-bold text-indigo-500">{percent.toFixed(0)}%</span>
+    </div>
+  )
+}
+
+function MiniStatCard({ label, value, icon, color, description }: any) {
+  return (
+    <div className={`bg-white p-7 rounded-3xl border ${color.split(' ').pop()} shadow-sm hover:shadow-md transition-all group overflow-hidden relative`}>
+      <div className="flex justify-between items-start relative z-10">
+        <div className="space-y-1">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+            {label}
+          </p>
+          <p className={`text-4xl font-black leading-none ${color.split(' ')[0]}`}>{value}</p>
+        </div>
+        <div className={`p-3.5 rounded-2xl ${color.split(' ').slice(1, 3).join(' ')} group-hover:scale-110 transition-transform`}>
+          {icon}
+        </div>
+      </div>
+      <p className="text-[11px] font-bold text-gray-400 mt-4 flex items-center gap-1.5 relative z-10">
+        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+        {description}
+      </p>
+      {/* Decoração sutil */}
+      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-gray-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-1000" />
     </div>
   )
 }

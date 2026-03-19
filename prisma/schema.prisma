@@ -18,6 +18,7 @@ model Empresa {
   pesquisas  Pesquisa[]
   smtpConfig SmtpConfig?
   usuarios   Usuario[]
+  convites   Convite[]
 
   @@map("empresas")
 }
@@ -35,6 +36,27 @@ model Usuario {
   empresa      Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@map("usuarios")
+}
+
+model Convite {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  nome      String
+  role      Role     @default(MEMBER)
+  token     String   @unique
+  empresaId String
+  status    InviteStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("convites")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
 }
 
 model Pesquisa {

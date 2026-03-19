@@ -135,16 +135,16 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
 
           {/* Estrelas (1-5) */}
           {perguntaAtual.tipo === 'ESTRELAS' && (
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-4 w-full max-w-full">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button
                   key={s}
                   onClick={() => handleUpdateResposta(s)}
-                  className={`p-3 rounded-2xl transition-all transform hover:scale-110 ${
+                  className={`p-2 sm:p-3 rounded-2xl transition-all transform hover:scale-110 shrink-0 ${
                     respostas[perguntaAtual.id] >= s ? 'text-amber-400 stroke-amber-500 fill-amber-400' : 'text-gray-200'
                   }`}
                 >
-                  <Star size={48} className={respostas[perguntaAtual.id] >= s ? 'fill-current' : ''} />
+                  <Star className={`w-8 h-8 sm:w-12 sm:h-12 ${respostas[perguntaAtual.id] >= s ? 'fill-current' : ''}`} />
                 </button>
               ))}
             </div>

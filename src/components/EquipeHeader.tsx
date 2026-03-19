@@ -12,7 +12,7 @@ export function EquipeHeader() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gestão de Equipe</h1>
-          <p className="text-sm text-gray-500 font-medium">Visualize e gerencie os membros que têm acesso ao PulseCliente.</p>
+          <p className="text-sm text-gray-500 font-medium">Visualize e gerencie os membros que têm acesso ao Opinaloop.</p>
         </div>
 
         <button 

@@ -30,7 +30,7 @@ export default function LoginPage() {
             <LogIn className="text-white w-6 h-6" />
           </div>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
-            PulseCliente
+            Opinaloop
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Acesse sua plataforma de gestão de pesquisas
