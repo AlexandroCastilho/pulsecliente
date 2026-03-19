@@ -40,7 +40,6 @@ export function Sidebar({ user, isMobile }: SidebarProps) {
         <NavItem href="/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
         <NavItem href="/editor" icon={<PieChart size={20} />} label="Criar Pesquisa" />
         <NavItem href="/pesquisas" icon={<Activity size={20} />} label="Minhas Pesquisas" />
-        <NavItem href="/envios" icon={<Send size={20} />} label="Envios" />
         <NavItem href="/equipe" icon={<Users size={20} />} label="Equipe" />
         <NavItem href="/configuracoes" icon={<Settings size={20} />} label="Configurações" />
         

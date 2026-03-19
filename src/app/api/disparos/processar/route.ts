@@ -1,14 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import nodemailer from 'nodemailer'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    // 1. Validar Autorização (Cron Secret OU Sessão do Usuário)
+    let isAuthorizedByCron = false;
+    let authEmpresaId = null;
+
+    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+      isAuthorizedByCron = true;
+    } else {
+      // Tenta validar pela sessão do Supabase (para disparos via interface UI)
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: 'Não autorizado - Acesso negado. Sessão inexistente ou token inválido.' }, { status: 401 });
+      }
+      
+      const dbUser = await prisma.usuario.findUnique({
+        where: { id: user.id },
+        select: { empresaId: true }
+      })
+
+      if (!dbUser) {
+        return NextResponse.json({ error: 'Não autorizado - Usuário sem empresa associada' }, { status: 401 });
+      }
+      
+      authEmpresaId = dbUser.empresaId;
     }
 
     const body = await req.json().catch(() => ({}));
@@ -18,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'pesquisaId é obrigatório' }, { status: 400 })
     }
 
-    // 1. Buscar a pesquisa para pegar o título e empresaId
+    // 2. Buscar a pesquisa para pegar o título e empresaId
     const pesquisa = await prisma.pesquisa.findUnique({
       where: { id: pesquisaId },
       select: { titulo: true, empresaId: true }
@@ -26,6 +49,13 @@ export async function POST(req: NextRequest) {
 
     if (!pesquisa) {
       return NextResponse.json({ error: 'Pesquisa não encontrada' }, { status: 404 })
+    }
+
+    // Validação final de IDOR para disparo manual:
+    const isOwner = authEmpresaId !== null && pesquisa.empresaId === authEmpresaId;
+    
+    if (!isAuthorizedByCron && !isOwner) {
+       return NextResponse.json({ error: 'Acesso Restrito: Esta pesquisa não pertence à sua empresa.' }, { status: 403 })
     }
 
     // 2. Buscar Configuração SMTP da Empresa

@@ -62,8 +62,8 @@ export async function processarDisparo(pesquisaId: string) {
     }).catch(err => console.error('[FETCH WORKER ERROR]', err))
 
     // Revalidar para que a UI mostre 'PROCESSANDO' imediatamente
+    revalidatePath(`/pesquisas/${pesquisaId}/envios`)
     revalidatePath(`/pesquisas/${pesquisaId}`)
-    revalidatePath('/envios')
     revalidatePath('/dashboard')
 
     return { 

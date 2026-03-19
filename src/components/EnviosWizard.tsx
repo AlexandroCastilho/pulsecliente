@@ -158,7 +158,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
 
         <div className="flex gap-4 pt-4">
           <Link 
-            href="/envios"
+            href={`/pesquisas/${pesquisaId}/envios`}
             className="bg-slate-900 border-2 border-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-white hover:text-slate-900 transition-all shadow-2xl shadow-slate-900/10"
           >
             Ver Histórico de Envios
@@ -178,7 +178,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
     <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => step === 'UPLOAD' ? router.push('/envios') : setStep('UPLOAD')}
+          onClick={() => step === 'UPLOAD' ? router.push(`/pesquisas/${pesquisaId}`) : setStep('UPLOAD')}
           className="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-indigo-600 hover:border-indigo-100 transition-all hover:shadow-sm"
         >
           <ArrowLeft size={20} />

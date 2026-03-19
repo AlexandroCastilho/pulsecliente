@@ -83,13 +83,6 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
                 className="pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-100 outline-none transition-all w-64 text-gray-900"
               />
             </div>
-            <Link 
-              href="/pesquisas"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2 group"
-            >
-              <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-              Novo Envio
-            </Link>
           </div>
         </div>
 

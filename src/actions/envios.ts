@@ -59,8 +59,8 @@ export async function importarContatos(
     console.log(`[IMPORTAÇÃO] ${result.count} novos contatos importados para a pesquisa ${pesquisaId}`)
     
     // Revalidar rotas afetadas
+    revalidatePath(`/pesquisas/${pesquisaId}/envios`)
     revalidatePath(`/pesquisas/${pesquisaId}`)
-    revalidatePath('/envios')
     revalidatePath('/dashboard')
     
     return { 
@@ -79,7 +79,7 @@ export async function importarContatos(
   }
 }
 
-export async function getHistoricoEnvios() {
+export async function getHistoricoEnvios(pesquisaId: string) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -95,6 +95,7 @@ export async function getHistoricoEnvios() {
 
     return await prisma.envio.findMany({
       where: {
+        pesquisaId,
         pesquisa: { empresaId: dbUser.empresaId }
       },
       include: {
@@ -113,7 +114,7 @@ export async function getHistoricoEnvios() {
   }
 }
 
-export async function getStatsEnvios() {
+export async function getStatsEnvios(pesquisaId: string) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -130,6 +131,7 @@ export async function getStatsEnvios() {
     const stats = await prisma.envio.groupBy({
       by: ['status'],
       where: {
+        pesquisaId,
         pesquisa: { empresaId: dbUser.empresaId }
       },
       _count: {
@@ -202,8 +204,8 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
     await processarDisparo(envio.pesquisaId)
     
     // Revalidar rotas afetadas
+    revalidatePath(`/pesquisas/${envio.pesquisaId}/envios`)
     revalidatePath(`/pesquisas/${envio.pesquisaId}`)
-    revalidatePath('/envios')
     revalidatePath('/dashboard')
     
     return { success: true, message: 'E-mail atualizado e reenvio iniciado com sucesso!' }

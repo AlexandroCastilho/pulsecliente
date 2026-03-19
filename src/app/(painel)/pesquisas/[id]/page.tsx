@@ -6,6 +6,7 @@ import {
   ArrowLeft, 
   Users, 
   Mail, 
+  Send,
   CheckCircle2, 
   Clock,
   MessageSquare,
@@ -103,6 +104,13 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
         </div>
         
         <div className="flex items-center gap-3">
+          <Link
+            href={`/pesquisas/${pesquisa.id}/envios`}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-lg shadow-indigo-600/20 flex items-center gap-2.5 font-bold text-sm transition-all group"
+          >
+            <Send size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+            <span>Monitorar / Novo Envio</span>
+          </Link>
           <div className="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 flex items-center gap-2.5 shadow-sm">
             <div className={`w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse`} />
             <span className="text-xs font-black uppercase tracking-wider">Pesquisa Ativa</span>
