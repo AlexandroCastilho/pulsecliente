@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/Sidebar'
 import { Header } from '@/components/Header'
-import { Menu, X, Activity } from 'lucide-react'
+import { Menu, X, Activity, Infinity } from 'lucide-react'
 
 interface DashboardWrapperProps {
   children: React.ReactNode
@@ -36,7 +36,7 @@ export function DashboardWrapper({ children, userData }: DashboardWrapperProps) 
           <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-                <Activity className="text-white w-5 h-5" />
+                <Infinity className="text-white w-5 h-5" />
               </div>
               <span className="text-lg font-bold text-white tracking-tight">Opinaloop</span>
             </div>
@@ -63,7 +63,7 @@ export function DashboardWrapper({ children, userData }: DashboardWrapperProps) 
 
            <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                 <Activity className="text-white w-5 h-5" />
+                 <Infinity className="text-white w-5 h-5" />
               </div>
            </div>
         </div>

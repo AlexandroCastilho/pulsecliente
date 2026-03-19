@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { login } from '@/actions/auth'
-import { LogIn } from 'lucide-react'
+import { LogIn, Infinity } from 'lucide-react'
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +27,7 @@ export default function LoginPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-            <LogIn className="text-white w-6 h-6" />
+            <Infinity className="text-white w-6 h-6" />
           </div>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
             Opinaloop

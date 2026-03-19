@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Activity, CheckCircle2, Star, Users, MessageSquare, ArrowRight } from 'lucide-react'
+import { Activity, Infinity, CheckCircle2, Star, Users, MessageSquare, ArrowRight } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -9,7 +9,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-              <Activity className="text-white w-6 h-6" />
+              <Infinity className="text-white w-6 h-6" />
             </div>
             <span className="text-2xl font-bold tracking-tight text-slate-900">Opinaloop</span>
           </div>
@@ -153,7 +153,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 text-center space-y-8">
            <div className="flex items-center justify-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Activity className="text-white w-4 h-4" />
+              <Infinity className="text-white w-4 h-4" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900">Opinaloop</span>
           </div>

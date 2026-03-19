@@ -9,7 +9,8 @@ import {
   Mail,
   Settings,
   LogOut,
-  Activity
+  Activity,
+  Infinity
 } from 'lucide-react'
 import { logout } from '@/actions/auth'
 
@@ -29,7 +30,7 @@ export function Sidebar({ user, isMobile }: SidebarProps) {
       {!isMobile && (
         <div className="p-6 flex items-center gap-3">
           <div className="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Activity className="text-white w-5 h-5" />
+            <Infinity className="text-white w-5 h-5" />
           </div>
           <span className="text-xl font-bold text-white tracking-tight">Opinaloop</span>
         </div>
