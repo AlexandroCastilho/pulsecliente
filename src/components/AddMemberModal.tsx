@@ -61,7 +61,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Nome Completo</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Nome Completo</label>
             <div className="relative">
               <input 
                 name="nome"
@@ -74,7 +74,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">E-mail Corporativo</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">E-mail Corporativo</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
@@ -88,17 +88,17 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Função na Equipe</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Função na Equipe</label>
             <div className="relative">
               <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <select 
                 name="role"
                 defaultValue="MEMBER"
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-base font-bold appearance-none cursor-pointer"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-base font-bold text-gray-900 appearance-none cursor-pointer"
               >
-                <option value="MEMBER">Membro (Visualização)</option>
-                <option value="ADMIN">Admin (Gestão)</option>
-                <option value="OWNER">Owner (Total)</option>
+                <option value="MEMBER" className="text-gray-900 bg-white">Membro (Visualização)</option>
+                <option value="ADMIN" className="text-gray-900 bg-white">Admin (Gestão)</option>
+                <option value="OWNER" className="text-gray-900 bg-white">Owner (Total)</option>
               </select>
             </div>
           </div>

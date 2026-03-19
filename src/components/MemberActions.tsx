@@ -10,9 +10,10 @@ interface MemberActionsProps {
   currentRole: Role
   currentStatus: boolean
   isSelf: boolean
+  onSuccess?: () => void
 }
 
-export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: MemberActionsProps) {
+export function MemberActions({ memberId, currentRole, currentStatus, isSelf, onSuccess }: MemberActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [activeAction, setActiveAction] = useState<string | null>(null)
@@ -35,6 +36,7 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf }: 
         const res = await action()
         if (res?.success) {
           setIsOpen(false)
+          if(onSuccess) onSuccess()
         } else if (res?.message) {
           alert(res.message)
         }

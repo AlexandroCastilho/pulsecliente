@@ -31,7 +31,7 @@ export default async function PainelLayout({
     const empresa = await prisma.empresa.create({
       data: {
         nome: "Minha Empresa",
-        slug: `org-${Date.now()}`
+        slug: "org-123456"
       }
     })
 

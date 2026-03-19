@@ -289,7 +289,7 @@ function QuestionAnalyticsCard({ pergunta, index, envios }: any) {
             <div className="space-y-3">
               {respostas.slice(0, 3).map((resp: any, i: number) => (
                 <div key={i} className="p-3 bg-gray-50 rounded-xl text-xs font-medium text-gray-600 border border-gray-100 italic">
-                  "{resp}"
+                  &quot;{resp}&quot;
                 </div>
               ))}
               {total > 3 && <p className="text-[10px] text-gray-400 text-center font-bold">Mais {total - 3} respostas ocultas</p>}

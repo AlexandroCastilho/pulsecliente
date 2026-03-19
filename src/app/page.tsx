@@ -78,6 +78,7 @@ export default function LandingPage() {
                 <div className="flex -space-x-3">
                   {[1,2,3,4].map(i => (
                     <div key={i} className="w-10 h-10 rounded-full border-4 border-white bg-slate-200 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123}`} alt="User" />
                     </div>
                   ))}

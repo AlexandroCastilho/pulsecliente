@@ -22,24 +22,26 @@ export default function EquipePage() {
   const [convites, setConvites] = useState<any[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
 
-  useEffect(() => {
-    async function loadEquipe() {
-      try {
-        const response = await fetch('/api/equipe')
-        if (!response.ok) throw new Error("Erro ao carregar equipe")
-        const data = await response.json()
-        setMembros(data.membros)
-        setConvites(data.convites || [])
-        setCurrentUser(data.user)
-      } catch (error) {
-        console.error(error)
-        toast.error("Erro de conexão", {
-          description: "Não foi possível carregar a lista de membros."
-        })
-      } finally {
-        setLoading(false)
-      }
+  async function loadEquipe() {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/equipe')
+      if (!response.ok) throw new Error("Erro ao carregar equipe")
+      const data = await response.json()
+      setMembros(data.membros)
+      setConvites(data.convites || [])
+      setCurrentUser(data.user)
+    } catch (error) {
+      console.error(error)
+      toast.error("Erro de conexão", {
+        description: "Não foi possível carregar a lista de membros."
+      })
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     loadEquipe()
   }, [])
 
@@ -117,7 +119,7 @@ export default function EquipePage() {
         </div>
       )}
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-200">
         <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <h3 className="font-bold text-gray-900 flex items-center gap-2">
             <Users size={18} className="text-gray-400" />
@@ -128,9 +130,9 @@ export default function EquipePage() {
           </span>
         </div>
 
-        <div className="overflow-hidden">
+        <div>
           {/* Tabela Desktop */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden md:block">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
@@ -193,6 +195,7 @@ export default function EquipePage() {
                         currentRole={membro.role} 
                         currentStatus={membro.ativo}
                         isSelf={membro.id === currentUser?.id}
+                        onSuccess={loadEquipe}
                       />
                     </td>
                   </tr>
@@ -227,6 +230,7 @@ export default function EquipePage() {
                     currentRole={membro.role} 
                     currentStatus={membro.ativo}
                     isSelf={membro.id === currentUser?.id}
+                    onSuccess={loadEquipe}
                   />
                 </div>
                 

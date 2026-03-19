@@ -228,11 +228,13 @@ export async function removerMembro(membroId: string) {
       throw new Error("Você não pode remover a si mesmo.")
     }
 
+    const tbdUser = await prisma.usuario.findUnique({ where: { id: membroId } })
+    if (!tbdUser || tbdUser.empresaId !== dbUser.empresaId) {
+      throw new Error("Membro não encontrado ou não pertence a esta empresa.")
+    }
+
     await prisma.usuario.delete({
-      where: { 
-        id: membroId,
-        empresaId: dbUser.empresaId
-      }
+      where: { id: membroId }
     })
 
     revalidatePath("/equipe")

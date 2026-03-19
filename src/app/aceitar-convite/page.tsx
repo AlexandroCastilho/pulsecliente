@@ -20,7 +20,7 @@ function AceitarConviteContent() {
   const token = searchParams.get('token')
   
   const [isPending, startTransition] = useTransition()
-  const [loadingToken, setLoadingToken] = useState(true)
+  const [loadingToken, setLoadingToken] = useState(!!token)
   const [convite, setConvite] = useState<any>(null)
   const [erroToken, setErroToken] = useState<string | null>(null)
   
@@ -30,11 +30,7 @@ function AceitarConviteContent() {
   const [sucesso, setSucesso] = useState(false)
 
   useEffect(() => {
-    if (!token) {
-      setErroToken("Token não fornecido.")
-      setLoadingToken(false)
-      return
-    }
+    if (!token) return
 
     async function validar() {
       const res = await validarTokenConvite(token!)
@@ -80,7 +76,7 @@ function AceitarConviteContent() {
     )
   }
 
-  if (erroToken) {
+  if (!token || erroToken) {
     return (
       <div className="bg-white rounded-3xl shadow-xl p-10 text-center space-y-6 max-w-md mx-auto">
         <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
@@ -88,7 +84,7 @@ function AceitarConviteContent() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Ops! Algo deu errado</h1>
-          <p className="text-gray-500 mt-2">{erroToken}</p>
+          <p className="text-gray-500 mt-2">{!token ? "Token não fornecido." : erroToken}</p>
         </div>
         <button 
           onClick={() => router.push('/login')}
