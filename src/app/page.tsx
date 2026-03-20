@@ -48,7 +48,7 @@ export default function LandingPage() {
                 Login
               </Link>
               <Link 
-                href="/login" 
+                href="/cadastro" 
                 className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-slate-900 transition-all active:scale-95"
               >
                 Começar Agora
@@ -85,7 +85,7 @@ export default function LandingPage() {
                 Login
               </Link>
               <Link 
-                href="/login" 
+                href="/cadastro" 
                 className="w-full py-4 bg-indigo-600 text-white rounded-2xl text-center font-bold shadow-xl shadow-indigo-200"
               >
                 Começar Agora
@@ -118,14 +118,14 @@ export default function LandingPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link 
-                  href="/login" 
+                  href="/cadastro" 
                   className="px-8 md:px-10 py-4 md:py-5 bg-indigo-600 text-white rounded-2xl text-base md:text-lg font-bold shadow-2xl shadow-indigo-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 group active:scale-95"
                 >
                   Criar Conta Grátis
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link 
-                  href="/login" 
+                  href="/cadastro" 
                   className="px-8 md:px-10 py-4 md:py-5 bg-white text-slate-600 border-2 border-slate-100 rounded-2xl text-base md:text-lg font-bold hover:bg-slate-50 transition-all flex items-center justify-center"
                 >
                   Ver Demonstração
@@ -405,7 +405,7 @@ function PricingCard({
       </ul>
 
       <Link
-        href="/login"
+        href="/cadastro"
         className={`w-full inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold transition-colors ${popular ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
       >
         Começar agora

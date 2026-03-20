@@ -107,6 +107,15 @@ export default function LoginPage() {
             </div>
           </form>
 
+          <div className="mt-6 text-center">
+            <Link 
+              href="/cadastro" 
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              Não tem uma conta? <span className="underline">Crie agora gratuitamente</span>
+            </Link>
+          </div>
+
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
