@@ -4,6 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { DashboardWrapper } from '@/components/DashboardWrapper'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  robots: 'noindex, nofollow',
+}
+
 
 export default async function PainelLayout({
   children,

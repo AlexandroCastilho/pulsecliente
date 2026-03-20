@@ -12,10 +12,33 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Opinaloop - Plataforma de Pesquisas",
-  description: "Entenda seus clientes de verdade com o Opinaloop",
-};
+ export const metadata: Metadata = {
+   title: "Opinaloop - Plataforma de Pesquisas",
+   description: "Entenda seus clientes de verdade com o Opinaloop. Colete feedbacks, meça o NPS e tome decisões baseadas em dados reais.",
+   robots: "index, follow",
+   openGraph: {
+     title: "Opinaloop - Plataforma de Pesquisas",
+     description: "Colete feedbacks, meça o NPS e tome decisões baseadas em dados reais.",
+     url: "https://opinaloop.com",
+     siteName: "Opinaloop",
+     images: [
+       {
+         url: "/og-image.jpg",
+         width: 1200,
+         height: 630,
+         alt: "Opinaloop - Plataforma de Customer Experience",
+       },
+     ],
+     type: "website",
+     locale: "pt_BR",
+   },
+   twitter: {
+     card: "summary_large_image",
+     title: "Opinaloop - Plataforma de Pesquisas",
+     description: "Colete feedbacks, meça o NPS e tome decisões baseadas em dados reais.",
+     images: ["/og-image.jpg"],
+   },
+ };
 
 import { ToasterProvider } from '@/components/ToastProvider'
 

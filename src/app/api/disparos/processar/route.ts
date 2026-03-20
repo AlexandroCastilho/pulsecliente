@@ -121,7 +121,14 @@ export async function POST(req: NextRequest) {
               </div>
               <p style="font-size: 12px; color: #9ca3af; margin-top: 40px; text-align: center;">
                 Se o botão acima não funcionar, copie e cole o link abaixo no seu navegador:<br/>
-                <a href="${linkPesquisa}">${linkPesquisa}</a>
+                <a href="${linkPesquisa}" style="color: #9ca3af;">${linkPesquisa}</a>
+              </p>
+              <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
+              <p style="font-size: 11px; color: #d1d5db; text-align: center;">
+                Não deseja mais receber as nossas pesquisas?
+                <a href="${appUrl}/unsubscribe?email=${encodeURIComponent(envio.emailDestinatario)}" style="color: #d1d5db; text-decoration: underline;">
+                  Clique aqui para cancelar a subscrição
+                </a>.
               </p>
             </div>
           `

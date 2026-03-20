@@ -32,6 +32,50 @@ export async function logout() {
   redirect('/login')
 }
 
+  export async function solicitarRecuperacaoSenha(formData: FormData) {
+    const email = formData.get('email') as string
+
+    if (!email) {
+      return { error: 'E-mail é obrigatório.' }
+    }
+
+    const supabase = await createServerClient()
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/redefinir-senha`
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    })
+
+    if (error) {
+      return { error: sanitizeErrorMessage(error.message) }
+    }
+
+    return { success: true }
+  }
+
+  export async function redefinirSenha(formData: FormData) {
+    const password = formData.get('password') as string
+    const confirmation = formData.get('confirmation') as string
+
+    if (!password || password.length < 6) {
+      return { error: 'A senha deve ter pelo menos 6 caracteres.' }
+    }
+
+    if (password !== confirmation) {
+      return { error: 'As senhas não coincidem.' }
+    }
+
+    const supabase = await createServerClient()
+    const { error } = await supabase.auth.updateUser({ password })
+
+    if (error) {
+      return { error: sanitizeErrorMessage(error.message) }
+    }
+
+    revalidatePath('/', 'layout')
+    redirect('/login')
+  }
+
 // Supabase Admin Client (Usando Service Role Key)
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

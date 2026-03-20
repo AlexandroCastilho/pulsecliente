@@ -283,12 +283,12 @@ export default function LandingPage() {
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900">Opinaloop</span>
           </div>
-          <p className="text-slate-400 text-sm font-medium">© 2026 Opinaloop - Todos os direitos reservados.</p>
-          <div className="flex justify-center gap-8">
-            <Link href="/login" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Esqueci minha senha</Link>
-            <Link href="/login" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Políticas de Privacidade</Link>
-            <Link href="/login" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Termos de Uso</Link>
-          </div>
+           <p className="text-slate-400 text-sm font-medium">© 2026 Opinaloop - Todos os direitos reservados.</p>
+           <div className="flex justify-center gap-8">
+             <Link href="/esqueci-senha" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Esqueci minha senha</Link>
+             <Link href="/privacidade" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Política de Privacidade</Link>
+             <Link href="/termos" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Termos de Uso</Link>
+           </div>
         </div>
       </footer>
     </div>
