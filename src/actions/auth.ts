@@ -238,11 +238,30 @@ export async function registrarConta(formData: FormData) {
     })
 
     // 4. Redirecionar após sucesso de cadastro
-    // Nota: dependendo da config do Supabase, o usuário pode já estar logado ou precisar confirmar e-mail.
-    // Se estiver logado, o redirect funcionará.
-    return { success: true }
+    const requiresVerification = authData.user && !authData.session;
+    return { success: true, requiresVerification }
   } catch (error) {
     console.error('[REGISTRO ERROR]', error)
+    return { error: sanitizeErrorMessage(error) }
+  }
+}
+
+export async function reenviarEmailConfirmacao(email: string) {
+  if (!email) return { error: 'E-mail é obrigatório.' }
+
+  try {
+    const supabase = await createServerClient()
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+      }
+    })
+
+    if (error) return { error: sanitizeErrorMessage(error.message) }
+    return { success: true }
+  } catch (error) {
     return { error: sanitizeErrorMessage(error) }
   }
 }

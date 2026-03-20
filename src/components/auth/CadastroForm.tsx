@@ -13,10 +13,14 @@ export default function CadastroForm() {
 
   async function clientAction(formData: FormData) {
     startTransition(async () => {
+      const email = formData.get('email') as string
       const result = await registrarConta(formData)
-
+  
       if (result?.error) {
         toast.error(result.error)
+      } else if (result?.requiresVerification) {
+        toast.info('Verifique seu e-mail para confirmar seu cadastro.')
+        router.push(`/confirmar-email?email=${encodeURIComponent(email)}`)
       } else {
         toast.success('Conta criada com sucesso!')
         router.push('/dashboard')
