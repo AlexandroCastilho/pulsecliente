@@ -7,6 +7,7 @@ import { sanitizeErrorMessage } from "@/lib/error-handler"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
+import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -20,11 +21,11 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return errorResponse(sanitizeErrorMessage(error.message), 'UNAUTHORIZED')
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return successResponse(true)
 }
 
 export async function logout() {
@@ -37,7 +38,7 @@ export async function logout() {
     const email = formData.get('email') as string
 
     if (!email) {
-      return { error: 'E-mail é obrigatório.' }
+      return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
     }
 
     const supabase = await createServerClient()
@@ -51,10 +52,10 @@ export async function logout() {
     })
 
     if (error) {
-      return { error: sanitizeErrorMessage(error.message) }
+      return errorResponse(sanitizeErrorMessage(error.message), 'INTERNAL_ERROR')
     }
 
-    return { success: true }
+    return successResponse(true)
   }
 
   export async function redefinirSenha(formData: FormData) {
@@ -62,22 +63,22 @@ export async function logout() {
     const confirmation = formData.get('confirmation') as string
 
     if (!password || password.length < 6) {
-      return { error: 'A senha deve ter pelo menos 6 caracteres.' }
+      return errorResponse('A senha deve ter pelo menos 6 caracteres.', 'VALIDATION_ERROR')
     }
 
     if (password !== confirmation) {
-      return { error: 'As senhas não coincidem.' }
+      return errorResponse('As senhas não coincidem.', 'VALIDATION_ERROR')
     }
 
     const supabase = await createServerClient()
     const { error } = await supabase.auth.updateUser({ password })
 
     if (error) {
-      return { error: sanitizeErrorMessage(error.message) }
+      return errorResponse(sanitizeErrorMessage(error.message), 'INTERNAL_ERROR')
     }
 
     revalidatePath('/', 'layout')
-    redirect('/login')
+    return successResponse(true)
   }
 
 // Supabase Admin Client (Usando Service Role Key)
@@ -94,16 +95,16 @@ export async function validarTokenConvite(token: string) {
     })
 
     if (!convite || convite.status !== 'PENDING') {
-      return { success: false, message: "Convite inválido ou já utilizado." }
+      return errorResponse("Convite inválido ou já utilizado.", 'NOT_FOUND')
     }
 
     if (new Date() > convite.expiresAt) {
-      return { success: false, message: "Este convite expirou." }
+      return errorResponse("Este convite expirou.", 'VALIDATION_ERROR')
     }
 
-    return { success: true, convite }
+    return successResponse(convite)
   } catch (error) {
-    return { success: false, message: "Erro ao validar convite." }
+    return errorResponse("Erro ao validar convite.", 'INTERNAL_ERROR')
   }
 }
 
@@ -155,10 +156,10 @@ export async function finalizarAceiteConvite(token: string, senha: string) {
       data: { status: 'ACCEPTED' }
     })
 
-    return { success: true }
+    return successResponse(true)
   } catch (error) {
     console.error('[ACEITE CONVITE ERROR]', error)
-    return { success: false, message: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 export async function registrarConta(formData: FormData) {
@@ -169,11 +170,11 @@ export async function registrarConta(formData: FormData) {
 
   // 1. Validações básicas
   if (!nome || !nomeEmpresa || !email || !password) {
-    return { error: 'Todos os campos são obrigatórios.' }
+    return errorResponse('Todos os campos são obrigatórios.', 'VALIDATION_ERROR')
   }
 
   if (password.length < 6) {
-    return { error: 'A senha deve ter pelo menos 6 caracteres.' }
+    return errorResponse('A senha deve ter pelo menos 6 caracteres.', 'VALIDATION_ERROR')
   }
 
   // 1.5 Verificar se o e-mail já existe no banco de dados
@@ -182,7 +183,7 @@ export async function registrarConta(formData: FormData) {
   })
 
   if (existingUser) {
-    return { error: 'Este e-mail já está cadastrado. Tente fazer login.' }
+    return errorResponse('Este e-mail já está cadastrado. Tente fazer login.', 'CONFLICT')
   }
 
   try {
@@ -202,7 +203,7 @@ export async function registrarConta(formData: FormData) {
     })
 
     if (authError) {
-      return { error: sanitizeErrorMessage(authError.message) }
+      return errorResponse(sanitizeErrorMessage(authError.message), 'INTERNAL_ERROR')
     }
 
     const authUserId = authData.user?.id
@@ -246,15 +247,15 @@ export async function registrarConta(formData: FormData) {
 
     // 4. Redirecionar após sucesso de cadastro
     const requiresVerification = authData.user && !authData.session;
-    return { success: true, requiresVerification }
+    return successResponse({ requiresVerification })
   } catch (error) {
     console.error('[REGISTRO ERROR]', error)
-    return { error: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 
 export async function reenviarEmailConfirmacao(email: string) {
-  if (!email) return { error: 'E-mail é obrigatório.' }
+  if (!email) return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
 
   try {
     const supabase = await createServerClient()
@@ -270,9 +271,9 @@ export async function reenviarEmailConfirmacao(email: string) {
       }
     })
 
-    if (error) return { error: sanitizeErrorMessage(error.message) }
-    return { success: true }
+    if (error) return errorResponse(sanitizeErrorMessage(error.message), 'INTERNAL_ERROR')
+    return successResponse(true)
   } catch (error) {
-    return { error: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }

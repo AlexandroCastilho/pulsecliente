@@ -79,10 +79,10 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       try {
         const res = await importarContatos(pesquisaId, contatos)
         if (res.success) {
-          setCountImportados(res.count || contatos.length)
+          setCountImportados(res.data?.count || contatos.length)
           setStep('DISPARO')
         } else {
-          setErro(res.message || 'Erro ao importar contatos.')
+          setErro(res.error?.message || 'Erro ao importar contatos.')
         }
       } catch (err: any) {
         setErro(err.message || 'Erro inesperado na importação.')
@@ -99,7 +99,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
         if (res.success) {
           setStep('SUCESSO')
         } else {
-          setErro(res.message || 'Erro ao processar disparo.')
+          setErro(res.error?.message || 'Erro ao processar disparo.')
         }
       } catch (err: any) {
         setErro(err.message || 'Erro inesperado no disparo.')

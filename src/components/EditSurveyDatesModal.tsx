@@ -23,10 +23,10 @@ export default function EditSurveyDatesModal({ pesquisaId, initialDataInicio, in
     setIsSaving(false)
     
     if (res.success) {
-      toast.success(res.message)
+      toast.success("Datas atualizadas com sucesso!")
       onClose()
     } else {
-      toast.error(res.message)
+      toast.error(res.error?.message || "Erro ao atualizar datas")
     }
   }
 

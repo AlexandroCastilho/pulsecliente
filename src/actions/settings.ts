@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { revalidatePath } from "next/cache"
 import Stripe from "stripe"
+import { ServiceResponse, successResponse, errorResponse } from "@/types/responses"
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 const stripePriceGrowth = process.env.STRIPE_PRICE_GROWTH_ID
@@ -107,10 +108,10 @@ export async function saveSettings(formData: FormData) {
 
     revalidatePath("/configuracoes")
     revalidatePath("/(painel)", "layout") // Revalida o layout para atualizar o Header/Sidebar
-    return { success: true }
+    return successResponse(true)
   } catch (error: any) {
     console.error("[SAVE_SETTINGS_ERROR]", error)
-    return { success: false, message: error.message }
+    return errorResponse(error.message || "Erro ao salvar configurações", "INTERNAL_ERROR")
   }
 }
 
@@ -187,12 +188,12 @@ export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
   })
 
   if (!session.url) {
-    throw new Error("Não foi possível criar sessão de checkout")
+    return errorResponse("Não foi possível criar sessão de checkout", "INTERNAL_ERROR")
   }
 
-  return { url: session.url }
+  return successResponse({ url: session.url })
   } catch (error: any) {
     console.error("[ERRO SETTINGS]", error)
-    throw error // Deixa o erro borbulhar para o cliente ou handle conforme necessário
+    return errorResponse(error.message || "Erro ao iniciar checkout", "INTERNAL_ERROR")
   }
 }

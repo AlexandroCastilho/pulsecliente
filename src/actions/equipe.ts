@@ -5,6 +5,7 @@ import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { revalidatePath } from "next/cache"
 import { Role } from "@prisma/client"
 import { sanitizeErrorMessage } from "@/lib/error-handler"
+import { ServiceResponse, successResponse, errorResponse } from "@/types/responses"
 
 import crypto from 'crypto'
 import nodemailer from 'nodemailer'
@@ -106,10 +107,10 @@ export async function convidarMembro(formData: FormData) {
     })
 
     revalidatePath("/equipe")
-    return { success: true }
+    return successResponse(true)
   } catch (error) {
     console.error('[CONVITE ERROR]', error)
-    return { success: false, message: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 
@@ -126,26 +127,19 @@ export async function updateMembroRole(membroId: string, newRole: Role) {
     })
 
     revalidatePath("/equipe")
-    return { success: true }
+    return successResponse(true)
   } catch (error) {
-    return { success: false, message: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 export async function removerConvite(id: string) {
   try {
     const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
-    await prisma.convite.delete({
-      where: { 
-        id,
-        empresaId: dbUser.empresaId
-      }
-    })
-
     revalidatePath("/equipe")
-    return { success: true }
+    return successResponse(true)
   } catch (error) {
-    return { success: false, message: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 
@@ -162,9 +156,9 @@ export async function toggleMembroStatus(membroId: string, currentStatus: boolea
     })
 
     revalidatePath("/equipe")
-    return { success: true }
+    return successResponse(true)
   } catch (error) {
-    return { success: false, message: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 
@@ -188,8 +182,8 @@ export async function removerMembro(membroId: string) {
     }
 
     revalidatePath("/equipe")
-    return { success: true }
+    return successResponse(true)
   } catch (error) {
-    return { success: false, message: sanitizeErrorMessage(error) }
+    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }

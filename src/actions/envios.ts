@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
 import { processarDisparo } from './disparos'
 import { revalidatePath } from 'next/cache'
+import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
 export async function importarContatos(
   pesquisaId: string, 
@@ -15,7 +16,7 @@ export async function importarContatos(
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, message: 'Usuário não autenticado.' }
+      return errorResponse('Usuário não autenticado.', 'UNAUTHORIZED')
     }
 
     // 1. Validar se o usuário existe no Prisma e pegar empresaId
@@ -25,7 +26,7 @@ export async function importarContatos(
     })
 
     if (!dbUser) {
-      return { success: false, message: 'Perfil de usuário não encontrado.' }
+      return errorResponse('Perfil de usuário não encontrado.', 'NOT_FOUND')
     }
 
     // 2. Validar se a pesquisa pertence à empresa do usuário
@@ -38,7 +39,7 @@ export async function importarContatos(
     })
 
     if (!pesquisa) {
-      return { success: false, message: 'Pesquisa não encontrada ou acesso negado.' }
+      return errorResponse('Pesquisa não encontrada ou acesso negado.', 'FORBIDDEN')
     }
 
     // 3. Preparar dados para inserção em massa
@@ -59,24 +60,15 @@ export async function importarContatos(
 
     console.log(`[IMPORTAÇÃO] ${result.count} novos contatos importados para a pesquisa ${pesquisaId}`)
     
-    // Revalidar rotas afetadas
     revalidatePath(`/pesquisas/${pesquisaId}/envios`)
     revalidatePath(`/pesquisas/${pesquisaId}`)
     revalidatePath('/dashboard')
     
-    return { 
-      success: true, 
-      count: result.count,
-      message: `${result.count} contatos importados com sucesso!` 
-    }
+    return successResponse({ count: result.count })
 
   } catch (error: any) {
     console.error('[ERRO IMPORTAR CONTATOS]', error)
-    return { 
-      success: false, 
-      message: 'Erro interno ao processar importação.',
-      details: error.message 
-    }
+    return errorResponse('Erro interno ao processar importação', 'INTERNAL_ERROR', error.message)
   }
 }
 
@@ -166,7 +158,7 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, message: 'Usuário não autenticado.' }
+      return errorResponse('Usuário não autenticado.', 'UNAUTHORIZED')
     }
 
     // 1. Validar empresa do usuário
@@ -176,7 +168,7 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
     })
 
     if (!dbUser) {
-      return { success: false, message: 'Perfil não encontrado.' }
+      return errorResponse('Perfil não encontrado.', 'NOT_FOUND')
     }
 
     // 2. Localizar o envio e garantir que pertence à empresa
@@ -188,7 +180,7 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
     })
 
     if (!envio) {
-      return { success: false, message: 'Envio não encontrado ou acesso negado.' }
+      return errorResponse('Envio não encontrado ou acesso negado.', 'FORBIDDEN')
     }
 
     // 3. Atualizar o envio para PENDENTE e novo email
@@ -206,18 +198,17 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
     // 4. Disparar novamente
     await processarDisparo(envio.pesquisaId)
     
-    // Revalidar rotas afetadas
     revalidatePath(`/pesquisas/${envio.pesquisaId}/envios`)
     revalidatePath(`/pesquisas/${envio.pesquisaId}`)
     revalidatePath('/dashboard')
     
-    return { success: true, message: 'E-mail atualizado e reenvio iniciado com sucesso!' }
+    return successResponse(true)
 
   } catch (error: any) {
     console.error('[ERRO EDITAR E REENVIAR]', error)
     if (error.code === 'P2002') {
-      return { success: false, message: 'Este e-mail já existe na lista desta pesquisa.' }
+      return errorResponse('Este e-mail já existe na lista desta pesquisa.', 'CONFLICT')
     }
-    return { success: false, message: 'Erro ao processar edição e reenvio.' }
+    return errorResponse('Erro ao processar edição e reenvio.', 'INTERNAL_ERROR')
   }
 }

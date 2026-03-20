@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
 export async function salvarResposta(envioId: string, dados: any) {
   try {
@@ -12,15 +13,15 @@ export async function salvarResposta(envioId: string, dados: any) {
     })
 
     if (!envio) {
-      return { success: false, message: 'Link de pesquisa inválido.' }
+      return errorResponse('Link de pesquisa inválido.', 'NOT_FOUND')
     }
 
     if (!envio.pesquisa.ativa) {
-      return { success: false, message: 'Esta pesquisa não está mais aceitando respostas.' }
+      return errorResponse('Esta pesquisa não está mais aceitando respostas.', 'FORBIDDEN')
     }
 
     if (envio.status === 'RESPONDIDO') {
-      return { success: false, message: 'Esta pesquisa já foi respondida. Obrigado!' }
+      return errorResponse('Esta pesquisa já foi respondida. Obrigado!', 'CONFLICT')
     }
 
     // 2. Usar uma transação para garantir que a resposta seja salva e o status atualizado
@@ -41,22 +42,14 @@ export async function salvarResposta(envioId: string, dados: any) {
       })
     ])
 
-    // Revalidar para que o dashboard atualize as estatísticas (NPS, Taxa de resposta)
     revalidatePath('/dashboard')
     revalidatePath(`/pesquisas/${envio.pesquisaId}`)
     revalidatePath(`/pesquisas/${envio.pesquisaId}/envios`)
 
-    return { 
-      success: true, 
-      message: 'Resposta enviada com sucesso! Agradecemos sua participação.' 
-    }
+    return successResponse(true)
 
   } catch (error: any) {
     console.error('[ERRO SALVAR RESPOSTA]', error)
-    return { 
-      success: false, 
-      message: 'Erro ao processar sua resposta. Tente novamente mais tarde.',
-      details: error.message 
-    }
+    return errorResponse('Erro ao processar sua resposta. Tente novamente mais tarde.', 'INTERNAL_ERROR')
   }
 }

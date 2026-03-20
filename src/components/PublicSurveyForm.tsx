@@ -66,7 +66,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
       if (res.success) {
         setConcluido(true)
       } else {
-        setErro(res.message)
+        setErro(res.error?.message || 'Erro ao salvar resposta.')
       }
     } catch (err: any) {
       setErro('Erro de conexão. Tente novamente.')

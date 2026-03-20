@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
 export async function processarDisparo(pesquisaId: string) {
   try {
@@ -11,7 +12,7 @@ export async function processarDisparo(pesquisaId: string) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, message: 'Usuário não autenticado.' }
+      return errorResponse('Usuário não autenticado.', 'UNAUTHORIZED')
     }
 
     // 1. Validar usuário e empresa
@@ -21,7 +22,7 @@ export async function processarDisparo(pesquisaId: string) {
     })
 
     if (!dbUser) {
-      return { success: false, message: 'Perfil de usuário não encontrado.' }
+      return errorResponse('Perfil de usuário não encontrado.', 'NOT_FOUND')
     }
 
     // 2. Validar pesquisa - usando select para evitar erro de colunas de data ausentes no prisma local
@@ -31,7 +32,7 @@ export async function processarDisparo(pesquisaId: string) {
     })
 
     if (!pesquisa) {
-      return { success: false, message: 'Pesquisa não encontrada ou acesso negado.' }
+      return errorResponse('Pesquisa não encontrada ou acesso negado.', 'FORBIDDEN')
     }
 
     // 3. Buscar envios pendentes
@@ -40,7 +41,7 @@ export async function processarDisparo(pesquisaId: string) {
     })
 
     if (pendentes.length === 0) {
-      return { success: false, message: 'Não há disparos pendentes para esta pesquisa.' }
+      return errorResponse('Não há disparos pendentes para esta pesquisa.', 'NOT_FOUND')
     }
 
     // 4. Mudar status para PROCESSANDO (Atomicamente ou em lote)
@@ -90,40 +91,29 @@ export async function processarDisparo(pesquisaId: string) {
       console.log(`[DISPARO] Resposta do worker:`, response.status, responseData)
       
       if (!response.ok) {
-        // Se falhou ao chamar o worker, voltamos para PENDENTE para permitir nova tentativa
         await prisma.envio.updateMany({
           where: { pesquisaId, status: 'PROCESSANDO' },
           data: { status: 'PENDENTE', erroLog: `Worker falhou (${response.status}): ${JSON.stringify(responseData)}` }
         })
-        return { success: false, message: `Erro no worker: ${response.status}` }
+        return errorResponse(`Erro no worker: ${response.status}`, 'INTERNAL_ERROR')
       }
     } catch (err: any) {
       console.error('[FETCH WORKER ERROR]', err)
-      // Reverter para PENDENTE em caso de erro de rede/conexão
       await prisma.envio.updateMany({
         where: { pesquisaId, status: 'PROCESSANDO' },
         data: { status: 'PENDENTE', erroLog: `Erro de conexão: ${err.message}` }
       })
-      return { success: false, message: `Erro de conexão com o servidor: ${err.message}` }
+      return errorResponse(`Erro de conexão com o servidor: ${err.message}`, 'INTERNAL_ERROR')
     }
 
-    // Revalidar para que a UI se atualize
     revalidatePath(`/pesquisas/${pesquisaId}`)
     revalidatePath(`/pesquisas/${pesquisaId}/envios`)
     revalidatePath('/dashboard')
 
-    return { 
-      success: true, 
-      count: pendentes.length,
-      message: `${pendentes.length} disparos iniciados. O processamento continuará em segundo plano.` 
-    }
+    return successResponse({ count: pendentes.length })
 
   } catch (error: any) {
     console.error('[ERRO PROCESSAR DISPARO]', error)
-    return { 
-      success: false, 
-      message: 'Erro interno ao iniciar disparos.',
-      details: error.message 
-    }
+    return errorResponse(error.message || 'Erro interno ao iniciar disparos.', 'INTERNAL_ERROR')
   }
 }

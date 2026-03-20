@@ -37,7 +37,7 @@ export function EditResendModal({ isOpen, onClose, envio }: EditResendModalProps
         onClose()
       } else {
         toast.error("Opa!", {
-          description: res.message
+          description: res.error?.message || "Erro ao processar edição"
         })
       }
     } catch (err) {

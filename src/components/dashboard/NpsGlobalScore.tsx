@@ -22,12 +22,12 @@ export async function NpsGlobalScore({ empresaId }: { empresaId: string }) {
   return (
     <MetricCard 
       label="NPS Agregado" 
-      value={globalNpsScore !== null ? globalNpsScore.toString() : '--'} 
+      value={(globalNpsScore !== null && globalNpsScore !== undefined) ? globalNpsScore.toString() : '--'} 
       trend="Qualidade" 
       subtext="Média de todas as pesquisas"
-      icon={<TrendingUp className={globalNpsScore !== null && globalNpsScore < 0 ? "text-red-500" : "text-emerald-500"} size={24} />}
-      color={globalNpsScore !== null && globalNpsScore < 0 ? "text-red-600" : undefined}
-      tooltip={globalNpsScore !== null && globalNpsScore < 0 ? "O score global é negativo. Mais detratores que promotores no geral." : undefined}
+      icon={<TrendingUp className={(globalNpsScore !== null && globalNpsScore !== undefined) && globalNpsScore < 0 ? "text-red-500" : "text-emerald-500"} size={24} />}
+      color={(globalNpsScore !== null && globalNpsScore !== undefined) && globalNpsScore < 0 ? "text-red-600" : undefined}
+      tooltip={(globalNpsScore !== null && globalNpsScore !== undefined) && globalNpsScore < 0 ? "O score global é negativo. Mais detratores que promotores no geral." : undefined}
     />
   )
 }

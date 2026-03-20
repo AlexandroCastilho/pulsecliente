@@ -35,9 +35,9 @@ function AceitarConviteContent() {
     async function validar() {
       const res = await validarTokenConvite(token!)
       if (res.success) {
-        setConvite(res.convite)
+        setConvite(res.data)
       } else {
-        setErroToken(res.message || "Erro ao validar convite.")
+        setErroToken(res.error?.message || "Erro ao validar convite.")
       }
       setLoadingToken(false)
     }
@@ -62,7 +62,7 @@ function AceitarConviteContent() {
         toast.success("Convite aceito com sucesso!")
         setTimeout(() => router.push('/login'), 3000)
       } else {
-        toast.error(res.message || "Erro ao aceitar convite")
+        toast.error(res.error?.message || "Erro ao aceitar convite")
       }
     })
   }

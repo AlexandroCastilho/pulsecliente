@@ -1,0 +1,95 @@
+﻿
+> temp-pulse@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.7 (Turbopack)
+- Environments: .env.local, .env
+
+node.exe : ÔÜá The 
+"middleware" file 
+convention is 
+deprecated. Please use 
+"proxy" instead. Learn 
+more: https://nextjs.or
+g/docs/messages/middlew
+are-to-proxy
+No linha:1 caractere:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (ÔÜá The "midd   
+ le...leware-to-pro    
+xy:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 23.3s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/dashbo
+ard/NpsGlobalScore.tsx:
+25:40
+Type error: 
+'globalNpsScore' is 
+possibly 'undefined'.
+
+[0m [90m 23 |[39m   
+  [33m<[39m[33mMetri
+cCard[39m 
+ [90m 24 |[39m       
+label[33m=[39m[32m"N
+PS Agregado"[39m 
+[31m[1m>[22m[39m[9
+0m 25 |[39m       valu
+e[33m=[39m{globalNpsS
+core [33m!==[39m 
+[36mnull[39m 
+[33m?[39m globalNpsSc
+ore[33m.[39mtoString(
+) [33m:[39m 
+[32m'--'[39m} 
+ [90m    |[39m       
+                       
+          
+[31m[1m^[22m[39m
+ [90m 26 |[39m       
+trend[33m=[39m[32m"Q
+ualidade"[39m 
+ [90m 27 |[39m       
+subtext[33m=[39m[32m
+"M├®dia de todas as 
+pesquisas"[39m
+ [90m 28 |[39m       
+icon[33m=[39m{[33m<
+[39m[33mTrendingUp[39
+m className[33m=[39m{
+globalNpsScore 
+[33m!==[39m 
+[36mnull[39m 
+[33m&&[39m 
+globalNpsScore 
+[33m<[39m 
+[35m0[39m 
+[33m?[39m [32m"text-
+red-500"[39m 
+[33m:[39m [32m"text-
+emerald-500"[39m} size
+[33m=[39m{[35m24[39
+m} [33m/[39m[33m>[3
+9m}[0m
+Next.js build worker 
+exited with code: 1 
+and signal: null
+

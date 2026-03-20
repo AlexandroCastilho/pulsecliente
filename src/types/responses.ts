@@ -4,11 +4,9 @@ export type ServiceError = {
   details?: any;
 };
 
-export type ServiceResponse<T = any> = {
-  success: boolean;
-  data?: T;
-  error?: ServiceError;
-};
+export type ServiceResponse<T = any> = 
+  | { success: true; data: T; error?: never }
+  | { success: false; data?: never; error: ServiceError };
 
 /**
  * Utilitário para criar respostas de sucesso

@@ -1,0 +1,33 @@
+﻿
+> temp-pulse@0.1.0 build
+> next build
+
+node.exe : Ô¿» Unable 
+to acquire lock at C:\U
+sers\alexa\Documents\PR
+OJETOS ANTI\PULSE7.0\.n
+ext\lock, is another 
+instance of next build 
+running?
+No linha:1 caractere:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Ô¿» Unable to   
+  a... build runnin    
+g?:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  Suggestion: If you intended to restart next build, terminate the other process, and then try again.
+

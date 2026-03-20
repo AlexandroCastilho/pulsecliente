@@ -64,7 +64,7 @@ export default function EquipePage() {
         toast.success("Convite cancelado.")
         setConvites(convites.filter(c => c.id !== id))
       } else {
-        toast.error(res.message || "Erro ao cancelar convite")
+        toast.error(res.error?.message || "Erro ao cancelar convite")
       }
     } catch (err) {
       toast.error("Erro ao processar cancelamento")

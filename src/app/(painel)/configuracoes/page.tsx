@@ -46,6 +46,10 @@ export default function ConfiguracoesPage() {
         // Recarrega os dados para garantir que a UI está em sincronia
         const updated = await getSettingsData()
         if (updated) setData(updated)
+      } else {
+        toast.error("Erro ao salvar", {
+          description: res.error?.message || "Não foi possível persistir as alterações. Tente novamente."
+        })
       }
     } catch (error) {
       console.error(error)
@@ -83,16 +87,14 @@ export default function ConfiguracoesPage() {
   const handleCheckoutPlan = async (plan: 'GROWTH' | 'PREMIUM') => {
     setCheckoutPlanLoading(plan)
     try {
-      const result = await criarCheckoutAssinatura(plan)
-      if (!result?.url) {
-        throw new Error('Não foi possível iniciar o checkout')
-      }
-
-      window.location.href = result.url
-    } catch (error: any) {
+    const res = await criarCheckoutAssinatura(plan)
+    if (res.success && res.data?.url) {
+      window.location.href = res.data.url
+    } else {
       toast.error('Erro ao iniciar checkout', {
-        description: error?.message || 'Tente novamente em instantes.',
+        description: res.error?.message || 'Tente novamente em instantes.',
       })
+    }
     } finally {
       setCheckoutPlanLoading(null)
     }

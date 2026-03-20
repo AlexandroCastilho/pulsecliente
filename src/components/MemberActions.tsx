@@ -37,8 +37,8 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf, on
         if (res?.success) {
           setIsOpen(false)
           if(onSuccess) onSuccess()
-        } else if (res?.message) {
-          alert(res.message)
+        } else if (res?.error) {
+          alert(res.error.message)
         }
       } catch (err: any) {
         alert(err.message || "Erro ao realizar ação")
