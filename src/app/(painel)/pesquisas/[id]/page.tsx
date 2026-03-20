@@ -44,7 +44,7 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
   })
 
   // 1. Buscar a pesquisa via select para evitar erro de colunas invisíveis no schema local
-  const pesquisaBase = await (prisma.pesquisa as any).findFirst({
+  const pesquisaBase = await prisma.pesquisa.findFirst({
     where: { 
       id,
       empresaId: dbUser?.empresaId 
