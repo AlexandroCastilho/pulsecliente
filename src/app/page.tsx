@@ -1,9 +1,22 @@
 import Link from 'next/link'
-import { Activity, Infinity, CheckCircle2, Star, Users, MessageSquare, ArrowRight } from 'lucide-react'
+import { Inter } from 'next/font/google'
+import {
+  Activity,
+  ArrowRight,
+  Check,
+  Infinity,
+  Mail,
+  Smartphone,
+  Users,
+  Gauge,
+  Star,
+} from 'lucide-react'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
+    <div className={`min-h-screen bg-slate-50 text-slate-900 ${inter.className}`}>
       {/* Header / Navbar */}
       <header className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -16,7 +29,7 @@ export default function LandingPage() {
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             <a href="#funcionalidades" className="hover:text-indigo-600 transition-colors">Funcionalidades</a>
-            <a href="#nps" className="hover:text-indigo-600 transition-colors">Metodologia NPS</a>
+            <a href="#metodologia" className="hover:text-indigo-600 transition-colors">Metodologia NPS</a>
             <a href="#precos" className="hover:text-indigo-600 transition-colors">Preços</a>
           </nav>
 
@@ -38,7 +51,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="pt-32 pb-20 overflow-hidden">
+      <main className="pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8 animate-in slide-in-from-left duration-700">
@@ -145,6 +158,119 @@ export default function LandingPage() {
                </div>
             </div>
           </div>
+
+          <section id="funcionalidades" className="scroll-mt-28 pt-24">
+            <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Funcionalidades</p>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Tudo o que você precisa para escalar seu NPS</h2>
+              <p className="text-slate-500 font-medium">Uma plataforma completa para disparar pesquisas, acompanhar resultados em tempo real e ativar seu time em torno da experiência do cliente.</p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <FeatureCard
+                icon={<Mail size={22} className="text-indigo-600" />}
+                title="Disparos por E-mail Próprio"
+                description="Configure seu SMTP e envie pesquisas com domínio e reputação da sua marca."
+              />
+              <FeatureCard
+                icon={<Gauge size={22} className="text-indigo-600" />}
+                title="Dashboard em Tempo Real"
+                description="Acompanhe taxa de resposta, NPS e status dos envios com atualização contínua."
+              />
+              <FeatureCard
+                icon={<Users size={22} className="text-indigo-600" />}
+                title="Gestão de Equipa"
+                description="Convide membros, organize permissões e mantenha toda a operação alinhada."
+              />
+              <FeatureCard
+                icon={<Smartphone size={22} className="text-indigo-600" />}
+                title="Mobile-First"
+                description="Experiência otimizada para celular, com formulários rápidos e interface responsiva."
+              />
+            </div>
+          </section>
+
+          <section id="metodologia" className="scroll-mt-28 pt-24">
+            <div className="rounded-3xl border border-gray-200 bg-white p-8 md:p-12">
+              <div className="max-w-3xl space-y-4 mb-10">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Metodologia NPS</p>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Promotor, Neutro e Detrator sem complicação</h2>
+                <p className="text-slate-500 font-medium">O Opinaloop classifica respostas automaticamente e transforma a metodologia NPS em decisões acionáveis para o seu time.</p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-5">
+                <NpsCard
+                  title="Promotor"
+                  score="9–10"
+                  description="Clientes leais, com alta chance de recomendação da sua marca."
+                  tone="emerald"
+                />
+                <NpsCard
+                  title="Neutro"
+                  score="7–8"
+                  description="Clientes satisfeitos, mas com baixa fidelidade competitiva."
+                  tone="amber"
+                />
+                <NpsCard
+                  title="Detrator"
+                  score="0–6"
+                  description="Clientes insatisfeitos com risco de churn e impacto na reputação."
+                  tone="red"
+                />
+              </div>
+
+              <div className="mt-8 rounded-2xl bg-slate-50 border border-slate-200 p-5 text-sm font-semibold text-slate-600">
+                Cálculo simplificado no Opinaloop: <span className="text-emerald-600">% Promotores</span> - <span className="text-red-600">% Detratores</span> = <span className="text-indigo-600">NPS</span>
+              </div>
+            </div>
+          </section>
+
+          <section id="precos" className="scroll-mt-28 pt-24">
+            <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Preços</p>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Planos para cada estágio da sua operação</h2>
+              <p className="text-slate-500 font-medium">Comece grátis e evolua conforme sua base de clientes e volume de pesquisas cresce.</p>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              <PricingCard
+                plan="Plano Gratuito"
+                price="R$ 0"
+                subtitle="Ideal para começar"
+                benefits={[
+                  'Até 100 envios/mês',
+                  'Dashboard básico',
+                  '1 utilizador',
+                  'Suporte por e-mail',
+                ]}
+              />
+
+              <PricingCard
+                plan="Plano Growth"
+                price="R$ 147"
+                subtitle="Para times em expansão"
+                popular
+                benefits={[
+                  'Até 5.000 envios/mês',
+                  'Dashboard avançado em tempo real',
+                  'Até 5 utilizadores',
+                  'Automação de disparos',
+                ]}
+              />
+
+              <PricingCard
+                plan="Plano Premium"
+                price="R$ 297"
+                subtitle="Escala com controle total"
+                benefits={[
+                  'Envios ilimitados',
+                  'Gestão avançada de equipa',
+                  'Múltiplos SMTPs',
+                  'Suporte prioritário',
+                ]}
+              />
+            </div>
+          </section>
         </div>
       </main>
 
@@ -166,5 +292,79 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center mb-4">
+        {icon}
+      </div>
+      <h3 className="text-base font-bold text-slate-900 mb-2">{title}</h3>
+      <p className="text-sm text-slate-500 font-medium leading-relaxed">{description}</p>
+    </article>
+  )
+}
+
+function NpsCard({ title, score, description, tone }: { title: string; score: string; description: string; tone: 'emerald' | 'amber' | 'red' }) {
+  const toneClasses = {
+    emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700',
+    amber: 'bg-amber-50 border-amber-100 text-amber-700',
+    red: 'bg-red-50 border-red-100 text-red-700',
+  }[tone]
+
+  return (
+    <article className={`rounded-2xl border p-5 ${toneClasses}`}>
+      <p className="text-xs font-black uppercase tracking-widest mb-1">{title}</p>
+      <p className="text-2xl font-black mb-2">{score}</p>
+      <p className="text-sm font-semibold opacity-90 leading-relaxed">{description}</p>
+    </article>
+  )
+}
+
+function PricingCard({
+  plan,
+  price,
+  subtitle,
+  benefits,
+  popular = false,
+}: {
+  plan: string
+  price: string
+  subtitle: string
+  benefits: string[]
+  popular?: boolean
+}) {
+  return (
+    <article className={`relative rounded-3xl border bg-white p-8 shadow-sm ${popular ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-gray-200'}`}>
+      {popular && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+          Mais Popular
+        </span>
+      )}
+
+      <div className="space-y-2 mb-6">
+        <h3 className="text-xl font-black text-slate-900">{plan}</h3>
+        <p className="text-sm font-semibold text-slate-500">{subtitle}</p>
+        <p className="text-4xl font-black text-slate-900">{price}<span className="text-sm font-semibold text-slate-500">/mês</span></p>
+      </div>
+
+      <ul className="space-y-3 mb-8">
+        {benefits.map((benefit) => (
+          <li key={benefit} className="flex items-start gap-3 text-sm text-slate-600 font-semibold">
+            <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+            <span>{benefit}</span>
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        href="/login"
+        className={`w-full inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold transition-colors ${popular ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+      >
+        Começar agora
+      </Link>
+    </article>
   )
 }

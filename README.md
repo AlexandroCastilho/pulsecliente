@@ -36,6 +36,12 @@ O PulseCliente é uma plataforma SaaS premium para gestão de pesquisas de satis
    npm install
    ```
 3. Configure o arquivo `.env` baseando-se no `.env.example`.
+   Variáveis obrigatórias:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `DATABASE_URL`
+   - `DIRECT_URL`
 4. Sincronize o banco de dados e gere o cliente Prisma:
    ```bash
    npx prisma db push
@@ -49,6 +55,13 @@ O PulseCliente é uma plataforma SaaS premium para gestão de pesquisas de satis
 ## 🌍 Deploy (Vercel)
 
 A aplicação está otimizada para a Vercel. O script `postinstall` garante que o Prisma seja configurado automaticamente no ambiente serverless. Veja o [Guia de Deploy Vercel](C:\Users\alexa\.gemini\antigravity\brain\52a36fed-aee5-4832-928b-dba5017e0792\walkthrough_vercel.md) para detalhes de variáveis de ambiente.
+
+Antes de fazer deploy, configure em `Project Settings > Environment Variables`:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+- `DIRECT_URL`
 
 ---
 Desenvolvido com foco em excelência técnica e experiência do cliente. 🚀

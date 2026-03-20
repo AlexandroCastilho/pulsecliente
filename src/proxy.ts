@@ -8,9 +8,27 @@ export async function proxy(request: NextRequest) {
     },
   })
 
+  const { pathname } = request.nextUrl
+
+  const publicRoutes = ['/login', '/auth', '/responder/']
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+  const isProtectedRoute = (pathname.startsWith('/dashboard') || pathname.startsWith('/editor')) && !isPublicRoute
+  const isLoginRoute = pathname === '/login'
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (isProtectedRoute) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    return response
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -34,15 +52,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  const { pathname } = request.nextUrl
-
-  // Rotas que exigem autenticação
-  const publicRoutes = ['/login', '/auth', '/responder/']
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
-
-  const isProtectedRoute = (pathname.startsWith('/dashboard') || pathname.startsWith('/editor')) && !isPublicRoute
-  const isLoginRoute = pathname === '/login'
 
   // 1. Deslogado tentando acessar rota protegida -> Login
   if (!user && isProtectedRoute) {

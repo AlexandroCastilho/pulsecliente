@@ -10,6 +10,10 @@
   --foreground: #0f172a; /* slab-900 */
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #020617; /* shadow-950 */
