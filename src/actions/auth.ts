@@ -9,7 +9,7 @@ import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<ServiceResponse> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -34,7 +34,7 @@ export async function logout() {
   redirect('/login')
 }
 
-  export async function solicitarRecuperacaoSenha(formData: FormData) {
+  export async function solicitarRecuperacaoSenha(formData: FormData): Promise<ServiceResponse> {
     const email = formData.get('email') as string
 
     if (!email) {
@@ -58,7 +58,7 @@ export async function logout() {
     return successResponse(true)
   }
 
-  export async function redefinirSenha(formData: FormData) {
+  export async function redefinirSenha(formData: FormData): Promise<ServiceResponse> {
     const password = formData.get('password') as string
     const confirmation = formData.get('confirmation') as string
 
@@ -87,7 +87,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function validarTokenConvite(token: string) {
+export async function validarTokenConvite(token: string): Promise<ServiceResponse> {
   try {
     const convite = await prisma.convite.findUnique({
       where: { token },
@@ -108,7 +108,7 @@ export async function validarTokenConvite(token: string) {
   }
 }
 
-export async function finalizarAceiteConvite(token: string, senha: string) {
+export async function finalizarAceiteConvite(token: string, senha: string): Promise<ServiceResponse> {
   try {
     // 1. Validar convite novamente
     const convite = await prisma.convite.findUnique({
@@ -162,7 +162,7 @@ export async function finalizarAceiteConvite(token: string, senha: string) {
     return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
-export async function registrarConta(formData: FormData) {
+export async function registrarConta(formData: FormData): Promise<ServiceResponse> {
   const nome = formData.get('nome') as string
   const nomeEmpresa = formData.get('empresa') as string
   const email = formData.get('email') as string
@@ -254,7 +254,7 @@ export async function registrarConta(formData: FormData) {
   }
 }
 
-export async function reenviarEmailConfirmacao(email: string) {
+export async function reenviarEmailConfirmacao(email: string): Promise<ServiceResponse> {
   if (!email) return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
 
   try {
