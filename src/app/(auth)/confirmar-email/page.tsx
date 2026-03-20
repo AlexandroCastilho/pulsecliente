@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { reenviarEmailConfirmacao } from '@/actions/auth'
 import { toast } from 'sonner'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { Infinity as InfinityIcon, Mail, ArrowRight } from 'lucide-react'
 
-export default function ConfirmarEmailPage() {
+function ConfirmEmailContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const [isResending, setIsResending] = useState(false)
@@ -20,7 +20,6 @@ export default function ConfirmarEmailPage() {
 
     setIsResending(true)
     const result = await reenviarEmailConfirmacao(email)
-    setIsResending(true) // Simulating a delay for better UX if needed, or just reset it
     
     if (result.error) {
       toast.error(result.error)
@@ -82,5 +81,20 @@ export default function ConfirmarEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConfirmarEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-gray-200 rounded-full" />
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+        </div>
+      </div>
+    }>
+      <ConfirmEmailContent />
+    </Suspense>
   )
 }
