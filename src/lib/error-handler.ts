@@ -24,6 +24,11 @@ export function sanitizeErrorMessage(error: any): string {
     return "Erro de conexão com o servidor. Verifique sua internet."
   }
 
+  // Erro de rate limit (muitos pedidos)
+  if (error?.message?.toLowerCase().includes('rate limit')) {
+    return "Muitas solicitações enviadas em pouco tempo. Por favor, aguarde alguns minutos antes de tentar novamente."
+  }
+
   // Se for uma string simples (nossa própria throw Error)
   if (typeof error === 'string') return error
   if (error instanceof Error && !error.message.includes('Prisma')) return error.message

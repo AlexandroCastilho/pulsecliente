@@ -6,6 +6,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server"
 import { sanitizeErrorMessage } from "@/lib/error-handler"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { headers } from 'next/headers'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -40,8 +41,10 @@ export async function logout() {
     }
 
     const supabase = await createServerClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const redirectTo = `${appUrl.replace(/\/$/, '')}/redefinir-senha`
+    const host = (await headers()).get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const appUrl = `${protocol}://${host}`
+    const redirectTo = `${appUrl}/redefinir-senha`
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
@@ -183,6 +186,9 @@ export async function registrarConta(formData: FormData) {
   }
 
   try {
+    const host = (await headers()).get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const appUrl = `${protocol}://${host}`
     const supabase = await createServerClient()
 
     // 2. Criar utilizador no Supabase Auth
@@ -190,7 +196,8 @@ export async function registrarConta(formData: FormData) {
       email,
       password,
       options: {
-        data: { nome }
+        data: { nome },
+        emailRedirectTo: `${appUrl}/confirmar-email?email=${encodeURIComponent(email)}`
       }
     })
 
@@ -251,11 +258,15 @@ export async function reenviarEmailConfirmacao(email: string) {
 
   try {
     const supabase = await createServerClient()
+    const host = (await headers()).get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const appUrl = `${protocol}://${host}`
+
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+        emailRedirectTo: `${appUrl}/dashboard`
       }
     })
 
