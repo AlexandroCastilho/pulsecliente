@@ -13,6 +13,11 @@ model Empresa {
   id         String      @id @default(uuid())
   nome       String
   slug       String      @unique
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
+  plano                String  @default("FREE")
+  assinaturaAtiva      Boolean @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   pesquisas  Pesquisa[]

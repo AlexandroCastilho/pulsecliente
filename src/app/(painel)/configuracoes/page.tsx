@@ -11,13 +11,15 @@ import {
   AlertCircle,
   ShieldCheck,
   Globe,
-  UserCircle
+  UserCircle,
+  CreditCard
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getSettingsData, saveSettings } from '@/actions/settings'
 
 export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(false)
+  const [billingLoading, setBillingLoading] = useState(false)
   const [data, setData] = useState<any>(null)
 
   useEffect(() => {
@@ -51,6 +53,29 @@ export default function ConfiguracoesPage() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleManageSubscription = async () => {
+    setBillingLoading(true)
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.url) {
+        throw new Error(result.error || 'Não foi possível abrir o portal de assinatura')
+      }
+
+      window.location.href = result.url
+    } catch (error: any) {
+      toast.error('Erro ao abrir assinatura', {
+        description: error?.message || 'Tente novamente em instantes.',
+      })
+    } finally {
+      setBillingLoading(false)
     }
   }
 
@@ -228,6 +253,36 @@ export default function ConfiguracoesPage() {
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium text-gray-900"
               />
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-8 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                <CreditCard size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Assinatura</h3>
+                <p className="text-xs text-gray-500 font-medium">Acesse o portal Stripe para atualizar cartão, plano ou cancelar.</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleManageSubscription}
+              disabled={billingLoading}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${billingLoading ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+            >
+              {billingLoading ? (
+                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CreditCard size={14} />
+                  Gerir Assinatura
+                </>
+              )}
+            </button>
           </div>
         </div>
 
