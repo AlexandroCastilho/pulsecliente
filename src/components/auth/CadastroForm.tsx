@@ -36,7 +36,7 @@ export default function CadastroForm() {
           type="text"
           required
           disabled={isPending}
-          className="appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm font-inter bg-gray-50/50 hover:bg-white focus:bg-white"
+          className="appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all md:text-sm text-base font-inter bg-gray-50/50 hover:bg-white focus:bg-white"
           placeholder="Ex: Alexandre Castilho"
         />
       </div>
@@ -51,7 +51,7 @@ export default function CadastroForm() {
           type="text"
           required
           disabled={isPending}
-          className="appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm font-inter bg-gray-50/50 hover:bg-white focus:bg-white"
+          className="appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all md:text-sm text-base font-inter bg-gray-50/50 hover:bg-white focus:bg-white"
           placeholder="Ex: Minha Pizzaria"
         />
       </div>
@@ -67,7 +67,7 @@ export default function CadastroForm() {
           autoComplete="email"
           required
           disabled={isPending}
-          className="appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm font-inter bg-gray-50/50 hover:bg-white focus:bg-white"
+          className="appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all md:text-sm text-base font-inter bg-gray-50/50 hover:bg-white focus:bg-white"
           placeholder="seu@email.com"
         />
       </div>

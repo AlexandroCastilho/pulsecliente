@@ -21,7 +21,7 @@ export default function CadastroPage() {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-10 px-8 shadow-2xl shadow-gray-200/60 sm:rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+        <div className="bg-white py-8 px-5 md:py-10 md:px-8 shadow-2xl shadow-gray-200/60 sm:rounded-3xl border border-gray-100/50 backdrop-blur-sm">
           <CadastroForm />
           
           <div className="mt-8 border-t border-gray-100 pt-8">

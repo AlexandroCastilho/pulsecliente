@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Inter } from 'next/font/google'
 import {
@@ -10,11 +13,14 @@ import {
   Users,
   Gauge,
   Star,
+  Menu,
+  X
 } from 'lucide-react'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function LandingPage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
     <div className={`min-h-screen bg-slate-50 text-slate-900 ${inter.className}`}>
       {/* Header / Navbar */}
@@ -34,27 +40,66 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
-              className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-indigo-600 transition-all"
+            <div className="hidden sm:flex items-center gap-4">
+              <Link 
+                href="/login" 
+                className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-indigo-600 transition-all"
+              >
+                Login
+              </Link>
+              <Link 
+                href="/login" 
+                className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-slate-900 transition-all active:scale-95"
+              >
+                Começar Agora
+              </Link>
+            </div>
+
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
             >
-              Login
-            </Link>
-            <Link 
-              href="/login" 
-              className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-slate-900 transition-all active:scale-95"
-            >
-              Começar Agora
-            </Link>
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        <div 
+          className={`md:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 shadow-xl transition-all duration-300 ${
+            isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+          }`}
+        >
+          <div className="p-6 flex flex-col gap-6">
+            <nav className="flex flex-col gap-4">
+              <a href="#funcionalidades" onClick={() => setIsMenuOpen(false)} className="text-lg font-bold text-slate-900">Funcionalidades</a>
+              <a href="#metodologia" onClick={() => setIsMenuOpen(false)} className="text-lg font-bold text-slate-900">Metodologia NPS</a>
+              <a href="#precos" onClick={() => setIsMenuOpen(false)} className="text-lg font-bold text-slate-900">Preços</a>
+            </nav>
+            <div className="h-[1px] bg-slate-100" />
+            <div className="flex flex-col gap-4">
+               <Link 
+                href="/login" 
+                className="w-full py-4 text-center font-bold text-slate-600"
+              >
+                Login
+              </Link>
+              <Link 
+                href="/login" 
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl text-center font-bold shadow-xl shadow-indigo-200"
+              >
+                Começar Agora
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="pt-32 pb-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8 animate-in slide-in-from-left duration-700">
+      <main className="pt-24 md:pt-32 pb-12 md:pb-20">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
+            <div className="space-y-6 md:space-y-8 animate-in slide-in-from-left duration-700">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold uppercase tracking-widest">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -63,25 +108,25 @@ export default function LandingPage() {
                 Plataforma de Customer Experience
               </div>
               
-              <h1 className="text-5xl md:text-7xl font-black leading-[1.1] text-slate-900">
+              <h1 className="text-4xl md:text-7xl font-black leading-[1.1] text-slate-900">
                 Entenda seus clientes de <span className="text-indigo-600">verdade</span>.
               </h1>
               
-              <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-xl">
+              <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed max-w-xl">
                 O Opinaloop ajuda sua empresa a coletar feedbacks valiosos, medir o NPS e tomar decisões baseadas em dados reais. Simples, rápido e eficiente.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link 
                   href="/login" 
-                  className="px-10 py-5 bg-indigo-600 text-white rounded-2xl text-lg font-bold shadow-2xl shadow-indigo-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 group active:scale-95"
+                  className="px-8 md:px-10 py-4 md:py-5 bg-indigo-600 text-white rounded-2xl text-base md:text-lg font-bold shadow-2xl shadow-indigo-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 group active:scale-95"
                 >
                   Criar Conta Grátis
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link 
                   href="/login" 
-                  className="px-10 py-5 bg-white text-slate-600 border-2 border-slate-100 rounded-2xl text-lg font-bold hover:bg-slate-50 transition-all flex items-center justify-center"
+                  className="px-8 md:px-10 py-4 md:py-5 bg-white text-slate-600 border-2 border-slate-100 rounded-2xl text-base md:text-lg font-bold hover:bg-slate-50 transition-all flex items-center justify-center"
                 >
                   Ver Demonstração
                 </Link>
@@ -159,11 +204,11 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <section id="funcionalidades" className="scroll-mt-28 pt-24">
-            <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
+          <section id="funcionalidades" className="scroll-mt-28 pt-16 md:pt-24">
+            <div className="text-center max-w-3xl mx-auto space-y-4 mb-10 md:mb-12">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Funcionalidades</p>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Tudo o que você precisa para escalar seu NPS</h2>
-              <p className="text-slate-500 font-medium">Uma plataforma completa para disparar pesquisas, acompanhar resultados em tempo real e ativar seu time em torno da experiência do cliente.</p>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900">Tudo o que você precisa para escalar seu NPS</h2>
+              <p className="text-slate-500 font-medium text-sm md:text-base">Uma plataforma completa para disparar pesquisas, acompanhar resultados em tempo real e ativar seu time em torno da experiência do cliente.</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -190,12 +235,12 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section id="metodologia" className="scroll-mt-28 pt-24">
-            <div className="rounded-3xl border border-gray-200 bg-white p-8 md:p-12">
-              <div className="max-w-3xl space-y-4 mb-10">
+          <section id="metodologia" className="scroll-mt-28 pt-16 md:pt-24">
+            <div className="rounded-2xl md:rounded-3xl border border-gray-200 bg-white p-6 md:p-12">
+              <div className="max-w-3xl space-y-4 mb-8 md:mb-10">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Metodologia NPS</p>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Promotor, Neutro e Detrator sem complicação</h2>
-                <p className="text-slate-500 font-medium">O Opinaloop classifica respostas automaticamente e transforma a metodologia NPS em decisões acionáveis para o seu time.</p>
+                <h2 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900">Promotor, Neutro e Detrator sem complicação</h2>
+                <p className="text-slate-500 font-medium text-sm md:text-base">O Opinaloop classifica respostas automaticamente e transforma a metodologia NPS em decisões acionáveis para o seu time.</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-5">
@@ -225,11 +270,11 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section id="precos" className="scroll-mt-28 pt-24">
-            <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
+          <section id="precos" className="scroll-mt-28 pt-16 md:pt-24">
+            <div className="text-center max-w-3xl mx-auto space-y-4 mb-10 md:mb-12">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Preços</p>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Planos para cada estágio da sua operação</h2>
-              <p className="text-slate-500 font-medium">Comece grátis e evolua conforme sua base de clientes e volume de pesquisas cresce.</p>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900">Planos para cada estágio da sua operação</h2>
+              <p className="text-slate-500 font-medium text-sm md:text-base">Comece grátis e evolua conforme sua base de clientes e volume de pesquisas cresce.</p>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
@@ -275,8 +320,8 @@ export default function LandingPage() {
       </main>
 
       {/* Footer / Login Links */}
-      <footer className="bg-white border-t border-gray-100 py-20">
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-8">
+      <footer className="bg-white border-t border-gray-100 py-12 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 text-center space-y-8">
            <div className="flex items-center justify-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
               <Infinity className="text-white w-4 h-4" />
@@ -284,7 +329,7 @@ export default function LandingPage() {
             <span className="text-xl font-bold tracking-tight text-slate-900">Opinaloop</span>
           </div>
            <p className="text-slate-400 text-sm font-medium">© 2026 Opinaloop - Todos os direitos reservados.</p>
-           <div className="flex justify-center gap-8">
+           <div className="flex flex-wrap justify-center gap-4 md:gap-8">
              <Link href="/esqueci-senha" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Esqueci minha senha</Link>
              <Link href="/privacidade" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Política de Privacidade</Link>
              <Link href="/termos" className="text-xs font-bold text-slate-500 hover:text-indigo-600">Termos de Uso</Link>

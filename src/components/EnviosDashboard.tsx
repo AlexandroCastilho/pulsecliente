@@ -100,7 +100,7 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
           </div>
         </div>
 
-        <div className="">
+        <div className="w-full overflow-x-auto custom-scrollbar">
           {historico.length > 0 ? (
             <table className="w-full text-left border-collapse table-fixed">
               <thead className="bg-gray-50/50">

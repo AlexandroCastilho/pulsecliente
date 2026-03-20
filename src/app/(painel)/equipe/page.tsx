@@ -132,7 +132,7 @@ export default function EquipePage() {
 
         <div>
           {/* Tabela Desktop */}
-          <div className="hidden md:block">
+          <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
