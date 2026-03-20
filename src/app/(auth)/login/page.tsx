@@ -77,6 +77,9 @@ export default function LoginPage() {
                   <Link href="/esqueci-senha" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
                     Esqueci minha senha
                   </Link>
+                  <Link href="/cadastro" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+                    Cadastrar-se
+                  </Link>
                 </div>
               </div>
             </div>
