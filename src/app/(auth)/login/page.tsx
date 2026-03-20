@@ -1,11 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { login } from '@/actions/auth'
-import { LogIn, Infinity } from 'lucide-react'
-'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
 import { login } from '@/actions/auth'
 import { LogIn, Infinity } from 'lucide-react'
