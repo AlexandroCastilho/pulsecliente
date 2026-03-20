@@ -173,6 +173,15 @@ export async function registrarConta(formData: FormData) {
     return { error: 'A senha deve ter pelo menos 6 caracteres.' }
   }
 
+  // 1.5 Verificar se o e-mail já existe no banco de dados
+  const existingUser = await prisma.usuario.findUnique({
+    where: { email }
+  })
+
+  if (existingUser) {
+    return { error: 'Este e-mail já está cadastrado. Tente fazer login.' }
+  }
+
   try {
     const supabase = await createServerClient()
 

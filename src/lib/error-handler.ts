@@ -2,6 +2,14 @@ export function sanitizeErrorMessage(error: any): string {
   console.error("[FULL ERROR LOG]", error)
 
   // Erros conhecidos do Prisma / Banco
+  if (error?.code === 'P2002') {
+    const target = error?.meta?.target || []
+    if (target.includes('email')) {
+      return "Este e-mail já está cadastrado. Tente fazer login."
+    }
+    return "Já existe um registro com estes dados."
+  }
+
   if (error?.code?.startsWith('P')) {
     return "Ocorreu um erro de banco de dados. Por favor, tente novamente mais tarde."
   }
