@@ -158,3 +158,82 @@ export async function finalizarAceiteConvite(token: string, senha: string) {
     return { success: false, message: sanitizeErrorMessage(error) }
   }
 }
+export async function registrarConta(formData: FormData) {
+  const nome = formData.get('nome') as string
+  const nomeEmpresa = formData.get('empresa') as string
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // 1. Validações básicas
+  if (!nome || !nomeEmpresa || !email || !password) {
+    return { error: 'Todos os campos são obrigatórios.' }
+  }
+
+  if (password.length < 6) {
+    return { error: 'A senha deve ter pelo menos 6 caracteres.' }
+  }
+
+  try {
+    const supabase = await createServerClient()
+
+    // 2. Criar utilizador no Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { nome }
+      }
+    })
+
+    if (authError) {
+      return { error: sanitizeErrorMessage(authError.message) }
+    }
+
+    const authUserId = authData.user?.id
+    if (!authUserId) throw new Error("Erro ao obter ID do utilizador.")
+
+    // 3. Criar Empresa e Usuário no Prisma via Transação
+    // Gerar slug básico: "Minha Empresa" -> "minha-empresa-123"
+    const baseSlug = nomeEmpresa
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+    
+    const uniqueSuffix = Math.random().toString(36).substring(2, 5)
+    const slug = `${baseSlug}-${uniqueSuffix}`
+
+    await prisma.$transaction(async (tx) => {
+      // Criar a Empresa
+      const empresa = await tx.empresa.create({
+        data: {
+          nome: nomeEmpresa,
+          slug: slug,
+          plano: 'FREE',
+          assinaturaAtiva: true
+        }
+      })
+
+      // Criar o Usuário OWNER
+      await tx.usuario.create({
+        data: {
+          id: authUserId,
+          email: email,
+          nome: nome,
+          role: 'OWNER',
+          empresaId: empresa.id,
+          ativo: true
+        }
+      })
+    })
+
+    // 4. Redirecionar após sucesso de cadastro
+    // Nota: dependendo da config do Supabase, o usuário pode já estar logado ou precisar confirmar e-mail.
+    // Se estiver logado, o redirect funcionará.
+    return { success: true }
+  } catch (error) {
+    console.error('[REGISTRO ERROR]', error)
+    return { error: sanitizeErrorMessage(error) }
+  }
+}
