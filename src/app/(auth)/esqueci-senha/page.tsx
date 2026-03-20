@@ -17,8 +17,8 @@ export default function EsqueciSenhaPage() {
     const formData = new FormData(event.currentTarget)
     const result = await solicitarRecuperacaoSenha(formData)
 
-    if (result?.error) {
-      setError(result.error)
+    if (!result.success) {
+      setError(result.error.message)
       setStatus('idle')
     } else {
       setStatus('success')

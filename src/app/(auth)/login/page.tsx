@@ -17,8 +17,8 @@ export default function LoginPage() {
     const formData = new FormData(event.currentTarget)
     const result = await login(formData)
 
-    if (result?.error) {
-      setError(result.error)
+    if (!result.success) {
+      setError(result.error.message)
       setIsLoading(false)
     }
   }

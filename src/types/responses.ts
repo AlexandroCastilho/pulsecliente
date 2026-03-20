@@ -5,8 +5,8 @@ export type ServiceError = {
 };
 
 export type ServiceResponse<T = any> = 
-  | { success: true; data: T; error?: never }
-  | { success: false; data?: never; error: ServiceError };
+  | { success: true; data: T }
+  | { success: false; error: ServiceError };
 
 /**
  * Utilitário para criar respostas de sucesso

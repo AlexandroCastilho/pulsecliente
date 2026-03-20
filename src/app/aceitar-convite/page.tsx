@@ -33,11 +33,11 @@ function AceitarConviteContent() {
     if (!token) return
 
     async function validar() {
-      const res = await validarTokenConvite(token!)
-      if (res.success) {
-        setConvite(res.data)
+      const res = await validarTokenConvite(token!) as any
+      if (!res.success) {
+        setErroToken(res.error.message)
       } else {
-        setErroToken(res.error?.message || "Erro ao validar convite.")
+        setConvite(res.data)
       }
       setLoadingToken(false)
     }
@@ -56,13 +56,13 @@ function AceitarConviteContent() {
     }
 
     startTransition(async () => {
-      const res = await finalizarAceiteConvite(token!, senha)
-      if (res.success) {
+      const res = await finalizarAceiteConvite(token!, senha) as any
+      if (!res.success) {
+        toast.error(res.error.message)
+      } else {
         setSucesso(true)
         toast.success("Convite aceito com sucesso!")
         setTimeout(() => router.push('/login'), 3000)
-      } else {
-        toast.error(res.error?.message || "Erro ao aceitar convite")
       }
     })
   }

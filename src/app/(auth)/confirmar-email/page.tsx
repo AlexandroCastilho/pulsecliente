@@ -21,8 +21,8 @@ function ConfirmEmailContent() {
     setIsResending(true)
     const result = await reenviarEmailConfirmacao(email)
     
-    if (result.error) {
-      toast.error(result.error)
+    if (!result.success) {
+      toast.error(result.error.message)
     } else {
       toast.success('E-mail de confirmação reenviado!')
     }
