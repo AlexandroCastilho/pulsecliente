@@ -15,11 +15,12 @@ import {
   CreditCard
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { getSettingsData, saveSettings } from '@/actions/settings'
+import { criarCheckoutAssinatura, getSettingsData, saveSettings } from '@/actions/settings'
 
 export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
+  const [checkoutPlanLoading, setCheckoutPlanLoading] = useState<'GROWTH' | 'PREMIUM' | null>(null)
   const [data, setData] = useState<any>(null)
 
   useEffect(() => {
@@ -76,6 +77,24 @@ export default function ConfiguracoesPage() {
       })
     } finally {
       setBillingLoading(false)
+    }
+  }
+
+  const handleCheckoutPlan = async (plan: 'GROWTH' | 'PREMIUM') => {
+    setCheckoutPlanLoading(plan)
+    try {
+      const result = await criarCheckoutAssinatura(plan)
+      if (!result?.url) {
+        throw new Error('Não foi possível iniciar o checkout')
+      }
+
+      window.location.href = result.url
+    } catch (error: any) {
+      toast.error('Erro ao iniciar checkout', {
+        description: error?.message || 'Tente novamente em instantes.',
+      })
+    } finally {
+      setCheckoutPlanLoading(null)
     }
   }
 
@@ -286,6 +305,59 @@ export default function ConfiguracoesPage() {
           </div>
         </div>
 
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+            <h3 className="font-bold text-gray-900">Planos da Plataforma</h3>
+            <p className="text-xs text-gray-500 font-medium mt-1">Escolha o plano ideal para sua operação. Plano atual: {data.empresa.plano}</p>
+          </div>
+
+          <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <PlanCard
+              title="FREE"
+              price="R$ 0/mês"
+              features={[
+                'Até 100 envios por mês',
+                'Dashboard básico',
+                '1 utilizador',
+              ]}
+              current={data.empresa.plano === 'FREE'}
+              buttonLabel="Plano atual"
+              disabled
+            />
+
+            <PlanCard
+              title="GROWTH"
+              price="R$ 147/mês"
+              highlighted
+              features={[
+                'Até 5.000 envios por mês',
+                'Dashboard avançado',
+                'Até 5 utilizadores',
+              ]}
+              current={data.empresa.plano === 'GROWTH'}
+              buttonLabel={data.empresa.plano === 'GROWTH' ? 'Plano atual' : 'Fazer upgrade'}
+              onClick={() => handleCheckoutPlan('GROWTH')}
+              loading={checkoutPlanLoading === 'GROWTH'}
+              disabled={data.empresa.plano === 'GROWTH'}
+            />
+
+            <PlanCard
+              title="PREMIUM"
+              price="R$ 297/mês"
+              features={[
+                'Envios ilimitados',
+                'Gestão avançada de equipa',
+                'Suporte prioritário',
+              ]}
+              current={data.empresa.plano === 'PREMIUM'}
+              buttonLabel={data.empresa.plano === 'PREMIUM' ? 'Plano atual' : 'Fazer upgrade'}
+              onClick={() => handleCheckoutPlan('PREMIUM')}
+              loading={checkoutPlanLoading === 'PREMIUM'}
+              disabled={data.empresa.plano === 'PREMIUM'}
+            />
+          </div>
+        </div>
+
         {/* Ações */}
         <div className="flex items-center justify-end gap-4 pt-4">
           <button 
@@ -322,6 +394,55 @@ export default function ConfiguracoesPage() {
           </p>
         </div>
       </div>
+    </div>
+  )
+}
+
+function PlanCard({
+  title,
+  price,
+  features,
+  buttonLabel,
+  onClick,
+  loading,
+  disabled,
+  highlighted,
+  current,
+}: {
+  title: string
+  price: string
+  features: string[]
+  buttonLabel: string
+  onClick?: () => void
+  loading?: boolean
+  disabled?: boolean
+  highlighted?: boolean
+  current?: boolean
+}) {
+  return (
+    <div className={`rounded-2xl border p-6 ${highlighted ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-gray-200'} ${current ? 'bg-indigo-50/40' : 'bg-white'}`}>
+      <div className="space-y-2 mb-5">
+        <h4 className="text-sm font-black tracking-widest text-gray-900 uppercase">{title}</h4>
+        <p className="text-2xl font-black text-gray-900">{price}</p>
+      </div>
+
+      <ul className="space-y-2 mb-6">
+        {features.map((feature) => (
+          <li key={feature} className="text-sm text-gray-600 font-medium flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2" />
+            {feature}
+          </li>
+        ))}
+      </ul>
+
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled || loading}
+        className={`w-full px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : highlighted ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+      >
+        {loading ? 'Aguarde...' : buttonLabel}
+      </button>
     </div>
   )
 }

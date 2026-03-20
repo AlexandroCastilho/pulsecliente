@@ -3,6 +3,16 @@
 import prisma from "@/lib/prisma"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import Stripe from "stripe"
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+const stripePriceGrowth = process.env.STRIPE_PRICE_GROWTH_ID
+const stripePricePremium = process.env.STRIPE_PRICE_PREMIUM_ID
+
+const PLAN_TO_PRICE: Record<"GROWTH" | "PREMIUM", string | undefined> = {
+  GROWTH: stripePriceGrowth,
+  PREMIUM: stripePricePremium,
+}
 
 export async function getSettingsData() {
   const supabase = await createClient()
@@ -30,7 +40,9 @@ export async function getSettingsData() {
     },
     empresa: {
       nome: dbUser.empresa.nome,
-      id: dbUser.empresaId
+      id: dbUser.empresaId,
+      plano: dbUser.empresa.plano,
+      assinaturaAtiva: dbUser.empresa.assinaturaAtiva,
     },
     smtp: dbUser.empresa.smtpConfig
   }
@@ -103,4 +115,87 @@ export async function saveSettings(formData: FormData) {
   revalidatePath("/configuracoes")
   revalidatePath("/(painel)", "layout") // Revalida o layout para atualizar o Header/Sidebar
   return { success: true }
+}
+
+export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Não autenticado")
+  }
+
+  if (!stripeSecretKey) {
+    throw new Error("STRIPE_SECRET_KEY não configurada")
+  }
+
+  const priceId = PLAN_TO_PRICE[plan]
+
+  if (!priceId) {
+    throw new Error(`Price ID do plano ${plan} não configurado`)
+  }
+
+  const dbUser = await prisma.usuario.findUnique({
+    where: { id: user.id },
+    select: {
+      id: true,
+      email: true,
+      nome: true,
+      empresaId: true,
+      empresa: {
+        select: {
+          id: true,
+          nome: true,
+          stripeCustomerId: true,
+        }
+      }
+    }
+  })
+
+  if (!dbUser) {
+    throw new Error("Usuário não encontrado")
+  }
+
+  const stripe = new Stripe(stripeSecretKey)
+  let stripeCustomerId = dbUser.empresa.stripeCustomerId
+
+  if (!stripeCustomerId) {
+    const customer = await stripe.customers.create({
+      email: dbUser.email,
+      name: dbUser.empresa.nome || dbUser.nome,
+      metadata: {
+        empresaId: dbUser.empresaId,
+        usuarioId: dbUser.id,
+      },
+    })
+
+    stripeCustomerId = customer.id
+
+    await prisma.empresa.update({
+      where: { id: dbUser.empresaId },
+      data: { stripeCustomerId },
+    })
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    customer: stripeCustomerId,
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${appUrl}/configuracoes?billing=success`,
+    cancel_url: `${appUrl}/configuracoes?billing=cancel`,
+    metadata: {
+      empresaId: dbUser.empresaId,
+      priceId,
+      plan,
+    },
+    allow_promotion_codes: true,
+  })
+
+  if (!session.url) {
+    throw new Error("Não foi possível criar sessão de checkout")
+  }
+
+  return { url: session.url }
 }
