@@ -23,6 +23,8 @@ export default function EditorPage() {
   const [titulo, setTitulo] = useState('Nova Pesquisa')
   const [descricao, setDescricao] = useState('')
   const [perguntas, setPerguntas] = useState<PerguntaInput[]>([])
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   const adicionarPergunta = (tipo: TipoPergunta) => {
@@ -59,6 +61,8 @@ export default function EditorPage() {
       const result = await salvarPesquisa({
         titulo,
         descricao,
+        dataInicio,
+        dataFim,
         perguntas: perguntas.map(({ id, ...rest }) => rest)
       })
 
@@ -88,10 +92,10 @@ export default function EditorPage() {
             <p className="text-gray-500 font-medium">O que você deseja fazer agora?</p>
           </div>
           <div className="flex flex-col gap-3">
-            <Link 
-              href={`/envios?pesquisaId=${pesquisaIdCriada}`}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2 group"
-            >
+             <Link 
+               href={`/pesquisas/${pesquisaIdCriada}/envios`}
+               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2 group"
+             >
               <Plus size={20} className="group-hover:rotate-90 transition-transform" />
               Adicionar Clientes e Disparar
             </Link>
@@ -165,6 +169,26 @@ export default function EditorPage() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all sm:text-sm resize-none text-gray-900"
                   placeholder="Explique o objetivo desta pesquisa..."
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Data Início</label>
+                  <input 
+                    type="date" 
+                    value={dataInicio}
+                    onChange={(e) => setDataInicio(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Data Fim</label>
+                  <input 
+                    type="date" 
+                    value={dataFim}
+                    onChange={(e) => setDataFim(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-gray-700"
+                  />
+                </div>
               </div>
             </div>
           </section>

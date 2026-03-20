@@ -75,14 +75,17 @@ export default async function DashboardPage() {
   const percSucesso = totalEnvios > 0 ? Math.round(((totalEnvios - countErros) / totalEnvios) * 100) : 0
 
   // 2. Buscar pesquisas recentes (Lista)
-  const pesquisas = await prisma.pesquisa.findMany({
+  const pesquisas = await (prisma.pesquisa as any).findMany({
     where: { empresaId: dbUser.empresaId },
-    orderBy: { createdAt: 'desc' },
-    include: {
+    select: {
+      id: true,
+      titulo: true,
+      createdAt: true,
       _count: {
         select: { envios: { where: { status: 'RESPONDIDO' } } }
       }
     },
+    orderBy: { createdAt: 'desc' },
     take: 5
   })
   

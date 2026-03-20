@@ -90,21 +90,21 @@ export async function POST(req: NextRequest) {
         user: smtpConfig.user,
         pass: smtpConfig.pass,
       },
+      tls: {
+        rejectUnauthorized: false // Útil para servidores com certificados auto-assinados ou legacy
+      }
     })
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     // 5. Processamento Assíncrono Real (Loop)
-    // Nota: Como este endpoint é chamado via Fire-and-Forget, 
-    // rodamos o loop sem travar a resposta inicial do worker se necessário,
-    // mas aqui o worker JÁ É a execução em si.
-    
     for (const envio of enviosParaProcessar) {
       try {
         const linkPesquisa = `${appUrl}/responder/${envio.token}`
+        console.log(`[SMTP] Tentando enviar para: ${envio.emailDestinatario}`)
         
-        await transporter.sendMail({
-          from: `"${smtpConfig.fromName}" <${smtpConfig.fromEmail}>`,
+        const info = await transporter.sendMail({
+          from: smtpConfig.fromEmail,
           to: envio.emailDestinatario,
           subject: `Pesquisa: ${pesquisa.titulo}`,
           html: `
@@ -127,19 +127,21 @@ export async function POST(req: NextRequest) {
           `
         })
 
+        console.log(`[SMTP] Sucesso para ${envio.emailDestinatario}: ${info.messageId}`)
+
         // Sucesso
-        await prisma.envio.update({
+        await (prisma.envio as any).update({
           where: { id: envio.id },
           data: { status: 'ENVIADO', enviadoEm: new Date(), erroLog: null }
         })
 
       } catch (err: any) {
         // Erro Detalhado do SMTP
-        console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, err)
+        console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, JSON.stringify(err, null, 2))
         
         const errorMessage = err.response || err.message || 'Erro desconhecido no servidor de e-mail'
         
-        await prisma.envio.update({
+        await (prisma.envio as any).update({
           where: { id: envio.id },
           data: { 
             status: 'ERRO', 

@@ -12,5 +12,7 @@ export interface PerguntaInput {
 export interface PesquisaInput {
   titulo: string
   descricao?: string
+  dataInicio?: string | Date
+  dataFim?: string | Date
   perguntas: PerguntaInput[]
 }

@@ -29,11 +29,12 @@ export async function importarContatos(
     }
 
     // 2. Validar se a pesquisa pertence à empresa do usuário
-    const pesquisa = await prisma.pesquisa.findFirst({
+    const pesquisa = await (prisma.pesquisa as any).findFirst({
       where: {
         id: pesquisaId,
         empresaId: dbUser.empresaId
-      }
+      },
+      select: { id: true }
     })
 
     if (!pesquisa) {
@@ -142,7 +143,9 @@ export async function getStatsEnvios(pesquisaId: string) {
     const total = stats.reduce((acc, curr) => acc + curr._count._all, 0)
     const respondidas = stats.find(s => s.status === 'RESPONDIDO')?._count._all || 0
     const erros = stats.find(s => s.status === 'ERRO')?._count._all || 0
-    const pendentes = stats.find(s => s.status === 'PENDENTE' || s.status === 'PROCESSANDO')?._count._all || 0
+    const pendentes = stats
+      .filter(s => s.status === 'PENDENTE' || s.status === 'PROCESSANDO')
+      .reduce((acc, curr) => acc + curr._count._all, 0)
 
     return {
       total,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Search, 
   Filter, 
@@ -31,10 +31,24 @@ interface EnviosDashboardProps {
 export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
   const [selectedEnvio, setSelectedEnvio] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleEdit = (envio: any) => {
     setSelectedEnvio(envio)
     setIsModalOpen(true)
+  }
+
+  const formatDateSafely = (date: Date | string) => {
+    if (!mounted) return '...'
+    try {
+      return format(new Date(date), "dd 'de' MMM, HH:mm", { locale: ptBR })
+    } catch (e) {
+      return 'Data inválida'
+    }
   }
 
   return (
@@ -116,7 +130,7 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
                       </div>
                     </td>
                     <td className="px-4 py-5 text-sm font-medium text-gray-500 truncate">
-                      {format(new Date(envio.createdAt), "dd 'de' MMM, HH:mm", { locale: ptBR })}
+                      {formatDateSafely(envio.createdAt)}
                     </td>
                     <td className="px-4 py-5 text-center">
                       <div className="flex justify-center">
@@ -128,7 +142,8 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
                          {envio.status === 'ERRO' && (
                            <button 
                              onClick={() => handleEdit(envio)}
-                             className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all title='Editar e Reenviar'"
+                             className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                             title="Editar e Reenviar"
                            >
                              <Edit2 size={16} />
                            </button>

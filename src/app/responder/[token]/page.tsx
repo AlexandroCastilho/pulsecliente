@@ -9,22 +9,45 @@ interface PageProps {
 export default async function PublicSurveyPage({ params }: PageProps) {
   const { token } = await params
 
-  // 1. Buscar o envio pelo token
-  const envio = await prisma.envio.findUnique({
+  // 1. Buscar o envio pelo token via select para evitar erro de colunas invisíveis
+  const envioBase = await (prisma.envio as any).findUnique({
     where: { token },
-    include: {
+    select: {
+      id: true,
+      emailDestinatario: true,
+      nomeDestinatario: true,
+      status: true,
+      token: true,
+      pesquisaId: true,
       pesquisa: {
-        include: {
-          perguntas: {
-            orderBy: { ordem: 'asc' }
-          },
-          empresa: {
-            select: { nome: true }
-          }
+        select: {
+          id: true,
+          titulo: true,
+          descricao: true,
+          ativa: true,
+          createdAt: true,
+          empresa: { select: { nome: true } },
+          perguntas: { orderBy: { ordem: 'asc' } }
         }
       }
     }
   })
+
+  if (!envioBase) notFound()
+
+  // Buscar as datas da pesquisa separadamente
+  const dates: any[] = await prisma.$queryRaw`
+    SELECT "dataInicio", "dataFim" FROM pesquisas WHERE id = ${envioBase.pesquisaId}
+  `
+  
+  const envio = {
+    ...envioBase,
+    pesquisa: {
+      ...envioBase.pesquisa,
+      dataInicio: dates[0]?.dataInicio || null,
+      dataFim: dates[0]?.dataFim || null
+    }
+  }
 
   // 2. Validações básicas
   if (!envio) {
@@ -45,6 +68,42 @@ export default async function PublicSurveyPage({ params }: PageProps) {
           <div className="pt-4">
             <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">Enviado por {envio.pesquisa.empresa.nome}</p>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  const now = new Date()
+  const dataInicio = (envio.pesquisa as any).dataInicio ? new Date((envio.pesquisa as any).dataInicio) : null
+  const dataFim = (envio.pesquisa as any).dataFim ? new Date((envio.pesquisa as any).dataFim) : null
+
+  if (dataInicio && now < dataInicio) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 space-y-6">
+          <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Ainda não começou!</h1>
+          <p className="text-gray-500 font-medium">Esta pesquisa estará disponível a partir de {dataInicio.toLocaleDateString('pt-BR')}.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (dataFim && now > dataFim) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 space-y-6">
+          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Pesquisa Finalizada</h1>
+          <p className="text-gray-500 font-medium">O prazo para responder a esta pesquisa expirou em {dataFim.toLocaleDateString('pt-BR')}.</p>
         </div>
       </div>
     )

@@ -24,6 +24,7 @@ import { formatDate, calculateNPS, getNPSColor } from '@/lib/utils'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 import { CopySurveyLink } from '@/components/CopySurveyLink'
 import { SurveyResponseTable } from '@/components/SurveyResponseTable'
+import SurveyDateHeader from '@/components/SurveyDateHeader'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -42,23 +43,42 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
     select: { empresaId: true }
   })
 
-  const pesquisa = await prisma.pesquisa.findFirst({
+  // 1. Buscar a pesquisa via select para evitar erro de colunas invisíveis no schema local
+  const pesquisaBase = await (prisma.pesquisa as any).findFirst({
     where: { 
       id,
       empresaId: dbUser?.empresaId 
     },
-    include: {
+    select: {
+      id: true,
+      titulo: true,
+      descricao: true,
+      ativa: true,
+      createdAt: true,
+      updatedAt: true,
+      empresaId: true,
       envios: {
         orderBy: { createdAt: 'desc' },
-        include: {
-          resposta: true
-        }
+        include: { resposta: true }
       },
       perguntas: {
         orderBy: { ordem: 'asc' }
       }
     }
   })
+
+  if (!pesquisaBase) notFound()
+
+  // Buscar as datas separadamente via SQL bruto para contornar o problema do Prisma Client
+  const dates: any[] = await prisma.$queryRaw`
+    SELECT "dataInicio", "dataFim" FROM pesquisas WHERE id = ${id}
+  `
+  
+  const pesquisa = {
+    ...pesquisaBase,
+    dataInicio: dates[0]?.dataInicio || null,
+    dataFim: dates[0]?.dataFim || null
+  }
 
   if (!pesquisa) notFound()
 
@@ -94,11 +114,12 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
             <ArrowLeft size={22} className="group-hover:-translate-x-0.5 transition-transform" />
           </Link>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-100">Analytics</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-xs text-gray-400 font-bold">{formatDate(pesquisa.createdAt)}</span>
-            </div>
+            <SurveyDateHeader 
+              pesquisaId={pesquisa.id} 
+              dataInicio={(pesquisa as any).dataInicio} 
+              dataFim={(pesquisa as any).dataFim} 
+              createdAt={pesquisa.createdAt} 
+            />
             <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-none">{pesquisa.titulo}</h1>
           </div>
         </div>
@@ -111,10 +132,17 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
             <Send size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
             <span>Monitorar / Novo Envio</span>
           </Link>
-          <div className="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 flex items-center gap-2.5 shadow-sm">
-            <div className={`w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse`} />
-            <span className="text-xs font-black uppercase tracking-wider">Pesquisa Ativa</span>
-          </div>
+          {(pesquisa as any).dataFim && new Date((pesquisa as any).dataFim) < new Date() ? (
+            <div className="px-4 py-2.5 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-2.5 shadow-sm">
+              <div className={`w-2.5 h-2.5 rounded-full bg-red-500`} />
+              <span className="text-xs font-black uppercase tracking-wider">Finalizada</span>
+            </div>
+          ) : (
+            <div className="px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 flex items-center gap-2.5 shadow-sm">
+              <div className={`w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse`} />
+              <span className="text-xs font-black uppercase tracking-wider">{pesquisa.ativa ? 'Pesquisa Ativa' : 'Pesquisa Inativa'}</span>
+            </div>
+          )}
           <DeleteSurveyButton surveyId={pesquisa.id} surveyTitle={pesquisa.titulo} redirectToList variant="full" />
         </div>
       </div>
