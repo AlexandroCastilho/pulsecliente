@@ -83,7 +83,7 @@ export async function convidarMembro(formData: FormData) {
       },
     })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
     const linkConvite = `${appUrl}/aceitar-convite?token=${token}`
 
     await transporter.sendMail({

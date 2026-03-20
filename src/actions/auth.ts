@@ -40,7 +40,8 @@ export async function logout() {
     }
 
     const supabase = await createServerClient()
-    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/redefinir-senha`
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const redirectTo = `${appUrl.replace(/\/$/, '')}/redefinir-senha`
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,

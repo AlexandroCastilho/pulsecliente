@@ -1,9 +1,57 @@
+import type { Metadata } from 'next'
 import prisma from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import PublicSurveyForm from '@/components/PublicSurveyForm'
 
 interface PageProps {
   params: Promise<{ token: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { token } = await params
+
+  try {
+    const envio = await (prisma.envio as any).findUnique({
+      where: { token },
+      select: {
+        pesquisa: {
+          select: { titulo: true }
+        }
+      }
+    })
+
+    if (!envio?.pesquisa) {
+      return {
+        title: "Pesquisa Indisponível | Opinaloop",
+        description: "Esta pesquisa não foi encontrada ou não está ativa."
+      }
+    }
+
+    const titulo = `${envio.pesquisa.titulo} | Opinaloop`
+    const decricao = "A sua opinião é muito importante! Clique aqui para responder a esta pesquisa rápida."
+
+    return {
+      title: titulo,
+      description: decricao,
+      openGraph: {
+        title: titulo,
+        description: decricao,
+        images: ["/og-image.png"],
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: titulo,
+        description: decricao,
+        images: ["/og-image.png"],
+      }
+    }
+  } catch (error) {
+    return {
+      title: "Opinaloop",
+      description: "Plataforma de Pesquisas de Satisfação"
+    }
+  }
 }
 
 export default async function PublicSurveyPage({ params }: PageProps) {

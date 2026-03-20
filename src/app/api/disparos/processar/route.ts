@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 
     // 5. Processamento Assíncrono Real (Loop)
     for (const envio of enviosParaProcessar) {
