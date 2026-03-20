@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { revalidatePath } from "next/cache"
 import { Role } from "@prisma/client"
 import { sanitizeErrorMessage } from "@/lib/error-handler"
@@ -11,19 +11,15 @@ import nodemailer from 'nodemailer'
 
 export async function convidarMembro(formData: FormData) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
-    if (!user) throw new Error("Não autenticado")
-
-    const dbUser = await prisma.usuario.findUnique({
-      where: { id: user.id },
-      select: { id: true, nome: true, empresaId: true, role: true, empresa: { select: { nome: true } } }
+    // Buscar o nome da empresa separadamente para o e-mail
+    const empresa = await prisma.empresa.findUnique({
+      where: { id: dbUser.empresaId },
+      select: { nome: true }
     })
-
-    if (!dbUser || (dbUser.role !== 'OWNER' && dbUser.role !== 'ADMIN')) {
-      throw new Error("Permissão negada")
-    }
+    
+    if (!empresa) throw new Error("Empresa não encontrada.")
 
     const nome = formData.get("nome") as string
     const email = formData.get("email") as string
@@ -89,12 +85,12 @@ export async function convidarMembro(formData: FormData) {
     await transporter.sendMail({
       from: `"${smtpConfig.fromName}" <${smtpConfig.fromEmail}>`,
       to: email,
-      subject: `Convite para a Equipa: ${dbUser.empresa.nome}`,
+      subject: `Convite para a Equipa: ${empresa.nome}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
           <h2 style="color: #4f46e5;">Olá, ${nome}!</h2>
           <p style="color: #4b5563; line-height: 1.6;">
-            Você foi convidado por <strong>${dbUser.nome}</strong> para se juntar à equipa da <strong>${dbUser.empresa.nome}</strong> no Opinaloop.
+            Você foi convidado por <strong>${dbUser.nome}</strong> para se juntar à equipa da <strong>${empresa.nome}</strong> no Opinaloop.
           </p>
           <div style="margin: 30px 0; text-align: center;">
             <a href="${linkConvite}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
@@ -119,19 +115,7 @@ export async function convidarMembro(formData: FormData) {
 
 export async function updateMembroRole(membroId: string, newRole: Role) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error("Não autenticado")
-
-    const dbUser = await prisma.usuario.findUnique({
-      where: { id: user.id },
-      select: { id: true, empresaId: true, role: true }
-    })
-
-    if (!dbUser || dbUser.role !== 'OWNER') {
-      throw new Error("Apenas o Owner pode alterar funções de nível Owner.")
-    }
+    const dbUser = await getAuthenticatedUser(['OWNER'])
 
     await prisma.usuario.update({
       where: { 
@@ -149,19 +133,7 @@ export async function updateMembroRole(membroId: string, newRole: Role) {
 }
 export async function removerConvite(id: string) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error("Não autenticado")
-
-    const dbUser = await prisma.usuario.findUnique({
-      where: { id: user.id },
-      select: { empresaId: true, role: true }
-    })
-
-    if (!dbUser || (dbUser.role !== 'OWNER' && dbUser.role !== 'ADMIN')) {
-      throw new Error("Permissão negada")
-    }
+    const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
     await prisma.convite.delete({
       where: { 
@@ -179,19 +151,7 @@ export async function removerConvite(id: string) {
 
 export async function toggleMembroStatus(membroId: string, currentStatus: boolean) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error("Não autenticado")
-
-    const dbUser = await prisma.usuario.findUnique({
-      where: { id: user.id },
-      select: { id: true, empresaId: true, role: true }
-    })
-
-    if (!dbUser || (dbUser.role !== 'OWNER' && dbUser.role !== 'ADMIN')) {
-      throw new Error("Permissão negada")
-    }
+    const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
     await prisma.usuario.update({
       where: { 
@@ -210,19 +170,7 @@ export async function toggleMembroStatus(membroId: string, currentStatus: boolea
 
 export async function removerMembro(membroId: string) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error("Não autenticado")
-
-    const dbUser = await prisma.usuario.findUnique({
-      where: { id: user.id },
-      select: { id: true, empresaId: true, role: true }
-    })
-
-    if (!dbUser || dbUser.role !== 'OWNER') {
-      throw new Error("Permissão negada")
-    }
+    const dbUser = await getAuthenticatedUser(['OWNER'])
 
     if (dbUser.id === membroId) {
       throw new Error("Você não pode remover a si mesmo.")

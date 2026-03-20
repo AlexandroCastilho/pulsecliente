@@ -1,6 +1,7 @@
 "use server"
 
 import prisma from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export async function salvarResposta(envioId: string, dados: any) {
   try {
@@ -39,6 +40,11 @@ export async function salvarResposta(envioId: string, dados: any) {
         }
       })
     ])
+
+    // Revalidar para que o dashboard atualize as estatísticas (NPS, Taxa de resposta)
+    revalidatePath('/dashboard')
+    revalidatePath(`/pesquisas/${envio.pesquisaId}`)
+    revalidatePath(`/pesquisas/${envio.pesquisaId}/envios`)
 
     return { 
       success: true, 

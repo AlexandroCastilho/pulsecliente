@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { PerguntaInput, TipoPergunta } from '@/types/pesquisa'
 import { salvarPesquisa } from '@/actions/pesquisas'
+import { ServiceResponse } from '@/types/responses'
 
 export default function EditorPage() {
   const router = useRouter()
@@ -66,12 +67,13 @@ export default function EditorPage() {
         perguntas: perguntas.map(({ id, ...rest }) => rest)
       })
 
-      if (result.success) {
-        setPesquisaIdCriada(result.id ?? null)
+      if (result.success && result.data) {
+        setPesquisaIdCriada(result.data.id ?? null)
         setShowSuccess(true)
       } else {
-        alert('Erro ao salvar: ' + (result.message || 'Erro desconhecido'))
-        if (result.details) console.error('Detalhes do erro:', result.details)
+        const errorMsg = result.error?.message || 'Erro desconhecido'
+        alert('Erro ao salvar: ' + errorMsg)
+        if (result.error?.details) console.error('Detalhes do erro:', result.error.details)
       }
     } catch (error) {
       alert('Ocorreu um erro inesperado.')

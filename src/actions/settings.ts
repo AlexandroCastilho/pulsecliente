@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { revalidatePath } from "next/cache"
 import Stripe from "stripe"
 
@@ -15,13 +15,11 @@ const PLAN_TO_PRICE: Record<"GROWTH" | "PREMIUM", string | undefined> = {
 }
 
 export async function getSettingsData() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const user = await getAuthenticatedUser()
 
-  if (!user) return null
-
-  const dbUser = await prisma.usuario.findUnique({
-    where: { id: user.id },
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
     include: { 
       empresa: {
         include: {
@@ -33,33 +31,28 @@ export async function getSettingsData() {
 
   if (!dbUser) return null
 
-  return {
-    user: {
-      nome: dbUser.nome,
-      email: dbUser.email
-    },
-    empresa: {
-      nome: dbUser.empresa.nome,
-      id: dbUser.empresaId,
-      plano: dbUser.empresa.plano,
-      assinaturaAtiva: dbUser.empresa.assinaturaAtiva,
-    },
-    smtp: dbUser.empresa.smtpConfig
+    return {
+      user: {
+        nome: dbUser.nome,
+        email: dbUser.email
+      },
+      empresa: {
+        nome: dbUser.empresa.nome,
+        id: dbUser.empresaId,
+        plano: dbUser.empresa.plano as any,
+        assinaturaAtiva: dbUser.empresa.assinaturaAtiva,
+      },
+      smtp: dbUser.empresa.smtpConfig
+    }
+  } catch (error) {
+    console.error("[GET_SETTINGS_ERROR]", error)
+    return null
   }
 }
 
 export async function saveSettings(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user: supabaseUser } } = await supabase.auth.getUser()
-
-  if (!supabaseUser) throw new Error("Não autenticado")
-
-  const dbUser = await prisma.usuario.findUnique({
-    where: { id: supabaseUser.id },
-    select: { empresaId: true, id: true }
-  })
-
-  if (!dbUser) throw new Error("Usuário não encontrado")
+  try {
+    const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
   // 1. Dados do Usuário
   const userName = formData.get("userName") as string
@@ -112,18 +105,18 @@ export async function saveSettings(formData: FormData) {
     })
   }
 
-  revalidatePath("/configuracoes")
-  revalidatePath("/(painel)", "layout") // Revalida o layout para atualizar o Header/Sidebar
-  return { success: true }
+    revalidatePath("/configuracoes")
+    revalidatePath("/(painel)", "layout") // Revalida o layout para atualizar o Header/Sidebar
+    return { success: true }
+  } catch (error: any) {
+    console.error("[SAVE_SETTINGS_ERROR]", error)
+    return { success: false, message: error.message }
+  }
 }
 
 export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error("Não autenticado")
-  }
+  try {
+    const user = await getAuthenticatedUser(['OWNER'])
 
   if (!stripeSecretKey) {
     throw new Error("STRIPE_SECRET_KEY não configurada")
@@ -135,26 +128,26 @@ export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
     throw new Error(`Price ID do plano ${plan} não configurado`)
   }
 
-  const dbUser = await prisma.usuario.findUnique({
-    where: { id: user.id },
-    select: {
-      id: true,
-      email: true,
-      nome: true,
-      empresaId: true,
-      empresa: {
-        select: {
-          id: true,
-          nome: true,
-          stripeCustomerId: true,
+    const dbUser = await prisma.usuario.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        nome: true,
+        empresaId: true,
+        empresa: {
+          select: {
+            id: true,
+            nome: true,
+            stripeCustomerId: true,
+          }
         }
       }
-    }
-  })
+    })
 
-  if (!dbUser) {
-    throw new Error("Usuário não encontrado")
-  }
+    if (!dbUser) {
+      throw new Error("Usuário não encontrado")
+    }
 
   const stripe = new Stripe(stripeSecretKey)
   let stripeCustomerId = dbUser.empresa.stripeCustomerId
@@ -198,4 +191,8 @@ export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
   }
 
   return { url: session.url }
+  } catch (error: any) {
+    console.error("[ERRO SETTINGS]", error)
+    throw error // Deixa o erro borbulhar para o cliente ou handle conforme necessário
+  }
 }

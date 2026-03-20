@@ -40,7 +40,7 @@ export function DeleteSurveyButton({
           router.refresh()
         })
       } else {
-        alert(result.message || 'Erro ao excluir a pesquisa.')
+        alert(result.error?.message || 'Erro ao excluir a pesquisa.')
         setIsConfirming(false)
         setIsDeleting(false)
       }

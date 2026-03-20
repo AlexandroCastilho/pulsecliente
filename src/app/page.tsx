@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Inter } from 'next/font/google'
 import {
   Activity,
   ArrowRight,
@@ -17,12 +16,12 @@ import {
   X
 } from 'lucide-react'
 
-const inter = Inter({ subsets: ['latin'] })
+
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   return (
-    <div className={`min-h-screen bg-slate-50 text-slate-900 ${inter.className}`}>
+    <div className={`min-h-screen bg-slate-50 text-slate-900`}>
       {/* Header / Navbar */}
       <header className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
