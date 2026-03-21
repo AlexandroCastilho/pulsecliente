@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { reenviarEmailConfirmacao } from '@/actions/auth'
 import { toast } from 'sonner'
 import { useEffect, useState, Suspense } from 'react'
 import { Infinity as InfinityIcon, Mail, ArrowRight } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 const RESEND_COOLDOWN_SECONDS = 60
 
@@ -14,11 +15,38 @@ function getCooldownStorageKey(email: string) {
 }
 
 function ConfirmEmailContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const emailParam = searchParams.get('email')
   const [email, setEmail] = useState(emailParam || '')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function redirectIfAuthenticated() {
+      const supabase = createClient()
+      const { data } = await supabase.auth.getSession()
+
+      if (isMounted && data.session) {
+        setIsAuthenticated(true)
+        router.replace('/dashboard')
+        return
+      }
+
+      if (isMounted) {
+        setIsAuthenticated(false)
+      }
+    }
+
+    redirectIfAuthenticated()
+
+    return () => {
+      isMounted = false
+    }
+  }, [router])
 
   useEffect(() => {
     if (emailParam) setEmail(emailParam)
@@ -118,10 +146,10 @@ function ConfirmEmailContent() {
 
           <div className="space-y-4">
             <Link
-              href="/login"
+              href={isAuthenticated ? '/dashboard' : '/login'}
               className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 transition-all font-inter items-center gap-2 hover:scale-[1.02] active:scale-95"
             >
-              Ir para o Login
+              {isAuthenticated ? 'Ir para o Dashboard' : 'Ir para o Login'}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

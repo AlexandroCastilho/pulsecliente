@@ -220,7 +220,49 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
   })
 
   if (existingUser) {
-    return errorResponse('Este e-mail já está cadastrado. Tente fazer login.', 'CONFLICT')
+    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(existingUser.id)
+
+    if (authUserData?.user && !authUserError) {
+      return errorResponse('Este e-mail já está cadastrado. Tente fazer login.', 'CONFLICT')
+    }
+
+    const clientId = await getClientIdentifier()
+    console.warn('[AUTH ORPHAN USER CLEANUP]', {
+      email,
+      usuarioId: existingUser.id,
+      clientId,
+      reason: 'Usuário existe no Prisma, mas não foi encontrado no Supabase Auth',
+      timestamp: new Date().toISOString(),
+    })
+
+    try {
+      const auditRecipient = await prisma.usuario.findFirst({
+        where: {
+          empresaId: existingUser.empresaId,
+          role: { in: ['OWNER', 'ADMIN'] },
+          ativo: true,
+        },
+        orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true },
+      })
+
+      if (auditRecipient) {
+        await prisma.notificacao.create({
+          data: {
+            usuarioId: auditRecipient.id,
+            titulo: 'Correção automática de cadastro',
+            mensagem: `Usuário órfão removido automaticamente para permitir novo cadastro: ${email}.`,
+            tipo: 'AUDITORIA',
+          },
+        })
+      }
+    } catch (notificationError) {
+      console.error('[AUTH ORPHAN USER AUDIT LOG ERROR]', notificationError)
+    }
+
+    await prisma.usuario.delete({
+      where: { id: existingUser.id }
+    })
   }
 
   try {
@@ -233,7 +275,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
       password,
       options: {
         data: { nome },
-        emailRedirectTo: `${appUrl}/confirmar-email?email=${encodeURIComponent(email)}`
+        emailRedirectTo: `${appUrl}/dashboard`
       }
     })
 
