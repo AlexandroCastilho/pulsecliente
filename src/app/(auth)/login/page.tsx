@@ -2,11 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/actions/auth'
 import { LogIn, Infinity } from 'lucide-react'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
+function LoginForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [error, setError] = useState<string | null>(
+    searchParams.get('error') === 'confirmation_failed'
+      ? 'O link de confirmação expirou ou é inválido. Solicite um novo e-mail de confirmação.'
+      : null
+  )
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -20,6 +28,8 @@ export default function LoginPage() {
     if (!result.success) {
       setError(result.error.message)
       setIsLoading(false)
+    } else {
+      router.push('/dashboard')
     }
   }
 
@@ -129,5 +139,20 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-gray-200 rounded-full" />
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }
