@@ -89,6 +89,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
     }
 
     setErro(null)
+    const emailJaExiste = contatos.some((c) => c.email === email)
     setContatos((prev) => {
       const emailExiste = prev.some((c) => c.email === email)
       const merged = mergeContatos(prev, [{ nome, email }])
@@ -103,6 +104,11 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       })
       return merged
     })
+
+    if (!emailJaExiste) {
+      setStep('REVISAO')
+    }
+
     setNomeManual('')
     setEmailManual('')
   }
@@ -154,6 +160,9 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
     }
 
     setErro(null)
+    const emailsAtuais = new Set(contatos.map((c) => c.email))
+    const temNovosContatos = contatosValidos.some((c) => !emailsAtuais.has(c.email))
+
     setContatos((prev) => {
       const prevEmails = new Set(prev.map((c) => c.email))
       const unicosPorEmail = new Map<string, Contato>()
@@ -194,6 +203,11 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       })
       return merged
     })
+
+    if (temNovosContatos) {
+      setStep('REVISAO')
+    }
+
     setBlocoManual('')
   }
 
@@ -470,15 +484,37 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
               </button>
 
               {contatos.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setStep('REVISAO')}
-                  className="text-indigo-600 hover:text-indigo-700 font-bold text-sm"
-                >
-                  Revisar lista com {contatos.length} cliente(s)
-                </button>
+                <div className="flex flex-col items-start md:items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep('REVISAO')}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+                  >
+                    Continuar com {contatos.length} cliente(s)
+                  </button>
+                  <p className="text-xs text-gray-400 font-medium">
+                    Você pode seguir sem CSV usando apenas os clientes adicionados manualmente.
+                  </p>
+                </div>
               )}
             </div>
+
+            {resumoImportacao && resumoImportacao.adicionados === 0 && resumoImportacao.ignoradosDuplicados > 0 && resumoImportacao.ignoradosInvalidos === 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-bold text-amber-700">
+                  Nenhum cliente novo foi adicionado. Os dados informados já existem na sua lista.
+                </p>
+                {contatos.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStep('REVISAO')}
+                    className="mt-3 px-4 py-2 rounded-xl bg-white border border-amber-200 text-amber-700 font-bold text-sm hover:bg-amber-100 transition-all"
+                  >
+                    Ir para revisão
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="border-t border-gray-100 pt-6 space-y-3">
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Adicionar vários de uma vez</p>
