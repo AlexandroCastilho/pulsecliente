@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/actions/auth'
-import { LogIn, Infinity } from 'lucide-react'
+import { LogIn, Infinity, ArrowLeft } from 'lucide-react'
 import { Suspense } from 'react'
 
 function LoginForm() {
@@ -34,7 +34,15 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        Página inicial
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">

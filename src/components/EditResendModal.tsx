@@ -31,18 +31,18 @@ export function EditResendModal({ isOpen, onClose, envio }: EditResendModalProps
     try {
       const res = await editarEReenviarEnvio(envio.id, email)
       if (res.success) {
-        toast.success("Tudo pronto!", {
-          description: "O e-mail foi corrigido e o reenvio já foi agendado."
+        toast.success("Envio atualizado com sucesso", {
+          description: "O e-mail foi corrigido e a tentativa de envio foi iniciada."
         })
         router.refresh()
         onClose()
       } else {
-        toast.error("Opa!", {
-          description: res.error?.message || "Erro ao processar edição"
+        toast.error("Não foi possível concluir", {
+          description: res.error?.message || "Não conseguimos atualizar este envio agora."
         })
       }
     } catch (err) {
-      toast.error("Erro inesperado", {
+      toast.error("Ocorreu um problema", {
         description: sanitizeErrorMessage(err),
       })
     } finally {
@@ -58,7 +58,7 @@ export function EditResendModal({ isOpen, onClose, envio }: EditResendModalProps
              <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                 <Mail size={20} />
              </div>
-             <h3 className="font-bold text-gray-900">Editar e Reenviar</h3>
+             <h3 className="font-bold text-gray-900">Corrigir e Reenviar</h3>
           </div>
           <button 
             onClick={onClose}
@@ -72,13 +72,13 @@ export function EditResendModal({ isOpen, onClose, envio }: EditResendModalProps
           <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-blue-700">
             <AlertCircle size={20} className="shrink-0" />
             <p className="text-xs font-medium leading-relaxed">
-              Corriga o e-mail de <strong>{envio.nomeDestinatario || 'seu cliente'}</strong> abaixo. 
-              Após salvar, o sistema tentará enviar a pesquisa instantaneamente.
+              Corrija o e-mail de <strong>{envio.nomeDestinatario || 'seu cliente'}</strong> abaixo.
+              Após confirmar, vamos tentar o envio novamente para esse cliente.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">E-mail do Destinatário</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">E-mail do Cliente</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
@@ -111,7 +111,7 @@ export function EditResendModal({ isOpen, onClose, envio }: EditResendModalProps
               ) : (
                 <>
                   <SendHorizontal size={18} />
-                  Salvar e Reenviar
+                  Confirmar e Reenviar
                 </>
               )}
             </button>

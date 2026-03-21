@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { redefinirSenha } from '@/actions/auth'
-import { Infinity, KeyRound } from 'lucide-react'
+import { Infinity, KeyRound, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { sanitizeErrorMessage } from '@/lib/error-handler'
 
@@ -101,7 +101,15 @@ export default function RedefinirSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        Página inicial
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">

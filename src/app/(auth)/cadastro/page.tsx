@@ -1,11 +1,20 @@
 "use client"
 
-import { Infinity } from 'lucide-react'
+import { Infinity, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import CadastroForm from '@/components/auth/CadastroForm'
 
 export default function CadastroPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-inter">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-inter">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        Página inicial
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2 mb-8">
           <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-200 rotate-3 transform transition-transform hover:rotate-0">
