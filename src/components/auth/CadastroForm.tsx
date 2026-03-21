@@ -16,9 +16,9 @@ export default function CadastroForm() {
       const email = formData.get('email') as string
       const result = await registrarConta(formData)
   
-      if (result?.error) {
-        toast.error(result.error)
-      } else if (result?.requiresVerification) {
+      if (!result.success) {
+        toast.error(result.error.message)
+      } else if (result.data?.requiresVerification) {
         toast.info('Verifique seu e-mail para confirmar seu cadastro.')
         router.push(`/confirmar-email?email=${encodeURIComponent(email)}`)
       } else {

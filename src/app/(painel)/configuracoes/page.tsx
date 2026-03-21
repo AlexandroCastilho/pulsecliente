@@ -87,14 +87,22 @@ export default function ConfiguracoesPage() {
   const handleCheckoutPlan = async (plan: 'GROWTH' | 'PREMIUM') => {
     setCheckoutPlanLoading(plan)
     try {
-    const res = await criarCheckoutAssinatura(plan)
-    if (res.success && res.data?.url) {
+      const res = await criarCheckoutAssinatura(plan)
+      if (!res.success) {
+        toast.error('Erro ao iniciar checkout', {
+          description: res.error?.message || 'Tente novamente em instantes.',
+        })
+        return
+      }
+
+      if (!res.data?.url) {
+        toast.error('Erro ao iniciar checkout', {
+          description: 'Tente novamente em instantes.',
+        })
+        return
+      }
+
       window.location.href = res.data.url
-    } else {
-      toast.error('Erro ao iniciar checkout', {
-        description: res.error?.message || 'Tente novamente em instantes.',
-      })
-    }
     } finally {
       setCheckoutPlanLoading(null)
     }
