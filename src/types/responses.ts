@@ -1,3 +1,5 @@
+import { sanitizeErrorMessage } from '@/lib/error-handler'
+
 export type ServiceError = {
   message: string;
   code: 'UNAUTHORIZED' | 'NOT_FOUND' | 'VALIDATION_ERROR' | 'INTERNAL_ERROR' | 'FORBIDDEN' | 'CONFLICT';
@@ -21,6 +23,6 @@ export function successResponse<T>(data: T): ServiceResponse<T> {
 export function errorResponse(message: string, code: ServiceError['code'] = 'INTERNAL_ERROR', details?: any): ServiceResponse {
   return {
     success: false,
-    error: { message, code, details }
+    error: { message: sanitizeErrorMessage(message), code, details }
   };
 }

@@ -5,6 +5,7 @@ import { X, Mail, SendHorizontal, Loader2, AlertCircle } from 'lucide-react'
 import { editarEReenviarEnvio } from '@/actions/envios'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 interface EditResendModalProps {
   isOpen: boolean
@@ -42,7 +43,7 @@ export function EditResendModal({ isOpen, onClose, envio }: EditResendModalProps
       }
     } catch (err) {
       toast.error("Erro inesperado", {
-        description: "Não foi possível completar a ação. Tente novamente."
+        description: sanitizeErrorMessage(err),
       })
     } finally {
       setLoading(false)

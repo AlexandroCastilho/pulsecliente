@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useTransition } from 'react'
 import { MoreVertical, Shield, UserCog, Trash2, Power, UserCheck, Loader2 } from 'lucide-react'
 import { updateMembroRole, toggleMembroStatus, removerMembro } from '@/actions/equipe'
 import { Role } from '@prisma/client'
+import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 interface MemberActionsProps {
   memberId: string
@@ -41,7 +42,7 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf, on
           alert(res.error.message)
         }
       } catch (err: any) {
-        alert(err.message || "Erro ao realizar ação")
+        alert(sanitizeErrorMessage(err) || "Erro ao realizar ação")
       } finally {
         setActiveAction(null)
       }

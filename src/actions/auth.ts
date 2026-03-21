@@ -9,6 +9,23 @@ import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
+async function getAppUrl() {
+  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
+  if (envAppUrl) {
+    return envAppUrl
+  }
+
+  const requestHeaders = await headers()
+  const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host')
+  const protocol = requestHeaders.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
+
+  if (host) {
+    return `${protocol}://${host}`
+  }
+
+  return 'http://localhost:3000'
+}
+
 export async function login(formData: FormData): Promise<ServiceResponse> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -42,10 +59,7 @@ export async function logout() {
     }
 
     const supabase = await createServerClient()
-    const requestHeaders = await headers()
-    const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host')
-    const protocol = requestHeaders.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
-    const appUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+    const appUrl = await getAppUrl()
     const redirectTo = `${appUrl}/redefinir-senha`
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -188,9 +202,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
   }
 
   try {
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const appUrl = `${protocol}://${host}`
+    const appUrl = await getAppUrl()
     const supabase = await createServerClient()
 
     // 2. Criar utilizador no Supabase Auth
@@ -260,9 +272,7 @@ export async function reenviarEmailConfirmacao(email: string): Promise<ServiceRe
 
   try {
     const supabase = await createServerClient()
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const appUrl = `${protocol}://${host}`
+    const appUrl = await getAppUrl()
 
     const { error } = await supabase.auth.resend({
       type: 'signup',

@@ -4,27 +4,51 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { reenviarEmailConfirmacao } from '@/actions/auth'
 import { toast } from 'sonner'
-import { useState, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { Infinity as InfinityIcon, Mail, ArrowRight } from 'lucide-react'
 
 function ConfirmEmailContent() {
   const searchParams = useSearchParams()
-  const email = searchParams.get('email')
+  const emailParam = searchParams.get('email')
+  const [email, setEmail] = useState(emailParam || '')
   const [isResending, setIsResending] = useState(false)
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    if (emailParam) setEmail(emailParam)
+  }, [emailParam])
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0))
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [cooldown])
 
   const handleResend = async () => {
-    if (!email) {
+    const emailToResend = email.trim()
+
+    if (!emailToResend) {
       toast.error('E-mail não encontrado.')
       return
     }
 
+    if (cooldown > 0) {
+      toast.error(`Aguarde ${cooldown}s para reenviar novamente.`)
+      return
+    }
+
     setIsResending(true)
-    const result = await reenviarEmailConfirmacao(email)
+    const result = await reenviarEmailConfirmacao(emailToResend)
     
     if (!result.success) {
       toast.error(result.error.message)
     } else {
       toast.success('E-mail de confirmação reenviado!')
+      setCooldown(60)
     }
     setIsResending(false)
   }
@@ -67,14 +91,29 @@ function ConfirmEmailContent() {
           </div>
 
           <div className="mt-8 border-t border-gray-100 pt-8">
+            {!emailParam && (
+              <div className="mb-4 text-left">
+                <label htmlFor="resend-email" className="block text-xs font-semibold text-gray-600 mb-1">
+                  Informe seu e-mail para reenviar
+                </label>
+                <input
+                  id="resend-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+            )}
             <p className="text-xs text-gray-400">
               Não recebeu o e-mail?{' '}
               <button 
                 onClick={handleResend}
-                disabled={isResending}
+                disabled={isResending || cooldown > 0}
                 className="text-indigo-600 font-bold hover:underline disabled:opacity-50 disabled:no-underline"
               >
-                {isResending ? 'Enviando...' : 'Reenviar confirmação'}
+                {isResending ? 'Enviando...' : cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar confirmação'}
               </button>
             </p>
           </div>

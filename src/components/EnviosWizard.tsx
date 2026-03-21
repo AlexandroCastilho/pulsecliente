@@ -20,6 +20,7 @@ import Link from 'next/link'
 import Papa from 'papaparse'
 import { importarContatos } from '@/actions/envios'
 import { processarDisparo } from '@/actions/disparos'
+import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 interface Contato {
   nome: string
@@ -66,7 +67,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
         setLoading(false)
       },
       error: (error) => {
-        setErro('Erro ao ler o arquivo CSV: ' + error.message)
+        setErro('Erro ao ler o arquivo CSV: ' + sanitizeErrorMessage(error))
         setLoading(false)
       }
     })
@@ -85,7 +86,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
           setErro(res.error?.message || 'Erro ao importar contatos.')
         }
       } catch (err: any) {
-        setErro(err.message || 'Erro inesperado na importação.')
+        setErro(sanitizeErrorMessage(err) || 'Erro inesperado na importação.')
       }
     })
   }
@@ -102,7 +103,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
           setErro(res.error?.message || 'Erro ao processar disparo.')
         }
       } catch (err: any) {
-        setErro(err.message || 'Erro inesperado no disparo.')
+        setErro(sanitizeErrorMessage(err) || 'Erro inesperado no disparo.')
       }
     })
   }
