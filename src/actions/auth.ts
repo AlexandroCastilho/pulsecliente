@@ -8,6 +8,10 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
+import { AUTH_RATE_LIMIT_SECONDS, buildEmailIpRateLimitKey, createRateLimiter } from '@/lib/rate-limit'
+
+const resendEmailRateLimit = createRateLimiter('@upstash/ratelimit:auth:resend-confirmation')
+const passwordRecoveryRateLimit = createRateLimiter('@upstash/ratelimit:auth:password-recovery')
 
 async function getAppUrl() {
   const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
@@ -24,6 +28,14 @@ async function getAppUrl() {
   }
 
   return 'http://localhost:3000'
+}
+
+async function getClientIdentifier() {
+  const requestHeaders = await headers()
+  const forwardedFor = requestHeaders.get('x-forwarded-for')
+  const realIp = requestHeaders.get('x-real-ip')
+  const ip = forwardedFor?.split(',')[0]?.trim() || realIp || 'unknown'
+  return ip
 }
 
 export async function login(formData: FormData): Promise<ServiceResponse> {
@@ -57,6 +69,16 @@ export async function logout() {
     if (!email) {
       return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
     }
+
+      if (passwordRecoveryRateLimit) {
+        const clientId = await getClientIdentifier()
+        const rateLimitKey = buildEmailIpRateLimitKey(email, clientId)
+        const { success } = await passwordRecoveryRateLimit.limit(rateLimitKey)
+
+        if (!success) {
+          return errorResponse(`Aguarde ${AUTH_RATE_LIMIT_SECONDS} segundos antes de solicitar uma nova recuperação de senha.`, 'VALIDATION_ERROR')
+        }
+      }
 
     const supabase = await createServerClient()
     const appUrl = await getAppUrl()
@@ -271,6 +293,16 @@ export async function reenviarEmailConfirmacao(email: string): Promise<ServiceRe
   if (!email) return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
 
   try {
+    if (resendEmailRateLimit) {
+      const clientId = await getClientIdentifier()
+      const rateLimitKey = buildEmailIpRateLimitKey(email, clientId)
+      const { success } = await resendEmailRateLimit.limit(rateLimitKey)
+
+      if (!success) {
+        return errorResponse(`Aguarde ${AUTH_RATE_LIMIT_SECONDS} segundos antes de reenviar o e-mail de confirmação.`, 'VALIDATION_ERROR')
+      }
+    }
+
     const supabase = await createServerClient()
     const appUrl = await getAppUrl()
 

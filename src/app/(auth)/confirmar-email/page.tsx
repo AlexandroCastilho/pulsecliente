@@ -7,6 +7,12 @@ import { toast } from 'sonner'
 import { useEffect, useState, Suspense } from 'react'
 import { Infinity as InfinityIcon, Mail, ArrowRight } from 'lucide-react'
 
+const RESEND_COOLDOWN_SECONDS = 60
+
+function getCooldownStorageKey(email: string) {
+  return `confirm-email-resend-cooldown-until:${email.toLowerCase()}`
+}
+
 function ConfirmEmailContent() {
   const searchParams = useSearchParams()
   const emailParam = searchParams.get('email')
@@ -17,6 +23,25 @@ function ConfirmEmailContent() {
   useEffect(() => {
     if (emailParam) setEmail(emailParam)
   }, [emailParam])
+
+  useEffect(() => {
+    const emailToCheck = email.trim().toLowerCase()
+    if (!emailToCheck) {
+      setCooldown(0)
+      return
+    }
+
+    const storageKey = getCooldownStorageKey(emailToCheck)
+    const storedUntil = window.localStorage.getItem(storageKey)
+    if (!storedUntil) return
+
+    const remainingSeconds = Math.ceil((Number(storedUntil) - Date.now()) / 1000)
+    if (remainingSeconds > 0) {
+      setCooldown(remainingSeconds)
+    } else {
+      window.localStorage.removeItem(storageKey)
+    }
+  }, [email])
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -48,10 +73,21 @@ function ConfirmEmailContent() {
       toast.error(result.error.message)
     } else {
       toast.success('E-mail de confirmação reenviado!')
-      setCooldown(60)
+      const cooldownUntil = Date.now() + RESEND_COOLDOWN_SECONDS * 1000
+      window.localStorage.setItem(getCooldownStorageKey(emailToResend), String(cooldownUntil))
+      setCooldown(RESEND_COOLDOWN_SECONDS)
     }
     setIsResending(false)
   }
+
+  useEffect(() => {
+    if (cooldown === 0) {
+      const emailToClear = email.trim().toLowerCase()
+      if (emailToClear) {
+        window.localStorage.removeItem(getCooldownStorageKey(emailToClear))
+      }
+    }
+  }, [cooldown, email])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-inter">

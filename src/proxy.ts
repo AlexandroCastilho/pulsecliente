@@ -1,25 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { Ratelimit } from "@upstash/ratelimit"
-import { Redis } from "@upstash/redis"
+import { createRateLimiter } from '@/lib/rate-limit'
 
-// Configuração do Rate Limiter (Upstash Redis)
-// Nota: Requer UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN no .env
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null
-
-const ratelimit = redis 
-  ? new Ratelimit({
-      redis: redis,
-      limiter: Ratelimit.slidingWindow(5, "60 s"), // 5 requisições por minuto para rotas sensíveis
-      analytics: true,
-      prefix: "@upstash/ratelimit",
-    })
-  : null
+const ratelimit = createRateLimiter('@upstash/ratelimit', 5, '60 s')
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
