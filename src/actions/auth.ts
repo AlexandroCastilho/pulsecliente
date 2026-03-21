@@ -42,9 +42,10 @@ export async function logout() {
     }
 
     const supabase = await createServerClient()
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const appUrl = `${protocol}://${host}`
+    const requestHeaders = await headers()
+    const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host')
+    const protocol = requestHeaders.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
+    const appUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
     const redirectTo = `${appUrl}/redefinir-senha`
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {

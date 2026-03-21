@@ -73,12 +73,9 @@ export default function LoginPage() {
                   className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-base"
                   placeholder="••••••••"
                 />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <Link href="/esqueci-senha" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
                     Esqueci minha senha
-                  </Link>
-                  <Link href="/cadastro" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                    Cadastrar-se
                   </Link>
                 </div>
               </div>
