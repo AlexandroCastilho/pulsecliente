@@ -39,9 +39,13 @@ export async function getSettingsData() {
       },
       empresa: {
         nome: dbUser.empresa.nome,
+        logo: dbUser.empresa.logo,
         id: dbUser.empresaId,
         plano: dbUser.empresa.plano as any,
         assinaturaAtiva: dbUser.empresa.assinaturaAtiva,
+        emailBrandColor: dbUser.empresa.emailBrandColor,
+        emailLogoUrl: dbUser.empresa.emailLogoUrl,
+        emailHeaderText: dbUser.empresa.emailHeaderText,
       },
       smtp: dbUser.empresa.smtpConfig
     }
@@ -66,10 +70,50 @@ export async function saveSettings(formData: FormData) {
 
   // 2. Dados da Empresa
   const companyName = formData.get("companyName") as string
+  const companyLogo = formData.get("companyLogo") as string
+  const emailBrandColor = formData.get("emailBrandColor") as string
+  const emailLogoUrl = formData.get("emailLogoUrl") as string
+  const emailHeaderText = formData.get("emailHeaderText") as string
+
+  // Verifica o plano do usuário antes de salvar dados de personalização premium
+  const empresa = await prisma.empresa.findUnique({
+    where: { id: dbUser.empresaId },
+    select: { plano: true }
+  })
+
+  if (!empresa) {
+    throw new Error("Empresa não encontrada")
+  }
+
+  const isPremium = empresa.plano !== 'FREE'
+
+  const companyUpdateData: Record<string, any> = {}
+
   if (companyName) {
+    companyUpdateData.nome = companyName
+  }
+
+  if (companyLogo) {
+    companyUpdateData.logo = companyLogo
+  }
+
+  // Só salva dados de personalização de e-mail se o plano for premium
+  if (isPremium) {
+    if (emailBrandColor) {
+      companyUpdateData.emailBrandColor = emailBrandColor
+    }
+    if (emailLogoUrl) {
+      companyUpdateData.emailLogoUrl = emailLogoUrl
+    }
+    if (emailHeaderText) {
+      companyUpdateData.emailHeaderText = emailHeaderText
+    }
+  }
+
+  if (Object.keys(companyUpdateData).length > 0) {
     await prisma.empresa.update({
       where: { id: dbUser.empresaId },
-      data: { nome: companyName }
+      data: companyUpdateData
     })
   }
 
