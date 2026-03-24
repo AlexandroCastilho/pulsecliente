@@ -1,7 +1,6 @@
 "use client"
 
 import { CreditCard } from 'lucide-react'
-import { useState } from 'react'
 
 interface SettingsTabPlanProps {
   currentPlan: string
@@ -141,7 +140,7 @@ export function SettingsTabPlan({
             features={[
               'Até 100 envios por mês',
               'Dashboard básico',
-              '1 utilizador',
+              '1 usuário',
             ]}
             current={currentPlan === 'FREE'}
             buttonLabel="Plano atual"
@@ -155,7 +154,7 @@ export function SettingsTabPlan({
             features={[
               'Até 5.000 envios por mês',
               'Dashboard avançado',
-              'Até 5 utilizadores',
+              'Até 5 usuários',
               'Personalização de e-mail',
             ]}
             current={currentPlan === 'GROWTH'}
@@ -170,7 +169,7 @@ export function SettingsTabPlan({
             price="R$ 297/mês"
             features={[
               'Envios ilimitados',
-              'Gestão avançada de equipa',
+              'Gestão avançada de equipe',
               'Suporte prioritário',
               'Personalização de e-mail',
             ]}

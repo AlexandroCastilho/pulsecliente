@@ -24,46 +24,73 @@ export async function POST(request: NextRequest) {
     const payload = await request.text()
 
     const event = stripe.webhooks.constructEvent(payload, signature, stripeWebhookSecret)
+    const eventId = event.id
+
+    // Interfaces auxiliares para evitar o uso de 'any' em propriedades polimórficas do Stripe
+    interface StripeInvoice extends Stripe.Invoice {
+      subscription: string | null;
+    }
+
+    interface StripeSubscription extends Stripe.Subscription {
+      metadata: { empresaId?: string };
+    }
 
     switch (event.type) {
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = (invoice as any).subscription as string
+        const invoice = event.data.object as StripeInvoice
+        const subscriptionId = invoice.subscription
 
-        if (subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-          const empresaId = subscription.metadata.empresaId
-
-          if (empresaId) {
-            const priceId = (invoice.lines.data[0] as any)?.price?.id
-            let plano = 'FREE'
-
-            if (priceId === process.env.STRIPE_PRICE_GROWTH_ID) {
-              plano = 'GROWTH'
-            } else if (priceId === process.env.STRIPE_PRICE_PREMIUM_ID) {
-              plano = 'PREMIUM'
-            }
-
-            await prisma.empresa.update({
-              where: { id: empresaId },
-              data: {
-                plano,
-                assinaturaAtiva: true,
-                stripeSubscriptionId: subscriptionId,
-                stripeCustomerId: invoice.customer as string,
-                stripePriceId: priceId
-              }
-            })
-
-            console.log(`[STRIPE WEBHOOK] Plano atualizado para ${plano} para a empresa ${empresaId}`)
-          }
+        if (!subscriptionId) {
+          console.error(`[STRIPE_WEBHOOK][${eventId}] Subscription ID ausente na fatura ${invoice.id}`)
+          return NextResponse.json({ error: 'Subscription ID ausente' }, { status: 400 })
         }
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId) as StripeSubscription
+        const empresaId = subscription.metadata.empresaId
+
+        if (!empresaId) {
+          console.warn(`[STRIPE_WEBHOOK][${eventId}] Metadata empresaId ausente na assinatura ${subscriptionId}. O evento será ignorado.`)
+          return NextResponse.json({ received: true, ignored: true, reason: 'empresaId_missing' })
+        }
+
+        const lineItem = invoice.lines.data[0] as { price?: { id: string } }
+        const priceId = lineItem?.price?.id
+
+        if (!priceId) {
+          console.error(`[STRIPE_WEBHOOK][${eventId}] Price ID ausente nos itens da fatura ${invoice.id}`)
+          return NextResponse.json({ error: 'Price ID ausente' }, { status: 400 })
+        }
+
+        let plano = 'FREE'
+        if (priceId === process.env.STRIPE_PRICE_GROWTH_ID) {
+          plano = 'GROWTH'
+        } else if (priceId === process.env.STRIPE_PRICE_PREMIUM_ID) {
+          plano = 'PREMIUM'
+        }
+
+        await prisma.empresa.update({
+          where: { id: empresaId },
+          data: {
+            plano,
+            assinaturaAtiva: true,
+            stripeSubscriptionId: subscriptionId,
+            stripeCustomerId: invoice.customer as string,
+            stripePriceId: priceId
+          }
+        })
+
+        console.log(`[STRIPE_WEBHOOK][${eventId}] Plano atualizado para ${plano} para a empresa ${empresaId}`)
         break
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
+
+        if (!customerId) {
+          console.warn(`[STRIPE_WEBHOOK][${eventId}] Customer ID ausente no evento de deleção de assinatura ${subscription.id}`)
+          return NextResponse.json({ received: true })
+        }
 
         await prisma.empresa.update({
           where: { stripeCustomerId: customerId },
@@ -75,17 +102,19 @@ export async function POST(request: NextRequest) {
           }
         })
 
-        console.log(`[STRIPE WEBHOOK] Assinatura cancelada para o cliente ${customerId}`)
+        console.log(`[STRIPE_WEBHOOK][${eventId}] Assinatura cancelada para o cliente ${customerId}`)
         break
       }
 
       default:
+        console.log(`[STRIPE_WEBHOOK][${eventId}] Evento não tratado: ${event.type}`)
         break
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('[STRIPE WEBHOOK ERROR]', error)
-    return NextResponse.json({ error: 'Webhook inválido' }, { status: 400 })
+    console.error('[STRIPE_WEBHOOK_CRITICAL_ERROR]', error)
+    const message = error instanceof Error ? error.message : 'Erro interno no processamento do webhook'
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 }

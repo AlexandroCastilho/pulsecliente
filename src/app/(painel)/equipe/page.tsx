@@ -84,7 +84,7 @@ export default function EquipePage() {
       } else {
         toast.error(res.error?.message || "Erro ao cancelar convite")
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Erro ao processar cancelamento")
     }
   }
@@ -144,7 +144,7 @@ export default function EquipePage() {
             Membros Ativos
           </h3>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            {membros.length} Utilizadores
+            {membros.length} Usuários
           </span>
         </div>
 
@@ -154,7 +154,7 @@ export default function EquipePage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Utilizador</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuário</th>
                   <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail</th>
                   <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Função</th>
                   <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Estado</th>

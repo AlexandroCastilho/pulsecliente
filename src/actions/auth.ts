@@ -141,7 +141,7 @@ export async function validarTokenConvite(token: string): Promise<ServiceRespons
     }
 
     return successResponse(convite)
-  } catch (error) {
+  } catch (_error) {
     return errorResponse("Erro ao validar convite.", 'INTERNAL_ERROR')
   }
 }
@@ -157,7 +157,7 @@ export async function finalizarAceiteConvite(token: string, senha: string): Prom
       throw new Error("Convite inválido ou expirado.")
     }
 
-    // 2. Criar utilizador no Supabase Auth via Admin
+    // 2. Criar usuário no Supabase Auth via Admin
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: convite.email,
       password: senha,
@@ -174,7 +174,7 @@ export async function finalizarAceiteConvite(token: string, senha: string): Prom
     }
 
     const authUserId = authData.user?.id
-    if (!authUserId) throw new Error("Erro ao obter ID do utilizador.")
+    if (!authUserId) throw new Error("Erro ao obter ID do usuário.")
 
     // 3. Criar registro na tabela Usuario do Prisma
     await prisma.usuario.create({
@@ -270,7 +270,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
     const appUrl = await getAppUrl()
     const supabase = await createServerClient()
 
-    // 2. Criar utilizador no Supabase Auth
+    // 2. Criar usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -285,7 +285,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
     }
 
     const authUserId = authData.user?.id
-    if (!authUserId) throw new Error("Erro ao obter ID do utilizador.")
+    if (!authUserId) throw new Error("Erro ao obter ID do usuário.")
 
     // 3. Criar Empresa e Usuário no Prisma via Transação
     // Gerar slug básico: "Minha Empresa" -> "minha-empresa-123"

@@ -43,18 +43,26 @@ export function NotificationDropdown() {
       fetchNotificacoes(false)
     }, 30000)
 
-    // Fechar dropdown ao clicar fora
+    // Fechar dropdown ao clicar fora ou pressionar ESC
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false)
+      }
+    }
+
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("keydown", handleKeyDown)
     
     return () => {
       isMounted = false
       clearInterval(intervalId)
       document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleKeyDown)
     }
   }, [])
 
@@ -84,11 +92,14 @@ export function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all group"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+        aria-label={unreadCount > 0 ? `Notificações, ${unreadCount} não lidas` : "Notificações"}
+        className="relative p-2.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
       >
         <Bell size={22} className={isOpen ? 'text-indigo-600' : ''} />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+          <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center animate-bounce" aria-hidden="true">
             {unreadCount}
           </span>
         )}
@@ -114,13 +125,13 @@ export function NotificationDropdown() {
             ) : notificacoes.length > 0 ? (
               <div className="divide-y divide-gray-50">
                 {notificacoes.map((n) => (
-                  <div 
+                  <button 
                     key={n.id} 
-                    className={`p-5 hover:bg-gray-50 transition-colors relative group/item cursor-pointer ${!n.lida ? 'bg-indigo-50/30' : ''}`}
+                    className={`w-full p-5 hover:bg-gray-50 transition-colors relative group/item text-left focus:outline-none focus:bg-gray-50 ${!n.lida ? 'bg-indigo-50/30' : ''}`}
                     onClick={() => !n.lida && handleMarkAsRead(n.id)}
                   >
                     <div className="flex gap-4">
-                      <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${!n.lida ? 'bg-white' : 'bg-gray-50'}`}>
+                      <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${!n.lida ? 'bg-white' : 'bg-gray-50'}`} aria-hidden="true">
                         {getIcon(n.tipo)}
                       </div>
                       <div className="space-y-1">
@@ -128,7 +139,7 @@ export function NotificationDropdown() {
                           <h4 className={`text-sm font-bold leading-tight ${!n.lida ? 'text-gray-900' : 'text-gray-500'}`}>
                             {n.titulo}
                           </h4>
-                          {!n.lida && <span className="w-2 h-2 bg-indigo-500 rounded-full shrink-0 mt-1"></span>}
+                          {!n.lida && <span className="w-2 h-2 bg-indigo-500 rounded-full shrink-0 mt-1" aria-hidden="true"></span>}
                         </div>
                         <p className="text-xs text-gray-500 font-medium line-clamp-2 leading-relaxed">
                           {n.mensagem}
@@ -138,7 +149,7 @@ export function NotificationDropdown() {
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (

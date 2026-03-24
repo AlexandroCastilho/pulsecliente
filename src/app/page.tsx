@@ -11,7 +11,6 @@ import {
   Smartphone,
   Users,
   Gauge,
-  Star,
   Menu,
   X
 } from 'lucide-react'
@@ -50,7 +49,7 @@ export default function LandingPage() {
                 href="/cadastro" 
                 className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-slate-900 transition-all active:scale-95"
               >
-                Começar Agora
+                Começar Grátis
               </Link>
             </div>
 
@@ -108,11 +107,11 @@ export default function LandingPage() {
               </div>
               
               <h1 className="text-4xl md:text-7xl font-black leading-[1.1] text-slate-900">
-                Entenda seus clientes de <span className="text-indigo-600">verdade</span>.
+                Transforme feedbacks em <span className="text-indigo-600">crescimento real</span>.
               </h1>
               
               <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed max-w-xl">
-                O Opinaloop ajuda sua empresa a coletar feedbacks valiosos, medir o NPS e tomar decisões baseadas em dados reais. Simples, rápido e eficiente.
+                A plataforma de NPS que ajuda sua empresa a reduzir o Churn e aumentar a satisfação dos clientes em cliques, não em meses.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -120,15 +119,27 @@ export default function LandingPage() {
                   href="/cadastro" 
                   className="px-8 md:px-10 py-4 md:py-5 bg-indigo-600 text-white rounded-2xl text-base md:text-lg font-bold shadow-2xl shadow-indigo-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 group active:scale-95"
                 >
-                  Criar Conta Grátis
+                  Começar Agora — É Grátis
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link 
-                  href="/cadastro" 
+                <a 
+                  href="#funcionalidades" 
                   className="px-8 md:px-10 py-4 md:py-5 bg-white text-slate-600 border-2 border-slate-100 rounded-2xl text-base md:text-lg font-bold hover:bg-slate-50 transition-all flex items-center justify-center"
                 >
-                  Ver Demonstração
-                </Link>
+                  Como funciona?
+                </a>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                <div className="flex items-center gap-1.5 grayscale opacity-70">
+                  <Check size={14} className="text-indigo-600" />
+                  Sem cartão de crédito
+                </div>
+                <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                <div className="flex items-center gap-1.5 grayscale opacity-70">
+                  <Check size={14} className="text-indigo-600" />
+                  Configuração em 2 min
+                </div>
               </div>
 
               <div className="pt-8 flex items-center gap-6">
@@ -223,7 +234,7 @@ export default function LandingPage() {
               />
               <FeatureCard
                 icon={<Users size={22} className="text-indigo-600" />}
-                title="Gestão de Equipa"
+                title="Gestão de Equipe"
                 description="Convide membros, organize permissões e mantenha toda a operação alinhada."
               />
               <FeatureCard
@@ -284,7 +295,7 @@ export default function LandingPage() {
                 benefits={[
                   'Até 100 envios/mês',
                   'Dashboard básico',
-                  '1 utilizador',
+                  '1 usuário',
                   'Suporte por e-mail',
                 ]}
               />
@@ -297,7 +308,7 @@ export default function LandingPage() {
                 benefits={[
                   'Até 5.000 envios/mês',
                   'Dashboard avançado em tempo real',
-                  'Até 5 utilizadores',
+                  'Até 5 usuários',
                   'Automação de disparos',
                 ]}
               />
@@ -308,7 +319,7 @@ export default function LandingPage() {
                 subtitle="Escala com controle total"
                 benefits={[
                   'Envios ilimitados',
-                  'Gestão avançada de equipa',
+                  'Gestão avançada de equipe',
                   'Múltiplos SMTPs',
                   'Suporte prioritário',
                 ]}

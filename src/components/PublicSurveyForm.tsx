@@ -90,7 +90,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
       } else {
         setErro(res.error?.message || 'Erro ao salvar resposta.')
       }
-    } catch (err: unknown) {
+    } catch (_err: unknown) {
       setErro('Erro de conexão. Tente novamente.')
     } finally {
       setEnviando(false)
@@ -155,10 +155,12 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                 <button
                   key={i}
                   onClick={() => handleUpdateResposta(i)}
+                  aria-label={`Nota ${i}`}
+                  aria-pressed={respostas[perguntaAtual.id] === i}
                   onKeyDown={(e) => {
                     if (e.key === i.toString()) handleUpdateResposta(i)
                   }}
-                  className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl font-bold transition-all flex items-center justify-center border-2 focus-visible:ring-4 focus-visible:ring-indigo-500/20 outline-none text-base ${
+                  className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl font-bold transition-all flex items-center justify-center border-2 focus:ring-4 focus:ring-indigo-500/20 focus-visible:ring-indigo-500/40 outline-none text-base ${
                     respostas[perguntaAtual.id] === i 
                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105' 
                     : 'bg-white border-gray-100 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
@@ -177,7 +179,9 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                 <button
                   key={s}
                   onClick={() => handleUpdateResposta(s)}
-                  className={`p-2 sm:p-3 rounded-2xl transition-all transform hover:scale-110 shrink-0 ${
+                  aria-label={`${s} ${s === 1 ? 'estrela' : 'estrelas'}`}
+                  aria-pressed={(respostas[perguntaAtual.id] as number) >= s}
+                  className={`p-2 sm:p-3 rounded-2xl transition-all transform hover:scale-110 shrink-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/20 ${
                     (respostas[perguntaAtual.id] as number) >= s ? 'text-amber-400 stroke-amber-500 fill-amber-400' : 'text-gray-200'
                   }`}
                 >
@@ -206,7 +210,9 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                   <button
                     key={idx}
                     onClick={() => handleToggleOption(opcao)}
-                    className={`p-5 rounded-2xl font-bold text-left transition-all border-2 flex items-center gap-3 min-h-[56px] ${
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    className={`p-5 rounded-2xl font-bold text-left transition-all border-2 flex items-center gap-3 min-h-[56px] focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/20 ${
                       isSelected
                       ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm'
                       : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
@@ -214,7 +220,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                   >
                     <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 ${
                       isSelected ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'
-                    }`}>
+                    }`} aria-hidden="true">
                       {isSelected && (
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />

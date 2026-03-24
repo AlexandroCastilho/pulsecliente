@@ -28,14 +28,14 @@ export default function TermosPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-800 mb-3">1. Introdução</h2>
             <p className="text-slate-600 leading-relaxed">
-              Bem-vindo ao Opinaloop. Ao aceder ou utilizar a nossa plataforma, concorda em
+              Bem-vindo ao Opinaloop. Ao acessar ou utilizar a nossa plataforma, concorda em
               ficar vinculado pelos presentes Termos de Uso. Leia-os atentamente antes de
               utilizar os nossos serviços. Caso não concorde com alguma das disposições aqui
               previstas, deverá cessar imediatamente a utilização da plataforma.
             </p>
             <p className="text-slate-600 leading-relaxed mt-3">
               O Opinaloop é uma plataforma de gestão de pesquisas de satisfação e Net Promoter
-              Score (NPS), destinada a empresas e profissionais que desejam recolher e analisar
+              Score (NPS), destinada a empresas e profissionais que desejam coletar e analisar
               o feedback dos seus clientes de forma estruturada e eficiente.
             </p>
           </section>
@@ -43,10 +43,10 @@ export default function TermosPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-800 mb-3">2. Uso dos Serviços</h2>
             <p className="text-slate-600 leading-relaxed">
-              O utilizador compromete-se a usar a plataforma exclusivamente para fins lícitos
+              O usuário compromete-se a usar a plataforma exclusivamente para fins lícitos
               e de acordo com estes Termos. É expressamente proibido: utilizar o serviço para
               envio de comunicações não solicitadas (spam), realizar engenharia reversa ou
-              tentativas de intrusão, partilhar credenciais de acesso com terceiros não
+              tentativas de intrusão, compartilhar credenciais de acesso com terceiros não
               autorizados, ou utilizar a plataforma para atividades que violem direitos de
               terceiros.
             </p>
@@ -55,14 +55,14 @@ export default function TermosPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-800 mb-3">3. Uso de Dados</h2>
             <p className="text-slate-600 leading-relaxed">
-              Os dados introduzidos na plataforma, incluindo listas de contactos e respostas
+              Os dados introduzidos na plataforma, incluindo listas de contatos e respostas
               às pesquisas, são armazenados de forma segura e utilizados exclusivamente para
-              prestar os serviços contratados. O Opinaloop não vende, aluga ou partilha os
+              prestar os serviços contratados. O Opinaloop não vende, aluga ou compartilha os
               seus dados pessoais com terceiros para fins comerciais sem o seu consentimento
               explícito.
             </p>
             <p className="text-slate-600 leading-relaxed mt-3">
-              Ao utilizar a plataforma, o utilizador declara ter obtido as devidas autorizações
+              Ao utilizar a plataforma, o usuário declara ter obtido as devidas autorizações
               dos destinatários cujos e-mails são carregados para envio de pesquisas, nos
               termos da legislação de proteção de dados aplicável (LGPD / GDPR).
             </p>
@@ -71,10 +71,10 @@ export default function TermosPage() {
           <section>
             <h2 className="text-xl font-bold text-slate-800 mb-3">4. Responsabilidade pelo Conteúdo</h2>
             <p className="text-slate-600 leading-relaxed">
-              O utilizador é o único responsável pelo conteúdo das pesquisas criadas e pelos
+              O usuário é o único responsável pelo conteúdo das pesquisas criadas e pelos
               dados dos destinatários carregados na plataforma. O Opinaloop não se
               responsabiliza por quaisquer danos resultantes de conteúdos inadequados ou
-              ilegais publicados pelos utilizadores.
+              ilegais publicados pelos usuários.
             </p>
           </section>
 
@@ -87,9 +87,9 @@ export default function TermosPage() {
               da impossibilidade de uso dos nossos serviços.
             </p>
             <p className="text-slate-600 leading-relaxed mt-3">
-              A responsabilidade total do Opinaloop perante o utilizador, por quaisquer
-              reclamações decorrentes destes Termos, não excederá o valor pago pelo utilizador
-              à plataforma nos três meses anteriores ao facto gerador da reclamação.
+              A responsabilidade total do Opinaloop perante o usuário, por quaisquer
+              reclamações decorrentes destes Termos, não excederá o valor pago pelo usuário
+              à plataforma nos três meses anteriores ao fato gerador da reclamação.
             </p>
           </section>
 
@@ -104,9 +104,9 @@ export default function TermosPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-800 mb-3">7. Contacto</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-3">7. Contato</h2>
             <p className="text-slate-600 leading-relaxed">
-              Para qualquer questão relacionada com estes Termos de Uso, entre em contacto
+              Para qualquer questão relacionada com estes Termos de Uso, entre em contato
               através do e-mail{' '}
               <span className="text-indigo-600 font-medium">suporte@opinaloop.com</span>.
             </p>

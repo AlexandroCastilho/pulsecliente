@@ -41,10 +41,12 @@ export default async function PesquisaEnviosPage({
   if (!pesquisa) notFound()
 
   // Busca dados para o Dashboard usando o pesquisaId, termo de busca e página
-  const [historicoData, stats] = await Promise.all([
+  const [historicoData, statsData] = await Promise.all([
     getHistoricoEnvios(pesquisaId, search, page),
     getStatsEnvios(pesquisaId)
   ])
+
+  const stats = statsData || { total: 0, respondidas: 0, erros: 0, pendentes: 0, taxaSucesso: 0 }
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto pb-20 font-inter animate-in fade-in duration-500">
