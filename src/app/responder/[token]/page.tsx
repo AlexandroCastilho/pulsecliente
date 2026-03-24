@@ -151,7 +151,7 @@ export default async function PublicSurveyPage({ params }: PageProps) {
         </div>
 
         {/* Formulário Interativo (Client Component) */}
-        <PublicSurveyForm envio={envio as any} pesquisa={envio.pesquisa as any} />
+        <PublicSurveyForm envio={envio} pesquisa={envio.pesquisa} />
 
         {/* Footer */}
         <div className="mt-12 text-center text-gray-400 text-xs font-medium flex items-center justify-center gap-2">

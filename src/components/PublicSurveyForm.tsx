@@ -11,22 +11,35 @@ import {
   Loader2
 } from 'lucide-react'
 
-interface Pergunta {
-  id: string
-  titulo: string
-  tipo: 'TEXTO_LIVRE' | 'MULTIPLA_ESCOLHA' | 'ESCALA_NPS' | 'ESTRELAS'
-  opcoes?: any // Para MULTIPLA_ESCOLHA
-  obrigatoria: boolean
-}
+import { Prisma } from '@prisma/client'
+
+type EnvioComPesquisa = Prisma.EnvioGetPayload<{
+  select: {
+    id: true,
+    emailDestinatario: true,
+    nomeDestinatario: true,
+    status: true,
+    token: true,
+    pesquisaId: true,
+    pesquisa: {
+      select: {
+        id: true,
+        titulo: true,
+        descricao: true,
+        ativa: true,
+        dataInicio: true,
+        dataFim: true,
+        createdAt: true,
+        empresa: { select: { nome: true } },
+        perguntas: { orderBy: { ordem: 'asc' } }
+      }
+    }
+  }
+}>
 
 interface Props {
-  envio: any
-  pesquisa: {
-    id: string
-    titulo: string
-    descricao?: string | null
-    perguntas: Pergunta[]
-  }
+  envio: EnvioComPesquisa
+  pesquisa: EnvioComPesquisa['pesquisa']
 }
 
 export default function PublicSurveyForm({ envio, pesquisa }: Props) {

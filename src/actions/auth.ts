@@ -295,7 +295,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '')
     
-    const uniqueSuffix = Math.random().toString(36).substring(2, 5)
+    const uniqueSuffix = require('uuid').v4().replace(/-/g,'').substring(0,8)
     const slug = `${baseSlug}-${uniqueSuffix}`
 
     await prisma.$transaction(async (tx) => {

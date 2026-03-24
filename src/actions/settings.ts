@@ -61,7 +61,7 @@ export async function getSettingsData() {
         emailLogoUrl: (empresa as any).emailLogoUrl,
         emailHeaderText: (empresa as any).emailHeaderText,
       },
-      smtp: empresa.smtpConfig
+      smtp: empresa.smtpConfig ? { ...empresa.smtpConfig, pass: '' } : null
     }
   } catch (error) {
     console.error("[GET_SETTINGS_ERROR]", error)
