@@ -1,0 +1,4 @@
+
+> temp-pulse@0.1.0 lint
+> eslint src/actions/settings.ts src/app/(painel)/configuracoes/page.tsx
+

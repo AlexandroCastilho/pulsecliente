@@ -6,8 +6,8 @@ import { revalidatePath } from "next/cache"
 import Stripe from "stripe"
 import { ServiceResponse, successResponse, errorResponse } from "@/types/responses"
 import { encrypt } from "@/lib/crypto"
-
 import { z } from "zod"
+import { SettingsData, CheckoutData, EmpresaSettings } from "@/types/settings"
 
 const SettingsSchema = z.object({
   userName: z.string().min(2, "Nome curto demais").optional(),
@@ -28,7 +28,7 @@ import { PLAN_TO_PRICE } from '@/lib/constants'
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
-export async function getSettingsData() {
+export async function getSettingsData(): Promise<SettingsData | null> {
   try {
     const user = await getAuthenticatedUser()
 
@@ -46,20 +46,23 @@ export async function getSettingsData() {
 
     if (!empresa) return null
 
+    // Cast seguro para a interface EmpresaSettings
+    const e = empresa as unknown as EmpresaSettings
+
     return {
       user: {
         nome: dbUser.nome,
         email: dbUser.email
       },
       empresa: {
-        nome: empresa.nome,
-        logo: (empresa as any).logo,
-        id: empresa.id,
-        plano: empresa.plano as string,
-        assinaturaAtiva: empresa.assinaturaAtiva,
-        emailBrandColor: (empresa as any).emailBrandColor,
-        emailLogoUrl: (empresa as any).emailLogoUrl,
-        emailHeaderText: (empresa as any).emailHeaderText,
+        id: e.id,
+        nome: e.nome,
+        logo: e.logo || null,
+        plano: e.plano,
+        assinaturaAtiva: !!e.assinaturaAtiva,
+        emailBrandColor: e.emailBrandColor || null,
+        emailLogoUrl: e.emailLogoUrl || null,
+        emailHeaderText: e.emailHeaderText || null,
       },
       smtp: empresa.smtpConfig ? { ...empresa.smtpConfig, pass: '' } : null
     }
@@ -69,7 +72,7 @@ export async function getSettingsData() {
   }
 }
 
-export async function saveSettings(formData: FormData) {
+export async function saveSettings(formData: FormData): Promise<ServiceResponse<boolean>> {
   try {
     const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
@@ -178,7 +181,7 @@ export async function saveSettings(formData: FormData) {
   }
 }
 
-export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
+export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM"): Promise<ServiceResponse<CheckoutData>> {
   try {
     const user = await getAuthenticatedUser(['OWNER'])
 

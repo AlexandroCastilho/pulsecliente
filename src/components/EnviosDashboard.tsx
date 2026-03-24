@@ -53,15 +53,10 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
 
   const [selectedEnvio, setSelectedEnvio] = useState<Envio | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [mounted] = useState(true)
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
 
   const currentPage = Number(searchParams.get('page')) || 1
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- padrão legítimo de hidratação SSR/Client
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)

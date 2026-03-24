@@ -6,22 +6,16 @@ import Link from 'next/link'
 import { 
   ArrowLeft, 
   Users, 
-  Mail, 
   Send,
-  CheckCircle2, 
-  Clock,
   MessageSquare,
   BarChart3,
-  User,
-  ChevronRight,
   Star,
-  AlertCircle,
   TrendingUp,
   PieChart,
   List,
   Target
 } from 'lucide-react'
-import { formatDate, calculateNPS, getNPSColor } from '@/lib/utils'
+import { calculateNPS, getNPSColor } from '@/lib/utils'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 import { CopySurveyLink } from '@/components/CopySurveyLink'
 import { SurveyResponseTable } from '@/components/SurveyResponseTable'

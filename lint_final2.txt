@@ -1,0 +1,120 @@
+﻿
+> temp-pulse@0.1.0 lint
+> eslint
+
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\scripts\get-test-token.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\actions\auth.ts
+  144:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\actions\disparos.ts
+   6:10  warning  'ServiceResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  65:16  warning  'err' is defined but never used              @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\actions\equipe.ts
+  8:10  warning  'ServiceResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\actions\respostas.ts
+  5:10  warning  'ServiceResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\actions\settings.ts
+  7:10  warning  'ServiceResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\(auth)\login\page.tsx
+  7:10  warning  'LogIn' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\(painel)\editor\page.tsx
+   20:10  warning  'ServiceResponse' is defined but never used  @typescript-eslint/no-unused-vars
+   67:37  warning  'id' is defined but never used               @typescript-eslint/no-unused-vars
+   78:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+  273:35  warning  'index' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\(painel)\equipe\page.tsx
+  87:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\(painel)\pesquisas\[id]\page.tsx
+   10:3   warning  'MessageSquare' is defined but never used   @typescript-eslint/no-unused-vars
+   11:3   warning  'BarChart3' is defined but never used       @typescript-eslint/no-unused-vars
+   18:24  warning  'getNPSColor' is defined but never used     @typescript-eslint/no-unused-vars
+   20:10  warning  'CopySurveyLink' is defined but never used  @typescript-eslint/no-unused-vars
+   96:56  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  270:52  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  295:47  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  302:47  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  309:47  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  325:55  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  341:51  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  348:80  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  358:49  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\api\stripe\webhook\route.ts
+  31:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\page.tsx
+  14:3  warning  'Star' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\app\responder\[token]\page.tsx
+  49:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\AddMemberModal.tsx
+  32:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\DashboardWrapper.tsx
+   6:19  warning  'Activity' is defined but never used      @typescript-eslint/no-unused-vars
+  10:13  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\DeleteSurveyButton.tsx
+  18:3  warning  'surveyTitle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\EmptyState.tsx
+  4:10  warning  'LucideIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\EnviosDashboard.tsx
+   3:20  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  94:14  warning  'e' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\EnviosWizard.tsx
+  242:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  320:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  337:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\Header.tsx
+  4:10  warning  'Search' is defined but never used    @typescript-eslint/no-unused-vars
+  4:18  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+  4:36  warning  'UserIcon' is defined but never used  @typescript-eslint/no-unused-vars
+  6:10  warning  'logout' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\PublicSurveyForm.tsx
+  93:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\Sidebar.tsx
+  7:3  warning  'Send' is defined but never used  @typescript-eslint/no-unused-vars
+  9:3  warning  'Mail' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\StatusBadge.tsx
+  2:3  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\TableSkeleton.tsx
+  3:10  warning  'motion' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\ToastProvider.tsx
+  3:10  warning  'ReactNode' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\components\settings\SettingsTabPlan.tsx
+  4:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\lib\crypto.ts
+  5:7  warning  'AUTH_TAG_LENGTH' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\proxy.ts
+  21:28  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:48  warning  'options' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\alexa\Documents\PROJETOS ANTI\PULSE7.0\src\types\pesquisa.ts
+  7:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Ô£û 55 problems (19 errors, 36 warnings)
+

@@ -16,31 +16,9 @@ import { SettingsTabProfile } from '@/components/settings/SettingsTabProfile'
 import { SettingsTabCompany } from '@/components/settings/SettingsTabCompany'
 import { SettingsTabSmtp } from '@/components/settings/SettingsTabSmtp'
 import { SettingsTabPlan } from '@/components/settings/SettingsTabPlan'
+import { SettingsData } from '@/types/settings'
 
-interface SmtpData {
-  id: string
-  host: string
-  port: number
-  user: string | null
-  pass: string
-  fromName: string | null
-  fromEmail: string | null
-}
 
-interface SettingsData {
-  user: { nome: string | null; email: string }
-  empresa: {
-    nome: string
-    logo: string | null
-    id: string
-    plano: string
-    assinaturaAtiva: boolean
-    emailBrandColor: string | null
-    emailLogoUrl: string | null
-    emailHeaderText: string | null
-  }
-  smtp: SmtpData | null
-}
 
 export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(false)
@@ -120,8 +98,8 @@ export default function ConfiguracoesPage() {
         return
       }
 
-      const checkoutData = res.data as { url?: string } | null
-      if (!checkoutData?.url) {
+      const checkoutData = res.data
+      if (!checkoutData.url) {
         toast.error('Erro ao iniciar checkout', {
           description: 'Houve um problema ao gerar o link de pagamento. Tente novamente.',
         })

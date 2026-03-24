@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useTransition } from 'react'
-import { MoreVertical, Shield, UserCog, Trash2, Power, UserCheck, Loader2 } from 'lucide-react'
+import { MoreVertical, Shield, UserCog, Trash2, Power, Loader2 } from 'lucide-react'
 import { updateMembroRole, toggleMembroStatus, removerMembro } from '@/actions/equipe'
 import { Role } from '@prisma/client'
 import { sanitizeErrorMessage } from '@/lib/error-handler'

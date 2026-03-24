@@ -5,7 +5,6 @@ import {
   Users,
   Shield,
   Mail,
-  UserCheck,
   UserCog,
   User,
   ShieldAlert,
@@ -16,11 +15,30 @@ import { MemberActions } from '@/components/MemberActions'
 import { TableSkeleton } from '@/components/TableSkeleton'
 import { toast } from 'sonner'
 
+interface Membro {
+  id: string
+  nome: string
+  email: string
+  role: 'OWNER' | 'ADMIN' | 'MEMBER'
+  ativo: boolean
+}
+
+interface Convite {
+  id: string
+  nome: string
+  email: string
+  role: string
+}
+
+interface CurrentUser {
+  id: string
+}
+
 export default function EquipePage() {
   const [loading, setLoading] = useState(true)
-  const [membros, setMembros] = useState<any[]>([])
-  const [convites, setConvites] = useState<any[]>([])
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [membros, setMembros] = useState<Membro[]>([])
+  const [convites, setConvites] = useState<Convite[]>([])
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
   async function loadEquipe() {
     try {
@@ -294,8 +312,15 @@ export default function EquipePage() {
   )
 }
 
-function RoleCard({ title, desc, color, icon }: any) {
-  const colors: any = {
+interface RoleCardProps {
+  title: string
+  desc: string
+  color: 'indigo' | 'emerald' | 'gray'
+  icon: React.ReactNode
+}
+
+function RoleCard({ title, desc, color, icon }: RoleCardProps) {
+  const colors: Record<RoleCardProps['color'], string> = {
     indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
     emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
     gray: 'bg-white text-slate-600 border-slate-200'

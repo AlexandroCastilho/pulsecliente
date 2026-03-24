@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Check, Trash2, Info, AlertTriangle, Send } from 'lucide-react'
+import { Bell, Info, Send } from 'lucide-react'
 import { getNotificacoes, marcarComoLida, marcarTodasComoLidas } from '@/actions/notifications'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'

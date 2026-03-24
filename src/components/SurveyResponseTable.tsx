@@ -5,13 +5,8 @@ import { Prisma } from '@prisma/client'
 import { 
   User, 
   ChevronDown, 
-  ChevronUp, 
-  AlertCircle,
   MessageSquare,
-  CheckCircle2,
-  Clock,
   Star,
-  Hash,
   BarChart3,
   List
 } from 'lucide-react'
