@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   Upload, 
@@ -51,6 +51,19 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
   const [isPending, startTransition] = useTransition()
   const [erro, setErro] = useState<string | null>(null)
   const [countImportados, setCountImportados] = useState(0)
+
+  const wizardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (step === 'REVISAO' && wizardRef.current) {
+      setTimeout(() => {
+        if (wizardRef.current) {
+          const y = wizardRef.current.getBoundingClientRect().top + window.scrollY - 100
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+        }
+      }, 50)
+    }
+  }, [step])
 
   const isEmailValido = (email: string) => EMAIL_REGEX.test(email)
 
@@ -395,7 +408,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+    <div ref={wizardRef} className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-4">
         <button 
           onClick={() => step === 'UPLOAD' ? router.push(`/pesquisas/${pesquisaId}`) : setStep('UPLOAD')}

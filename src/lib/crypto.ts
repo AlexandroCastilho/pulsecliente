@@ -5,9 +5,10 @@ const IV_LENGTH = 12
 const AUTH_TAG_LENGTH = 16
 
 export function encrypt(text: string): string {
-  const key = Buffer.from(process.env.SMTP_ENCRYPTION_KEY || '', 'hex')
+  const rawKey = (process.env.SMTP_ENCRYPTION_KEY || '').trim().replace(/^["']|["']$/g, '');
+  const key = Buffer.from(rawKey, 'hex')
   if (key.length !== 32) {
-    throw new Error('SMTP_ENCRYPTION_KEY must be a 32-byte hex string')
+    throw new Error(`SMTP_ENCRYPTION_KEY must be a 32-byte hex string. Got length: ${key.length}. Verifique se nao copiou espacos a mais na Vercel.`)
   }
 
   const iv = crypto.randomBytes(IV_LENGTH)
@@ -22,9 +23,10 @@ export function encrypt(text: string): string {
 }
 
 export function decrypt(encryptedData: string): string {
-  const key = Buffer.from(process.env.SMTP_ENCRYPTION_KEY || '', 'hex')
+  const rawKey = (process.env.SMTP_ENCRYPTION_KEY || '').trim().replace(/^["']|["']$/g, '');
+  const key = Buffer.from(rawKey, 'hex')
   if (key.length !== 32) {
-    throw new Error('SMTP_ENCRYPTION_KEY must be a 32-byte hex string')
+    throw new Error(`SMTP_ENCRYPTION_KEY must be a 32-byte hex string. Got length: ${key.length}. Verifique se nao copiou espacos a mais na Vercel.`)
   }
 
   const [ivBase64, authTagBase64, encryptedBase64] = encryptedData.split(':')
