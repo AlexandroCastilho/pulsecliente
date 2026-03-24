@@ -60,16 +60,42 @@ export async function getAuthenticatedUser(requiredRoles?: Role[]): Promise<Auth
 }
 
 /**
+ * Higher-Order Function que encapsula a autenticação de Server Actions.
+ * Elimina a repetição de `getAuthenticatedUser` em cada action.
+ *
+ * @example
+ * export async function minhaAction(input: MeuInput) {
+ *   return authAction(input, ['ADMIN'], async (data, user) => {
+ *     // user é AuthenticatedUser já validado
+ *     return await fazAlgo(data, user.empresaId)
+ *   })
+ * }
+ *
+ * @param input Dados de entrada da action.
+ * @param requiredRoles Roles obrigatórias (undefined = qualquer usuário autenticado).
+ * @param handler Função executada com o usuário validado injetado.
+ */
+export async function authAction<TInput, TOutput>(
+  input: TInput,
+  requiredRoles: Role[] | undefined,
+  handler: (input: TInput, user: AuthenticatedUser) => Promise<TOutput>
+): Promise<TOutput> {
+  const user = await getAuthenticatedUser(requiredRoles)
+  return handler(input, user)
+}
+
+/**
  * Valida se um recurso específico pertence à empresa do usuário autenticado.
  * 
  * @param resourceId ID do recurso (ex: ID da Pesquisa, ID do Envio).
- * @param model Modelo do Prisma (ex: prisma.pesquisa, prisma.envio).
+ * @param model Modelo do Prisma com suporte a findFirst.
+ * @param user Usuário autenticado (retornado por getAuthenticatedUser).
  * @returns O recurso encontrado se pertencer à empresa.
  * @throws Error se o recurso não existir ou pertencer a outra empresa.
  */
 export async function ensureResourceOwnership<T>(
   resourceId: string,
-  model: any,
+  model: { findFirst: (args: { where: Record<string, unknown> }) => Promise<T | null> },
   user: AuthenticatedUser
 ): Promise<T> {
   const resource = await model.findFirst({
@@ -83,5 +109,5 @@ export async function ensureResourceOwnership<T>(
     throw new Error("Recurso não encontrado ou você não tem permissão para acessá-lo.")
   }
 
-  return resource as T
+  return resource
 }

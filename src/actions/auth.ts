@@ -199,7 +199,7 @@ export async function finalizarAceiteConvite(token: string, senha: string): Prom
     return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
-export async function registrarConta(formData: FormData): Promise<ServiceResponse> {
+export async function registrarConta(formData: FormData): Promise<ServiceResponse<{ requiresVerification: boolean }>> {
   const nome = formData.get('nome') as string
   const nomeEmpresa = formData.get('empresa') as string
   const email = formData.get('email') as string
@@ -323,7 +323,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
     })
 
     // 4. Redirecionar após sucesso de cadastro
-    const requiresVerification = authData.user && !authData.session;
+    const requiresVerification = !!(authData.user && !authData.session);
     return successResponse({ requiresVerification })
   } catch (error) {
     console.error('[REGISTRO ERROR]', error)

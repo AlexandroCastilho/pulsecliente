@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createRateLimiter } from '@/lib/rate-limit'
+import { RATE_LIMIT_GLOBAL, RATE_LIMIT_WINDOW } from '@/lib/constants'
 
-const ratelimit = createRateLimiter('@upstash/ratelimit', 5, '60 s')
+const ratelimit = createRateLimiter('@upstash/ratelimit', RATE_LIMIT_GLOBAL, RATE_LIMIT_WINDOW)
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({

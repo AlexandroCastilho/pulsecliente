@@ -7,7 +7,7 @@ export class PesquisaService {
   /**
    * Cria uma nova pesquisa com suas perguntas
    */
-  static async createPesquisa(dados: PesquisaInput, empresaId: string): Promise<ServiceResponse> {
+  static async createPesquisa(dados: PesquisaInput, empresaId: string): Promise<ServiceResponse<{ id: string }>> {
     try {
       const resultado = await prisma.$transaction(async (tx) => {
         // 1. Criar a pesquisa base com as datas diretamente (agora suportado pelo schema)
@@ -48,7 +48,7 @@ export class PesquisaService {
   /**
    * Exclui uma pesquisa validando o pertencimento à empresa
    */
-  static async deletePesquisa(id: string, empresaId: string): Promise<ServiceResponse> {
+  static async deletePesquisa(id: string, empresaId: string): Promise<ServiceResponse<boolean>> {
     try {
       const pesquisa = await prisma.pesquisa.findFirst({
         where: { id, empresaId },
@@ -71,7 +71,7 @@ export class PesquisaService {
   /**
    * Atualiza as datas de uma pesquisa
    */
-  static async updateDatas(id: string, empresaId: string, dataInicio?: Date | null, dataFim?: Date | null): Promise<ServiceResponse> {
+  static async updateDatas(id: string, empresaId: string, dataInicio?: Date | null, dataFim?: Date | null): Promise<ServiceResponse<boolean>> {
     try {
       const pesquisa = await prisma.pesquisa.findFirst({
         where: { id, empresaId },

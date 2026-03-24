@@ -1,0 +1,3 @@
+﻿src/app/(painel)/editor/page.tsx(71,41): error TS2339: Property 'id' does not exist on type '{}'.
+src/components/auth/CadastroForm.tsx(21,31): error TS2339: Property 'requiresVerification' does not exist on type '{}'.
+src/components/EnviosWizard.tsx(302,40): error TS2339: Property 'count' does not exist on type '{}'.

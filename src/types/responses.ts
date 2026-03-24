@@ -3,10 +3,10 @@ import { sanitizeErrorMessage } from '@/lib/error-handler'
 export type ServiceError = {
   message: string;
   code: 'UNAUTHORIZED' | 'NOT_FOUND' | 'VALIDATION_ERROR' | 'INTERNAL_ERROR' | 'FORBIDDEN' | 'CONFLICT';
-  details?: any;
+  details?: unknown;
 };
 
-export type ServiceResponse<T = any> = 
+export type ServiceResponse<T = unknown> = 
   | { success: true; data: T }
   | { success: false; error: ServiceError };
 
@@ -20,7 +20,7 @@ export function successResponse<T>(data: T): ServiceResponse<T> {
 /**
  * Utilitário para criar respostas de erro
  */
-export function errorResponse(message: string, code: ServiceError['code'] = 'INTERNAL_ERROR', details?: any): ServiceResponse {
+export function errorResponse<T = unknown>(message: string, code: ServiceError['code'] = 'INTERNAL_ERROR', details?: unknown): ServiceResponse<T> {
   return {
     success: false,
     error: { message: sanitizeErrorMessage(message), code, details }

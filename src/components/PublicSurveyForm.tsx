@@ -44,7 +44,7 @@ interface Props {
 
 export default function PublicSurveyForm({ envio, pesquisa }: Props) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [respostas, setRespostas] = useState<Record<string, any>>({})
+  const [respostas, setRespostas] = useState<Record<string, string | number | string[]>>({})
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [concluido, setConcluido] = useState(false)
@@ -53,7 +53,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
   const totalPerguntas = pesquisa.perguntas.length
   const progresso = ((currentStep + 1) / totalPerguntas) * 100
 
-  const handleUpdateResposta = (valor: any) => {
+  const handleUpdateResposta = (valor: string | number | string[]) => {
     setRespostas(prev => ({ ...prev, [perguntaAtual.id]: valor }))
   }
 
@@ -90,7 +90,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
       } else {
         setErro(res.error?.message || 'Erro ao salvar resposta.')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErro('Erro de conexão. Tente novamente.')
     } finally {
       setEnviando(false)
@@ -178,10 +178,10 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
                   key={s}
                   onClick={() => handleUpdateResposta(s)}
                   className={`p-2 sm:p-3 rounded-2xl transition-all transform hover:scale-110 shrink-0 ${
-                    respostas[perguntaAtual.id] >= s ? 'text-amber-400 stroke-amber-500 fill-amber-400' : 'text-gray-200'
+                    (respostas[perguntaAtual.id] as number) >= s ? 'text-amber-400 stroke-amber-500 fill-amber-400' : 'text-gray-200'
                   }`}
                 >
-                  <Star className={`w-8 h-8 sm:w-12 sm:h-12 ${respostas[perguntaAtual.id] >= s ? 'fill-current' : ''}`} />
+                  <Star className={`w-8 h-8 sm:w-12 sm:h-12 ${(respostas[perguntaAtual.id] as number) >= s ? 'fill-current' : ''}`} />
                 </button>
               ))}
             </div>
@@ -192,7 +192,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
             <textarea
               className="w-full h-40 p-4 bg-gray-50 border-2 border-transparent border-gray-100 rounded-2xl focus:border-indigo-600 focus:bg-white outline-none transition-all placeholder:text-gray-400 text-gray-900 font-medium text-base resize-none"
               placeholder="Sua resposta aqui..."
-              value={respostas[perguntaAtual.id] || ''}
+              value={(respostas[perguntaAtual.id] as string) || ''}
               onChange={(e) => handleUpdateResposta(e.target.value)}
             />
           )}
@@ -201,7 +201,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           {perguntaAtual.tipo === 'MULTIPLA_ESCOLHA' && (
             <div className="grid grid-cols-1 gap-3">
               {(perguntaAtual.opcoes as string[] || []).map((opcao, idx) => {
-                const isSelected = (respostas[perguntaAtual.id] || []).includes(opcao)
+                const isSelected = ((respostas[perguntaAtual.id] as string[]) || []).includes(opcao)
                 return (
                   <button
                     key={idx}

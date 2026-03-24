@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getTransporter, getMailConfig } from "@/lib/mail"
 
+// Tempo máximo que um envio pode ficar preso em PROCESSANDO antes de ser reconciliado.
+const RECONCILIATION_TIMEOUT_MS = 15 * 60 * 1000 // 15 minutos
+
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization');
@@ -58,7 +61,33 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: 'Acesso Restrito: Esta pesquisa não pertence à sua empresa.' }, { status: 403 })
     }
 
-    // 2. Buscar Configuração SMTP
+    // ─── RECONCILIAÇÃO DE ENVIOS PRESOS ────────────────────────────────────────
+    // Envios com status PROCESSANDO por mais de 15 minutos são considerados
+    // perdidos (timeout, falha silenciosa do worker, deploy, etc.).
+    // Eles são resetados para PENDENTE para serem reprocessados nesta execução.
+    const reconciliationCutoff = new Date(Date.now() - RECONCILIATION_TIMEOUT_MS)
+
+    const reconciledResult = await prisma.envio.updateMany({
+      where: {
+        pesquisaId,
+        status: 'PROCESSANDO',
+        createdAt: { lt: reconciliationCutoff },
+      },
+      data: {
+        status: 'PENDENTE',
+        erroLog: 'Reconciliado automaticamente após timeout de processamento.',
+      },
+    })
+
+    if (reconciledResult.count > 0) {
+      console.warn(
+        `[RECONCILIAÇÃO] ${reconciledResult.count} envio(s) presos em PROCESSANDO foram resetados para PENDENTE.`,
+        { pesquisaId, cutoff: reconciliationCutoff.toISOString() }
+      )
+    }
+    // ───────────────────────────────────────────────────────────────────────────
+
+    // 3. Buscar Configuração SMTP
     const smtpConfig = await getMailConfig(pesquisa.empresaId)
     if (!smtpConfig || !smtpConfig.host) {
       await prisma.envio.updateMany({
@@ -68,21 +97,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'SMTP não configurado' }, { status: 400 })
     }
 
-    // 3. Buscar envios que foram marcados como PROCESSANDO
+    // 4. Buscar envios que foram marcados como PROCESSANDO
+    //    (inclui os que foram agora reconciliados de PENDENTE e os novos do disparo ativo)
     const enviosParaProcessar = await prisma.envio.findMany({
       where: { pesquisaId, status: 'PROCESSANDO' }
     })
 
     if (enviosParaProcessar.length === 0) {
-      return NextResponse.json({ message: 'Nenhum envio em processamento' })
+      return NextResponse.json({ message: 'Nenhum envio em processamento', reconciled: reconciledResult.count })
     }
 
-    // 4. Configurar Transporter via Factory
+    // 5. Configurar Transporter via Factory
     const transporter = await getTransporter(pesquisa.empresaId)
 
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+    const host = req.headers.get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const appUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 
-    // 5. Processamento com Chunking e Paralelismo Controlado
+    // 6. Processamento com Chunking e Paralelismo Controlado
     const CHUNK_SIZE = 50
     const chunks = []
     for (let i = 0; i < enviosParaProcessar.length; i += CHUNK_SIZE) {
@@ -131,13 +163,14 @@ export async function POST(req: NextRequest) {
             where: { id: envio.id },
             data: { status: 'ENVIADO', enviadoEm: new Date(), erroLog: null }
           })
-        } catch (err: any) {
-          console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, err.message)
+        } catch (err: unknown) {
+          const errMessage = err instanceof Error ? (err as NodeJS.ErrnoException & { response?: string }).response || err.message : 'Erro no envio'
+          console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, errMessage)
           await prisma.envio.update({
             where: { id: envio.id },
             data: { 
               status: 'ERRO', 
-              erroLog: (err.response || err.message || 'Erro no envio').toString() 
+              erroLog: errMessage.toString()
             }
           })
         }
@@ -149,10 +182,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, processed: enviosParaProcessar.length })
+    return NextResponse.json({ 
+      success: true, 
+      processed: enviosParaProcessar.length,
+      reconciled: reconciledResult.count
+    })
 
-  } catch (error: any) {
-    console.error('[ERRO WORKER DISPARO]', error)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erro interno do servidor'
+    console.error('[ERRO WORKER DISPARO]', message)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

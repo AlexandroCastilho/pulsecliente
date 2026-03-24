@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { processarDisparo } from './disparos'
 import { revalidatePath } from 'next/cache'
@@ -22,7 +23,7 @@ const ImportSchema = z.object({
 export async function importarContatos(
   pesquisaId: string, 
   contatos: { nome: string; email: string }[]
-) {
+): Promise<ServiceResponse<{ count: number }>> {
   try {
     // 0. Validação Zod
     const validated = ImportSchema.safeParse({ pesquisaId, contatos })
@@ -128,16 +129,15 @@ export async function getHistoricoEnvios(pesquisaId: string, search?: string, pa
     const take = 50
     const skip = (page - 1) * take
 
-    const where = {
+    const where: Prisma.EnvioWhereInput = {
       pesquisaId,
-      pesquisa: { empresaId: dbUser.empresaId }
-    } as any // Usamos any aqui para facilitar construção dinâmica do where, mas o retorno é tipado
-
-    if (search) {
-      where.OR = [
-        { emailDestinatario: { contains: search, mode: 'insensitive' } },
-        { nomeDestinatario: { contains: search, mode: 'insensitive' } }
-      ]
+      pesquisa: { empresaId: dbUser.empresaId },
+      ...(search ? {
+        OR: [
+          { emailDestinatario: { contains: search, mode: 'insensitive' } },
+          { nomeDestinatario: { contains: search, mode: 'insensitive' } },
+        ]
+      } : {})
     }
 
     const [data, total] = await Promise.all([

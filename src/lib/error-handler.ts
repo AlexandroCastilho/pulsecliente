@@ -1,10 +1,39 @@
-export function sanitizeErrorMessage(error: any): string {
-  console.error("[FULL ERROR LOG]", error)
+type ErrorContext = {
+  userId?: string
+  empresaId?: string
+  actionName?: string
+}
 
-  const message = typeof error === 'string' 
-    ? error 
-    : error?.message || "Ocorreu um erro inesperado."
-  
+/**
+ * Loga erros de forma estruturada (JSON) para rastreamento rápido em produção.
+ * Use esta função em blocos catch das Server Actions e rotas de API.
+ *
+ * @example
+ * } catch (error) {
+ *   logStructuredError(error, { userId: user.id, empresaId: user.empresaId, actionName: 'salvarPesquisa' })
+ * }
+ */
+export function logStructuredError(error: unknown, context?: ErrorContext): void {
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  const errorCode = (error as Record<string, unknown>)?.code ?? undefined
+
+  console.error(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    actionName: context?.actionName ?? 'unknown',
+    userId: context?.userId ?? null,
+    empresaId: context?.empresaId ?? null,
+    error: errorMessage,
+    code: errorCode ?? null,
+  }))
+}
+
+export function sanitizeErrorMessage(error: unknown): string {
+  logStructuredError(error)
+
+  const message = typeof error === 'string'
+    ? error
+    : (error as Record<string, unknown>)?.message as string || "Ocorreu um erro inesperado."
+
   const lowerMessage = message.toLowerCase()
 
   const knownTranslations: Array<[string, string]> = [
@@ -34,15 +63,16 @@ export function sanitizeErrorMessage(error: any): string {
   ]
 
   // Erros conhecidos do Prisma / Banco
-  if (error?.code === 'P2002') {
-    const target = error?.meta?.target || []
-    if (target.includes('email')) {
+  const prismaError = error as Record<string, unknown>
+  if (prismaError?.code === 'P2002') {
+    const target = prismaError?.meta as Record<string, unknown>
+    if ((target?.target as string[])?.includes('email')) {
       return "Este e-mail já está cadastrado. Tente fazer login."
     }
     return "Já existe um registro com estes dados."
   }
 
-  if (error?.code?.startsWith('P')) {
+  if (typeof prismaError?.code === 'string' && prismaError.code.startsWith('P')) {
     return "Ocorreu um erro de banco de dados. Por favor, tente novamente mais tarde."
   }
 
