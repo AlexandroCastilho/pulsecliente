@@ -15,12 +15,24 @@ export function NotificationDropdown() {
   const unreadCount = notificacoes.filter(n => !n.lida).length
 
   useEffect(() => {
-    async function fetchNotificacoes() {
+    let isMounted = true
+
+    async function fetchNotificacoes(showLoading = false) {
+      if (showLoading) setLoading(true)
       const data = await getNotificacoes()
-      setNotificacoes(data)
-      setLoading(false)
+      if (isMounted) {
+        setNotificacoes(data)
+        setLoading(false)
+      }
     }
-    fetchNotificacoes()
+    
+    // Busca inicial
+    fetchNotificacoes(true)
+
+    // Polling a cada 30 segundos
+    const intervalId = setInterval(() => {
+      fetchNotificacoes(false)
+    }, 30000)
 
     // Fechar dropdown ao clicar fora
     function handleClickOutside(event: MouseEvent) {
@@ -29,7 +41,12 @@ export function NotificationDropdown() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
   }, [])
 
   const handleMarkAsRead = async (id: string) => {

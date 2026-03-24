@@ -8,8 +8,16 @@ import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 
-export default async function PesquisaEnviosPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PesquisaEnviosPage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ id: string }>,
+  searchParams: Promise<{ q?: string; page?: string }>
+}) {
   const { id: pesquisaId } = await params
+  const { q: search, page: pageStr } = await searchParams
+  const page = Number(pageStr) || 1
   
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -32,9 +40,9 @@ export default async function PesquisaEnviosPage({ params }: { params: Promise<{
 
   if (!pesquisa) notFound()
 
-  // Busca dados para o Dashboard usando o pesquisaId
-  const [historico, stats] = await Promise.all([
-    getHistoricoEnvios(pesquisaId),
+  // Busca dados para o Dashboard usando o pesquisaId, termo de busca e página
+  const [historicoData, stats] = await Promise.all([
+    getHistoricoEnvios(pesquisaId, search, page),
     getStatsEnvios(pesquisaId)
   ])
 
@@ -75,7 +83,7 @@ export default async function PesquisaEnviosPage({ params }: { params: Promise<{
 
         <section>
           <Suspense fallback={<div className="flex items-center justify-center p-20"><Loader2 className="animate-spin text-indigo-500" size={40} /></div>}>
-            <EnviosDashboard historico={historico} stats={stats} />
+            <EnviosDashboard historico={historicoData.data} stats={stats} totalPages={historicoData.totalPages} />
           </Suspense>
         </section>
       </div>

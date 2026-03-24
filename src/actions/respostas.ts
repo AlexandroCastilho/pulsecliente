@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
-export async function salvarResposta(envioId: string, dados: any) {
+export async function salvarResposta(envioId: string, dados: Record<string, string | string[] | number>) {
   try {
     // 1. Verificar se o envio existe e ainda está pendente
     const envio = await prisma.envio.findUnique({

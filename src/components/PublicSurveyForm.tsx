@@ -16,6 +16,7 @@ interface Pergunta {
   titulo: string
   tipo: 'TEXTO_LIVRE' | 'MULTIPLA_ESCOLHA' | 'ESCALA_NPS' | 'ESTRELAS'
   opcoes?: any // Para MULTIPLA_ESCOLHA
+  obrigatoria: boolean
 }
 
 interface Props {
@@ -41,6 +42,14 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
 
   const handleUpdateResposta = (valor: any) => {
     setRespostas(prev => ({ ...prev, [perguntaAtual.id]: valor }))
+  }
+
+  const handleToggleOption = (opcao: string) => {
+    const current = (respostas[perguntaAtual.id] || []) as string[]
+    const newValues = current.includes(opcao)
+      ? current.filter(o => o !== opcao)
+      : [...current, opcao]
+    setRespostas(prev => ({ ...prev, [perguntaAtual.id]: newValues }))
   }
 
   const handleNext = () => {
@@ -73,6 +82,21 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
     } finally {
       setEnviando(false)
     }
+  }
+
+  const isRespostaValida = () => {
+    const valor = respostas[perguntaAtual.id]
+    if (!perguntaAtual.obrigatoria) return true
+    
+    if (perguntaAtual.tipo === 'MULTIPLA_ESCOLHA') {
+      return Array.isArray(valor) && valor.length > 0
+    }
+    
+    if (perguntaAtual.tipo === 'TEXTO_LIVRE') {
+      return typeof valor === 'string' && valor.trim().length > 0
+    }
+    
+    return valor !== undefined && valor !== null
   }
 
   if (concluido) {
@@ -160,27 +184,34 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
             />
           )}
 
-          {/* Múltipla Escolha */}
+          {/* Múltipla Escolha (Checkboxes) */}
           {perguntaAtual.tipo === 'MULTIPLA_ESCOLHA' && (
             <div className="grid grid-cols-1 gap-3">
-              {(perguntaAtual.opcoes as string[] || []).map((opcao, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleUpdateResposta(opcao)}
-                  className={`p-5 rounded-2xl font-bold text-left transition-all border-2 flex items-center gap-3 min-h-[56px] ${
-                    respostas[perguntaAtual.id] === opcao
-                    ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm'
-                    : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                    respostas[perguntaAtual.id] === opcao ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'
-                  }`}>
-                    {respostas[perguntaAtual.id] === opcao && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
-                  </div>
-                  <span className="text-base">{opcao}</span>
-                </button>
-              ))}
+              {(perguntaAtual.opcoes as string[] || []).map((opcao, idx) => {
+                const isSelected = (respostas[perguntaAtual.id] || []).includes(opcao)
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleToggleOption(opcao)}
+                    className={`p-5 rounded-2xl font-bold text-left transition-all border-2 flex items-center gap-3 min-h-[56px] ${
+                      isSelected
+                      ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm'
+                      : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 ${
+                      isSelected ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'
+                    }`}>
+                      {isSelected && (
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-base">{opcao}</span>
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
@@ -205,7 +236,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
 
         <button
           onClick={handleNext}
-          disabled={respostas[perguntaAtual.id] === undefined || enviando}
+          disabled={!isRespostaValida() || enviando}
           className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl disabled:opacity-50 disabled:shadow-none min-h-[48px] ${
             currentStep === totalPerguntas - 1 
             ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20' 

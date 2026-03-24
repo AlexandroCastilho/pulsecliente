@@ -1,0 +1,51 @@
+
+> temp-pulse@0.1.0 build
+> next build
+
+▲ Next.js 16.1.7 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.5s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/23) ...
+  Generating static pages using 7 workers (5/23) 
+  Generating static pages using 7 workers (11/23) 
+  Generating static pages using 7 workers (17/23) 
+✓ Generating static pages using 7 workers (23/23) in 1132.9ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /aceitar-convite
+├ ƒ /api/disparos/processar
+├ ƒ /api/equipe
+├ ƒ /api/stripe/checkout
+├ ƒ /api/stripe/portal
+├ ƒ /api/stripe/webhook
+├ ƒ /auth/callback
+├ ○ /cadastro
+├ ƒ /configuracoes
+├ ○ /confirmar-email
+├ ƒ /dashboard
+├ ƒ /editor
+├ ƒ /equipe
+├ ○ /esqueci-senha
+├ ○ /icon.svg
+├ ○ /login
+├ ƒ /pesquisas
+├ ƒ /pesquisas/[id]
+├ ƒ /pesquisas/[id]/envios
+├ ○ /privacidade
+├ ○ /redefinir-senha
+├ ƒ /responder/[token]
+└ ○ /termos
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

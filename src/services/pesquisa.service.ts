@@ -10,11 +10,16 @@ export class PesquisaService {
   static async createPesquisa(dados: PesquisaInput, empresaId: string): Promise<ServiceResponse> {
     try {
       const resultado = await prisma.$transaction(async (tx) => {
-        // 1. Criar a pesquisa base
-        const novaPesquisa = await (tx as any).pesquisa.create({
+        // 1. Criar a pesquisa base com as datas diretamente (agora suportado pelo schema)
+        const di = dados.dataInicio ? new Date(dados.dataInicio) : null
+        const df = dados.dataFim ? new Date(dados.dataFim) : null
+
+        const novaPesquisa = await tx.pesquisa.create({
           data: {
             titulo: dados.titulo,
             descricao: dados.descricao,
+            dataInicio: di,
+            dataFim: df,
             empresaId: empresaId,
             perguntas: {
               create: dados.perguntas.map((p, index) => ({
@@ -29,23 +34,14 @@ export class PesquisaService {
           select: { id: true }
         })
 
-        // 2. Injetar datas via SQL bruto (devido a incompatibilidade do client local)
-        if (dados.dataInicio || dados.dataFim) {
-          const di = dados.dataInicio ? new Date(dados.dataInicio) : null
-          const df = dados.dataFim ? new Date(dados.dataFim) : null
-          
-          await (tx as any).$executeRaw`
-            UPDATE pesquisas SET "dataInicio" = ${di}, "dataFim" = ${df} WHERE id = ${novaPesquisa.id}
-          `
-        }
-
         return novaPesquisa
       })
 
       return successResponse({ id: resultado.id })
-    } catch (error: any) {
+    } catch (error) {
       console.error('[PesquisaService.createPesquisa]', error)
-      return errorResponse('Falha ao criar pesquisa no banco de dados', 'INTERNAL_ERROR', error.message)
+      const message = error instanceof Error ? error.message : 'Erro desconhecido'
+      return errorResponse('Falha ao criar pesquisa no banco de dados', 'INTERNAL_ERROR', message)
     }
   }
 
@@ -54,7 +50,7 @@ export class PesquisaService {
    */
   static async deletePesquisa(id: string, empresaId: string): Promise<ServiceResponse> {
     try {
-      const pesquisa = await (prisma.pesquisa as any).findFirst({
+      const pesquisa = await prisma.pesquisa.findFirst({
         where: { id, empresaId },
         select: { id: true }
       })
@@ -63,11 +59,12 @@ export class PesquisaService {
         return errorResponse('Pesquisa não encontrada ou acesso negado', 'NOT_FOUND')
       }
 
-      await (prisma.pesquisa as any).delete({ where: { id } })
+      await prisma.pesquisa.delete({ where: { id } })
       return successResponse(true)
-    } catch (error: any) {
+    } catch (error) {
       console.error('[PesquisaService.deletePesquisa]', error)
-      return errorResponse('Erro ao excluir pesquisa', 'INTERNAL_ERROR', error.message)
+      const message = error instanceof Error ? error.message : 'Erro desconhecido'
+      return errorResponse('Erro ao excluir pesquisa', 'INTERNAL_ERROR', message)
     }
   }
 
@@ -76,21 +73,23 @@ export class PesquisaService {
    */
   static async updateDatas(id: string, empresaId: string, dataInicio?: Date | null, dataFim?: Date | null): Promise<ServiceResponse> {
     try {
-      const pesquisa = await (prisma.pesquisa as any).findFirst({
+      const pesquisa = await prisma.pesquisa.findFirst({
         where: { id, empresaId },
         select: { id: true }
       })
 
       if (!pesquisa) return errorResponse('Pesquisa não encontrada', 'NOT_FOUND')
 
-      await prisma.$executeRaw`
-        UPDATE pesquisas SET "dataInicio" = ${dataInicio}, "dataFim" = ${dataFim} WHERE id = ${id}
-      `
+      await prisma.pesquisa.update({
+        where: { id },
+        data: { dataInicio, dataFim }
+      })
 
       return successResponse(true)
-    } catch (error: any) {
+    } catch (error) {
       console.error('[PesquisaService.updateDatas]', error)
-      return errorResponse('Erro ao atualizar datas', 'INTERNAL_ERROR', error.message)
+      const message = error instanceof Error ? error.message : 'Erro desconhecido'
+      return errorResponse('Erro ao atualizar datas', 'INTERNAL_ERROR', message)
     }
   }
 
@@ -117,16 +116,20 @@ export class PesquisaService {
 
       const notas: number[] = []
       respostas.forEach(r => {
-        const dados = r.dados as Record<string, any>
+        const dados = r.dados as Record<string, unknown>
         r.envio.pesquisa.perguntas.forEach(p => {
-          if (typeof dados[p.id] === 'number') notas.push(dados[p.id])
+          const valor = dados[p.id]
+          if (typeof valor === 'number') {
+            notas.push(valor)
+          }
         })
       })
 
       return successResponse(calculateNPS(notas))
-    } catch (error: any) {
+    } catch (error) {
       console.error('[PesquisaService.getGlobalNPS]', error)
-      return errorResponse('Erro ao calcular NPS', 'INTERNAL_ERROR', error.message)
+      const message = error instanceof Error ? error.message : 'Erro desconhecido'
+      return errorResponse('Erro ao calcular NPS', 'INTERNAL_ERROR', message)
     }
   }
 }

@@ -4,20 +4,27 @@ import { Calendar, BarChart3, Send, ChevronRight, Clock } from 'lucide-react'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 
 export async function SurveyGrid({ empresaId }: { empresaId: string }) {
-  const pesquisas: any[] = await prisma.$queryRaw`
-    SELECT p.*, 
-      (SELECT COUNT(*)::int FROM envios e WHERE e."pesquisaId" = p.id AND e.status = 'RESPONDIDO') as "envios_count"
-    FROM pesquisas p
-    WHERE p."empresaId" = ${empresaId}
-    ORDER BY p."createdAt" DESC
-  `
+  const pesquisas = await prisma.pesquisa.findMany({
+    where: { empresaId },
+    include: {
+      _count: {
+        select: {
+          envios: {
+            where: { status: 'RESPONDIDO' }
+          }
+        }
+      }
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  })
 
   if (pesquisas.length === 0) return null
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {pesquisas.map((pBase: any) => {
-        const p = pBase as any
+      {pesquisas.map((p) => {
         const now = new Date()
         const isExpirada = p.dataFim && new Date(p.dataFim) < now
         const statusLabel = isExpirada ? 'Finalizada' : (p.ativa ? 'Ativa' : 'Inativa')

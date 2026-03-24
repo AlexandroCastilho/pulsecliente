@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { token } = await params
 
   try {
-    const envio = await (prisma.envio as any).findUnique({
+    const envio = await prisma.envio.findUnique({
       where: { token },
       select: {
         pesquisa: {
@@ -57,8 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PublicSurveyPage({ params }: PageProps) {
   const { token } = await params
 
-  // 1. Buscar o envio pelo token via select para evitar erro de colunas invisíveis
-  const envioBase = await (prisma.envio as any).findUnique({
+  // 1. Buscar o envio pelo token
+  const envio = await prisma.envio.findUnique({
     where: { token },
     select: {
       id: true,
@@ -73,6 +73,8 @@ export default async function PublicSurveyPage({ params }: PageProps) {
           titulo: true,
           descricao: true,
           ativa: true,
+          dataInicio: true,
+          dataFim: true,
           createdAt: true,
           empresa: { select: { nome: true } },
           perguntas: { orderBy: { ordem: 'asc' } }
@@ -81,27 +83,9 @@ export default async function PublicSurveyPage({ params }: PageProps) {
     }
   })
 
-  if (!envioBase) notFound()
-
-  // Buscar as datas da pesquisa separadamente
-  const dates: any[] = await prisma.$queryRaw`
-    SELECT "dataInicio", "dataFim" FROM pesquisas WHERE id = ${envioBase.pesquisaId}
-  `
-  
-  const envio = {
-    ...envioBase,
-    pesquisa: {
-      ...envioBase.pesquisa,
-      dataInicio: dates[0]?.dataInicio || null,
-      dataFim: dates[0]?.dataFim || null
-    }
-  }
+  if (!envio) notFound()
 
   // 2. Validações básicas
-  if (!envio) {
-    notFound()
-  }
-
   if (envio.status === 'RESPONDIDO') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -122,8 +106,8 @@ export default async function PublicSurveyPage({ params }: PageProps) {
   }
 
   const now = new Date()
-  const dataInicio = (envio.pesquisa as any).dataInicio ? new Date((envio.pesquisa as any).dataInicio) : null
-  const dataFim = (envio.pesquisa as any).dataFim ? new Date((envio.pesquisa as any).dataFim) : null
+  const dataInicio = envio.pesquisa.dataInicio ? new Date(envio.pesquisa.dataInicio) : null
+  const dataFim = envio.pesquisa.dataFim ? new Date(envio.pesquisa.dataFim) : null
 
   if (dataInicio && now < dataInicio) {
     return (
@@ -167,7 +151,7 @@ export default async function PublicSurveyPage({ params }: PageProps) {
         </div>
 
         {/* Formulário Interativo (Client Component) */}
-        <PublicSurveyForm envio={envio} pesquisa={envio.pesquisa} />
+        <PublicSurveyForm envio={envio as any} pesquisa={envio.pesquisa as any} />
 
         {/* Footer */}
         <div className="mt-12 text-center text-gray-400 text-xs font-medium flex items-center justify-center gap-2">

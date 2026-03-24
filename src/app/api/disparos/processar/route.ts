@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import nodemailer from 'nodemailer'
 import { createClient } from '@/lib/supabase/server'
+import { getTransporter, getMailConfig } from "@/lib/mail"
 
 export async function POST(req: NextRequest) {
   try {
@@ -58,16 +58,12 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: 'Acesso Restrito: Esta pesquisa não pertence à sua empresa.' }, { status: 403 })
     }
 
-    // 2. Buscar Configuração SMTP da Empresa
-    const smtpConfig = await prisma.smtpConfig.findUnique({
-      where: { empresaId: pesquisa.empresaId }
-    })
-
-    if (!smtpConfig) {
-      // Marcar os PROCESSANDO como ERRO se não houver SMTP
+    // 2. Buscar Configuração SMTP
+    const smtpConfig = await getMailConfig(pesquisa.empresaId)
+    if (!smtpConfig || !smtpConfig.host) {
       await prisma.envio.updateMany({
         where: { pesquisaId, status: 'PROCESSANDO' },
-        data: { status: 'ERRO', erroLog: 'Configuração SMTP não encontrada para esta empresa.' }
+        data: { status: 'ERRO', erroLog: 'Configuração SMTP não configurada.' }
       })
       return NextResponse.json({ error: 'SMTP não configurado' }, { status: 400 })
     }
@@ -81,80 +77,75 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Nenhum envio em processamento' })
     }
 
-    // 4. Configurar Transporter
-    const transporter = nodemailer.createTransport({
-      host: smtpConfig.host,
-      port: smtpConfig.port,
-      secure: smtpConfig.port === 465,
-      auth: {
-        user: smtpConfig.user,
-        pass: smtpConfig.pass,
-      },
-      tls: {
-        rejectUnauthorized: false // Útil para servidores com certificados auto-assinados ou legacy
-      }
-    })
+    // 4. Configurar Transporter via Factory
+    const transporter = await getTransporter(pesquisa.empresaId)
 
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 
-    // 5. Processamento Assíncrono Real (Loop)
-    for (const envio of enviosParaProcessar) {
-      try {
-        const linkPesquisa = `${appUrl}/responder/${envio.token}`
-        console.log(`[SMTP] Tentando enviar para: ${envio.emailDestinatario}`)
-        
-        const info = await transporter.sendMail({
-          from: smtpConfig.fromEmail,
-          to: envio.emailDestinatario,
-          subject: `Pesquisa: ${pesquisa.titulo}`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
-              <h2 style="color: #4f46e5;">Olá, ${envio.nomeDestinatario || 'Cliente'}!</h2>
-              <p style="color: #4b5563; line-height: 1.6;">
-                Gostaríamos de ouvir a sua opinião sobre: <br/>
-                <span style="font-size: 18px; font-weight: bold; color: #111827;">${pesquisa.titulo}</span>
-              </p>
-              <div style="margin: 30px 0; text-align: center;">
-                <a href="${linkPesquisa}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                  Responder Pesquisa
-                </a>
+    // 5. Processamento com Chunking e Paralelismo Controlado
+    const CHUNK_SIZE = 50
+    const chunks = []
+    for (let i = 0; i < enviosParaProcessar.length; i += CHUNK_SIZE) {
+      chunks.push(enviosParaProcessar.slice(i, i + CHUNK_SIZE))
+    }
+
+    for (const [index, chunk] of chunks.entries()) {
+      console.log(`[SMTP] Processando bloco ${index + 1}/${chunks.length} (${chunk.length} envios)`)
+      
+      await Promise.allSettled(chunk.map(async (envio) => {
+        try {
+          const linkPesquisa = `${appUrl}/responder/${envio.token}`
+          
+          await transporter.sendMail({
+            from: `"${smtpConfig.fromName}" <${smtpConfig.fromEmail}>`,
+            to: envio.emailDestinatario,
+            subject: `Pesquisa: ${pesquisa.titulo}`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+                <h2 style="color: #4f46e5;">Olá, ${envio.nomeDestinatario || 'Cliente'}!</h2>
+                <p style="color: #4b5563; line-height: 1.6;">
+                  Gostaríamos de ouvir a sua opinião sobre: <br/>
+                  <span style="font-size: 18px; font-weight: bold; color: #111827;">${pesquisa.titulo}</span>
+                </p>
+                <div style="margin: 30px 0; text-align: center;">
+                  <a href="${linkPesquisa}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                    Responder Pesquisa
+                  </a>
+                </div>
+                <p style="font-size: 12px; color: #9ca3af; margin-top: 40px; text-align: center;">
+                  Se o botão acima não funcionar, copie e cole o link abaixo no seu navegador:<br/>
+                  <a href="${linkPesquisa}" style="color: #9ca3af;">${linkPesquisa}</a>
+                </p>
+                <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
+                <p style="font-size: 11px; color: #d1d5db; text-align: center;">
+                  Não deseja mais receber as nossas pesquisas?
+                  <a href="${appUrl}/unsubscribe?email=${encodeURIComponent(envio.emailDestinatario)}" style="color: #d1d5db; text-decoration: underline;">
+                    Clique aqui para cancelar a subscrição
+                  </a>.
+                </p>
               </div>
-              <p style="font-size: 12px; color: #9ca3af; margin-top: 40px; text-align: center;">
-                Se o botão acima não funcionar, copie e cole o link abaixo no seu navegador:<br/>
-                <a href="${linkPesquisa}" style="color: #9ca3af;">${linkPesquisa}</a>
-              </p>
-              <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
-              <p style="font-size: 11px; color: #d1d5db; text-align: center;">
-                Não deseja mais receber as nossas pesquisas?
-                <a href="${appUrl}/unsubscribe?email=${encodeURIComponent(envio.emailDestinatario)}" style="color: #d1d5db; text-decoration: underline;">
-                  Clique aqui para cancelar a subscrição
-                </a>.
-              </p>
-            </div>
-          `
-        })
+            `
+          })
 
-        console.log(`[SMTP] Sucesso para ${envio.emailDestinatario}: ${info.messageId}`)
+          await prisma.envio.update({
+            where: { id: envio.id },
+            data: { status: 'ENVIADO', enviadoEm: new Date(), erroLog: null }
+          })
+        } catch (err: any) {
+          console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, err.message)
+          await prisma.envio.update({
+            where: { id: envio.id },
+            data: { 
+              status: 'ERRO', 
+              erroLog: (err.response || err.message || 'Erro no envio').toString() 
+            }
+          })
+        }
+      }))
 
-        // Sucesso
-        await (prisma.envio as any).update({
-          where: { id: envio.id },
-          data: { status: 'ENVIADO', enviadoEm: new Date(), erroLog: null }
-        })
-
-      } catch (err: any) {
-        // Erro Detalhado do SMTP
-        console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, JSON.stringify(err, null, 2))
-        
-        const errorMessage = err.response || err.message || 'Erro desconhecido no servidor de e-mail'
-        
-        await (prisma.envio as any).update({
-          where: { id: envio.id },
-          data: { 
-            status: 'ERRO', 
-            erroLog: errorMessage.toString() 
-          }
-        })
+      // Pequeno delay entre blocos para evitar ser bloqueado pelo provedor SMTP
+      if (index < chunks.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
 

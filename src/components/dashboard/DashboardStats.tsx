@@ -4,11 +4,17 @@ import { MetricCard } from './MetricCard'
 import { formatPercent } from '@/lib/utils'
 
 export async function DashboardStats({ empresaId }: { empresaId: string }) {
-  const statusStats = await prisma.envio.groupBy({
-    by: ['status'],
-    where: { pesquisa: { empresaId } },
-    _count: { _all: true }
-  })
+  const [statusStats, alcanceGroup] = await Promise.all([
+    prisma.envio.groupBy({
+      by: ['status'],
+      where: { pesquisa: { empresaId } },
+      _count: { _all: true }
+    }),
+    prisma.envio.groupBy({
+      by: ['emailDestinatario'],
+      where: { pesquisa: { empresaId } },
+    })
+  ])
 
   const getS = (s: string) => statusStats.find(x => x.status === s)?._count._all || 0
   
@@ -17,10 +23,6 @@ export async function DashboardStats({ empresaId }: { empresaId: string }) {
   const finalizadas = respondidas + getS('EXPIRADO')
   const totalEnvios = statusStats.reduce((acc, curr) => acc + curr._count._all, 0)
   
-  const alcanceGroup = await prisma.envio.groupBy({
-    by: ['emailDestinatario'],
-    where: { pesquisa: { empresaId } },
-  })
   const clientesAlcancados = alcanceGroup.length
   const taxaResposta = totalEnvios > 0 ? (respondidas / totalEnvios) * 100 : 0
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
+import prisma from '@/lib/prisma'
+
 export const runtime = 'nodejs'
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
@@ -26,13 +28,54 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        console.log('[STRIPE WEBHOOK] invoice.payment_succeeded', invoice.id)
+        const subscriptionId = (invoice as any).subscription as string
+
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const empresaId = subscription.metadata.empresaId
+
+          if (empresaId) {
+            const priceId = (invoice.lines.data[0] as any)?.price?.id
+            let plano = 'FREE'
+
+            if (priceId === process.env.STRIPE_PRICE_GROWTH_ID) {
+              plano = 'GROWTH'
+            } else if (priceId === process.env.STRIPE_PRICE_PREMIUM_ID) {
+              plano = 'PREMIUM'
+            }
+
+            await prisma.empresa.update({
+              where: { id: empresaId },
+              data: {
+                plano,
+                assinaturaAtiva: true,
+                stripeSubscriptionId: subscriptionId,
+                stripeCustomerId: invoice.customer as string,
+                stripePriceId: priceId
+              }
+            })
+
+            console.log(`[STRIPE WEBHOOK] Plano atualizado para ${plano} para a empresa ${empresaId}`)
+          }
+        }
         break
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
-        console.log('[STRIPE WEBHOOK] customer.subscription.deleted', subscription.id)
+        const customerId = subscription.customer as string
+
+        await prisma.empresa.update({
+          where: { stripeCustomerId: customerId },
+          data: {
+            plano: 'FREE',
+            assinaturaAtiva: false,
+            stripeSubscriptionId: null,
+            stripePriceId: null
+          }
+        })
+
+        console.log(`[STRIPE WEBHOOK] Assinatura cancelada para o cliente ${customerId}`)
         break
       }
 

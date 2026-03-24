@@ -5,15 +5,28 @@ import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { revalidatePath } from "next/cache"
 import Stripe from "stripe"
 import { ServiceResponse, successResponse, errorResponse } from "@/types/responses"
+import { encrypt } from "@/lib/crypto"
+
+import { z } from "zod"
+
+const SettingsSchema = z.object({
+  userName: z.string().min(2, "Nome curto demais").optional(),
+  companyName: z.string().min(2, "Nome da empresa curto demais").optional(),
+  companyLogo: z.string().optional(),
+  emailBrandColor: z.string().optional(),
+  emailLogoUrl: z.string().url("Logo do e-mail deve ser uma URL válida").optional().or(z.literal("")),
+  emailHeaderText: z.string().optional(),
+  host: z.string().optional(),
+  port: z.string().optional(),
+  user: z.string().optional(),
+  pass: z.string().optional(),
+  fromName: z.string().optional(),
+  fromEmail: z.string().email("E-mail do remetente inválido").optional().or(z.literal("")),
+})
+
+import { PLAN_TO_PRICE } from '@/lib/constants'
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-const stripePriceGrowth = process.env.STRIPE_PRICE_GROWTH_ID
-const stripePricePremium = process.env.STRIPE_PRICE_PREMIUM_ID
-
-const PLAN_TO_PRICE: Record<"GROWTH" | "PREMIUM", string | undefined> = {
-  GROWTH: stripePriceGrowth,
-  PREMIUM: stripePricePremium,
-}
 
 export async function getSettingsData() {
   try {
@@ -21,16 +34,17 @@ export async function getSettingsData() {
 
     const dbUser = await prisma.usuario.findUnique({
       where: { id: user.id },
-    include: { 
-      empresa: {
-        include: {
-          smtpConfig: true
-        }
-      }
-    }
-  })
+      select: { nome: true, email: true, empresaId: true }
+    })
 
-  if (!dbUser) return null
+    if (!dbUser) return null
+
+    const empresa = await prisma.empresa.findUnique({
+      where: { id: dbUser.empresaId },
+      include: { smtpConfig: true }
+    })
+
+    if (!empresa) return null
 
     return {
       user: {
@@ -38,16 +52,16 @@ export async function getSettingsData() {
         email: dbUser.email
       },
       empresa: {
-        nome: dbUser.empresa.nome,
-        logo: dbUser.empresa.logo,
-        id: dbUser.empresaId,
-        plano: dbUser.empresa.plano as any,
-        assinaturaAtiva: dbUser.empresa.assinaturaAtiva,
-        emailBrandColor: dbUser.empresa.emailBrandColor,
-        emailLogoUrl: dbUser.empresa.emailLogoUrl,
-        emailHeaderText: dbUser.empresa.emailHeaderText,
+        nome: empresa.nome,
+        logo: (empresa as any).logo,
+        id: empresa.id,
+        plano: empresa.plano as string,
+        assinaturaAtiva: empresa.assinaturaAtiva,
+        emailBrandColor: (empresa as any).emailBrandColor,
+        emailLogoUrl: (empresa as any).emailLogoUrl,
+        emailHeaderText: (empresa as any).emailHeaderText,
       },
-      smtp: dbUser.empresa.smtpConfig
+      smtp: empresa.smtpConfig
     }
   } catch (error) {
     console.error("[GET_SETTINGS_ERROR]", error)
@@ -59,22 +73,25 @@ export async function saveSettings(formData: FormData) {
   try {
     const dbUser = await getAuthenticatedUser(['OWNER', 'ADMIN'])
 
+    // 0. Validação Zod
+    const rawData = Object.fromEntries(formData.entries())
+    const validated = SettingsSchema.safeParse(rawData)
+    
+    if (!validated.success) {
+      return errorResponse(validated.error.issues[0].message, "VALIDATION_ERROR")
+    }
+
+    const data = validated.data
+
   // 1. Dados do Usuário
-  const userName = formData.get("userName") as string
-  if (userName) {
+  if (data.userName) {
     await prisma.usuario.update({
       where: { id: dbUser.id },
-      data: { nome: userName }
+      data: { nome: data.userName }
     })
   }
 
   // 2. Dados da Empresa
-  const companyName = formData.get("companyName") as string
-  const companyLogo = formData.get("companyLogo") as string
-  const emailBrandColor = formData.get("emailBrandColor") as string
-  const emailLogoUrl = formData.get("emailLogoUrl") as string
-  const emailHeaderText = formData.get("emailHeaderText") as string
-
   // Verifica o plano do usuário antes de salvar dados de personalização premium
   const empresa = await prisma.empresa.findUnique({
     where: { id: dbUser.empresaId },
@@ -87,26 +104,32 @@ export async function saveSettings(formData: FormData) {
 
   const isPremium = empresa.plano !== 'FREE'
 
-  const companyUpdateData: Record<string, any> = {}
+  const companyUpdateData: {
+    nome?: string;
+    logo?: string;
+    emailBrandColor?: string;
+    emailLogoUrl?: string;
+    emailHeaderText?: string;
+  } = {}
 
-  if (companyName) {
-    companyUpdateData.nome = companyName
+  if (data.companyName) {
+    companyUpdateData.nome = data.companyName
   }
 
-  if (companyLogo) {
-    companyUpdateData.logo = companyLogo
+  if (data.companyLogo) {
+    companyUpdateData.logo = data.companyLogo
   }
 
   // Só salva dados de personalização de e-mail se o plano for premium
   if (isPremium) {
-    if (emailBrandColor) {
-      companyUpdateData.emailBrandColor = emailBrandColor
+    if (data.emailBrandColor) {
+      companyUpdateData.emailBrandColor = data.emailBrandColor
     }
-    if (emailLogoUrl) {
-      companyUpdateData.emailLogoUrl = emailLogoUrl
+    if (data.emailLogoUrl) {
+      companyUpdateData.emailLogoUrl = data.emailLogoUrl
     }
-    if (emailHeaderText) {
-      companyUpdateData.emailHeaderText = emailHeaderText
+    if (data.emailHeaderText) {
+      companyUpdateData.emailHeaderText = data.emailHeaderText
     }
   }
 
@@ -118,33 +141,28 @@ export async function saveSettings(formData: FormData) {
   }
 
   // 3. Dados SMTP
-  const host = formData.get("host") as string
-  const portStr = formData.get("port") as string
-  const userSmtp = formData.get("user") as string
-  const pass = formData.get("pass") as string
-  const fromName = formData.get("fromName") as string
-  const fromEmail = formData.get("fromEmail") as string
-
   // Só tenta salvar SMTP se pelo menos o host for preenchido
-  if (host) {
-    const port = parseInt(portStr) || 587
+  if (data.host) {
+    const port = parseInt(data.port || "587")
+    const encryptedPass = data.pass ? encrypt(data.pass) : undefined
+
     await prisma.smtpConfig.upsert({
       where: { empresaId: dbUser.empresaId },
       update: {
-        host,
+        host: data.host,
         port,
-        user: userSmtp,
-        pass,
-        fromName,
-        fromEmail
+        user: data.user,
+        ...(encryptedPass ? { pass: encryptedPass } : {}),
+        fromName: data.fromName,
+        fromEmail: data.fromEmail
       },
       create: {
-        host,
+        host: data.host,
         port,
-        user: userSmtp,
-        pass,
-        fromName,
-        fromEmail,
+        user: data.user || "",
+        pass: encryptedPass || "",
+        fromName: data.fromName || "",
+        fromEmail: data.fromEmail || "",
         empresaId: dbUser.empresaId
       }
     })
@@ -153,9 +171,10 @@ export async function saveSettings(formData: FormData) {
     revalidatePath("/configuracoes")
     revalidatePath("/(painel)", "layout") // Revalida o layout para atualizar o Header/Sidebar
     return successResponse(true)
-  } catch (error: any) {
+  } catch (error) {
     console.error("[SAVE_SETTINGS_ERROR]", error)
-    return errorResponse(error.message || "Erro ao salvar configurações", "INTERNAL_ERROR")
+    const message = error instanceof Error ? error.message : "Erro ao salvar configurações"
+    return errorResponse(message, "INTERNAL_ERROR")
   }
 }
 
@@ -236,8 +255,9 @@ export async function criarCheckoutAssinatura(plan: "GROWTH" | "PREMIUM") {
   }
 
   return successResponse({ url: session.url })
-  } catch (error: any) {
+  } catch (error) {
     console.error("[ERRO SETTINGS]", error)
-    return errorResponse(error.message || "Erro ao iniciar checkout", "INTERNAL_ERROR")
+    const message = error instanceof Error ? error.message : "Erro ao iniciar checkout"
+    return errorResponse(message, "INTERNAL_ERROR")
   }
 }

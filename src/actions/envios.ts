@@ -7,11 +7,30 @@ import { processarDisparo } from './disparos'
 import { revalidatePath } from 'next/cache'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 
+import { PLAN_LIMITS } from '@/lib/constants'
+
+import { z } from "zod"
+
+const ImportSchema = z.object({
+  pesquisaId: z.string().uuid("ID de pesquisa inválido"),
+  contatos: z.array(z.object({
+    nome: z.string().min(1, "Nome obrigatório"),
+    email: z.string().email("E-mail inválido")
+  })).min(1, "Nenhum contato enviado")
+})
+
 export async function importarContatos(
   pesquisaId: string, 
   contatos: { nome: string; email: string }[]
 ) {
   try {
+    // 0. Validação Zod
+    const validated = ImportSchema.safeParse({ pesquisaId, contatos })
+
+    if (!validated.success) {
+      return errorResponse(validated.error.issues[0].message, 'VALIDATION_ERROR')
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,18 +38,37 @@ export async function importarContatos(
       return errorResponse('Usuário não autenticado.', 'UNAUTHORIZED')
     }
 
-    // 1. Validar se o usuário existe no Prisma e pegar empresaId
+    // 1. Validar se o usuário existe no Prisma e pegar empresaId e plano
     const dbUser = await prisma.usuario.findUnique({
       where: { id: user.id },
-      select: { empresaId: true }
+      include: { empresa: true }
     })
 
     if (!dbUser) {
       return errorResponse('Perfil de usuário não encontrado.', 'NOT_FOUND')
     }
 
-    // 2. Validar se a pesquisa pertence à empresa do usuário
-    const pesquisa = await (prisma.pesquisa as any).findFirst({
+    // 2. Verificar Cotas do Plano
+    const plano = dbUser.empresa.plano as keyof typeof PLAN_LIMITS
+    const limite = PLAN_LIMITS[plano] || 100
+
+    const inicioDoMes = new Date()
+    inicioDoMes.setDate(1)
+    inicioDoMes.setHours(0, 0, 0, 0)
+
+    const totalEnviadoMes = await prisma.envio.count({
+      where: {
+        pesquisa: { empresaId: dbUser.empresaId },
+        createdAt: { gte: inicioDoMes }
+      }
+    })
+
+    if (totalEnviadoMes + contatos.length > limite) {
+      return errorResponse(`Limite de envios excedido (${totalEnviadoMes}/${limite}). Faça um upgrade para enviar mais.`, 'FORBIDDEN')
+    }
+
+    // 3. Validar se a pesquisa pertence à empresa do usuário
+    const pesquisa = await prisma.pesquisa.findFirst({
       where: {
         id: pesquisaId,
         empresaId: dbUser.empresaId
@@ -66,44 +104,67 @@ export async function importarContatos(
     
     return successResponse({ count: result.count })
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[ERRO IMPORTAR CONTATOS]', error)
-    return errorResponse('Erro interno ao processar importação', 'INTERNAL_ERROR', error.message)
+    const message = error instanceof Error ? error.message : 'Erro interno ao processar importação'
+    return errorResponse('Erro interno ao processar importação', 'INTERNAL_ERROR', message)
   }
 }
 
-export async function getHistoricoEnvios(pesquisaId: string) {
+export async function getHistoricoEnvios(pesquisaId: string, search?: string, page: number = 1) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return []
+    if (!user) return { data: [], total: 0, totalPages: 0 }
 
     const dbUser = await prisma.usuario.findUnique({
       where: { id: user.id },
       select: { empresaId: true }
     })
 
-    if (!dbUser) return []
+    if (!dbUser) return { data: [], total: 0, totalPages: 0 }
 
-    return await prisma.envio.findMany({
-      where: {
-        pesquisaId,
-        pesquisa: { empresaId: dbUser.empresaId }
-      },
-      include: {
-        pesquisa: {
-          select: { titulo: true }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 100
-    })
+    const take = 50
+    const skip = (page - 1) * take
+
+    const where = {
+      pesquisaId,
+      pesquisa: { empresaId: dbUser.empresaId }
+    } as any // Usamos any aqui para facilitar construção dinâmica do where, mas o retorno é tipado
+
+    if (search) {
+      where.OR = [
+        { emailDestinatario: { contains: search, mode: 'insensitive' } },
+        { nomeDestinatario: { contains: search, mode: 'insensitive' } }
+      ]
+    }
+
+    const [data, total] = await Promise.all([
+      prisma.envio.findMany({
+        where,
+        include: {
+          pesquisa: {
+            select: { titulo: true }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take,
+        skip
+      }),
+      prisma.envio.count({ where })
+    ])
+
+    return {
+      data,
+      total,
+      totalPages: Math.ceil(total / take)
+    }
   } catch (error) {
     console.error('[ERRO HISTÓRICO ENVIOS]', error)
-    return []
+    return { data: [], total: 0, totalPages: 0 }
   }
 }
 
@@ -204,9 +265,9 @@ export async function editarEReenviarEnvio(id: string, novoEmail: string) {
     
     return successResponse(true)
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[ERRO EDITAR E REENVIAR]', error)
-    if (error.code === 'P2002') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return errorResponse('Este e-mail já existe na lista desta pesquisa.', 'CONFLICT')
     }
     return errorResponse('Erro ao processar edição e reenvio.', 'INTERNAL_ERROR')

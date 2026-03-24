@@ -1,0 +1,87 @@
+
+> temp-pulse@0.1.0 build
+> next build
+
+▲ Next.js 16.1.7 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 2 errors:
+./src/actions/disparos.ts:3:10
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { createClient } [36mfrom[39m [32m'@/lib/supabase/server'[39m
+ [90m 2 |[39m [36mimport[39m prisma [36mfrom[39m [32m'@/lib/prisma'[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m'next/cache'[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { [33mServiceResponse[39m[33m,[39m successResponse[33m,[39m errorResponse } [36mfrom[39m [32m'@/types/responses'[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36masync[39m [36mfunction[39m processarDisparo(pesquisaId[33m:[39m string) {[0m
+
+You're importing a component that needs "revalidatePath". That only works in a Server Component which is not supported in the pages/ directory. Read more: https://nextjs.org/docs/app/building-your-application/rendering/server-components
+
+
+
+Import traces:
+  Server Component:
+    ./src/actions/disparos.ts
+    ./src/actions/envios.ts
+    ./src/app/(painel)/pesquisas/[id]/envios/page.tsx
+
+  Client Component Browser:
+    ./src/actions/disparos.ts [Client Component Browser]
+    ./src/components/EnviosWizard.tsx [Client Component Browser]
+    ./src/components/EnviosWizard.tsx [Server Component]
+    ./src/app/(painel)/pesquisas/[id]/envios/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/actions/disparos.ts [Client Component SSR]
+    ./src/components/EnviosWizard.tsx [Client Component SSR]
+    ./src/components/EnviosWizard.tsx [Server Component]
+    ./src/app/(painel)/pesquisas/[id]/envios/page.tsx [Server Component]
+
+
+./src/lib/supabase/server.ts:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { createServerClient } [36mfrom[39m [32m'@supabase/ssr'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { cookies } [36mfrom[39m [32m'next/headers'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mexport[39m [36masync[39m [36mfunction[39m createClient() {
+ [90m 5 |[39m   [36mconst[39m cookieStore [33m=[39m [36mawait[39m cookies()[0m
+
+You're importing a component that needs "next/headers". That only works in a Server Component which is not supported in the pages/ directory. Read more: https://nextjs.org/docs/app/building-your-application/rendering/server-components
+
+
+
+Import traces:
+  #1 [App Route]:
+    ./src/lib/supabase/server.ts
+    ./src/app/api/disparos/processar/route.ts
+
+  #2 [Server Component]:
+    ./src/lib/supabase/server.ts
+    ./src/actions/auth.ts
+
+  #3 [Server Component]:
+    ./src/lib/supabase/server.ts
+    ./src/app/(painel)/dashboard/page.tsx
+
+  #4 [Client Component Browser]:
+    ./src/lib/supabase/server.ts [Client Component Browser]
+    ./src/actions/disparos.ts [Client Component Browser]
+    ./src/components/EnviosWizard.tsx [Client Component Browser]
+    ./src/components/EnviosWizard.tsx [Server Component]
+    ./src/app/(painel)/pesquisas/[id]/envios/page.tsx [Server Component]
+
+  #5 [Client Component SSR]:
+    ./src/lib/supabase/server.ts [Client Component SSR]
+    ./src/actions/disparos.ts [Client Component SSR]
+    ./src/components/EnviosWizard.tsx [Client Component SSR]
+    ./src/components/EnviosWizard.tsx [Server Component]
+    ./src/app/(painel)/pesquisas/[id]/envios/page.tsx [Server Component]
+
+
+    at <unknown> (./src/actions/disparos.ts:3:10)
+    at <unknown> (./src/lib/supabase/server.ts:2:1)

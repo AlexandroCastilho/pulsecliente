@@ -33,11 +33,13 @@ export default async function PainelLayout({
   })
 
   if (!dbUser) {
-    // Criar empresa padrão e usuário OWNER
+    // Criar empresa padrão e usuário OWNER com slug único
+    // Usando crypto globalmente em Node se randomUUID não estiver importado, ou vamos importar no topo do arquivo.
+    const uniqueSlug = `org-${crypto.randomUUID().split('-')[0]}`
     const empresa = await prisma.empresa.create({
       data: {
         nome: "Minha Empresa",
-        slug: "org-123456"
+        slug: uniqueSlug
       }
     })
 

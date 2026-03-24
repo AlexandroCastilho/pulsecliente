@@ -1,41 +1,72 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { 
   Search, 
-  Filter, 
-  Plus, 
-  MoreHorizontal, 
-  ExternalLink,
   Mail,
   CheckCircle2,
   AlertCircle,
   MessageSquare,
-  Clock,
   Send,
-  Edit2
+  Edit2,
+  ChevronLeft,
+  ChevronRight,
+  Loader2
 } from 'lucide-react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { StatusBadge } from './StatusBadge'
 import { CopySurveyLink } from './CopySurveyLink'
 import { EmptyState } from './EmptyState'
 import { EditResendModal } from './EditResendModal'
-import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 interface EnviosDashboardProps {
   historico: any[]
   stats: any
+  totalPages: number
 }
 
-export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
+export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboardProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
+
   const [selectedEnvio, setSelectedEnvio] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
+
+  const currentPage = Number(searchParams.get('page')) || 1
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term)
+    const params = new URLSearchParams(searchParams.toString())
+    if (term) {
+      params.set('q', term)
+    } else {
+      params.delete('q')
+    }
+    params.set('page', '1')
+    
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`)
+    })
+  }
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', page.toString())
+    
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`)
+    })
+  }
 
   const handleEdit = (envio: any) => {
     setSelectedEnvio(envio)
@@ -90,79 +121,115 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
           
           <div className="flex items-center gap-3">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isPending ? 'text-indigo-500 animate-pulse' : 'text-gray-400 group-focus-within:text-indigo-500'}`} size={16} />
               <input 
                 type="text" 
-                placeholder="Buscar cliente por e-mail..." 
+                placeholder="Buscar cliente por e-mail ou nome..." 
                 className="pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-100 outline-none transition-all w-64 text-gray-900"
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
               />
+              {isPending && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 size={14} className="animate-spin text-indigo-500" />
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         <div className="w-full overflow-x-auto custom-scrollbar">
           {historico.length > 0 ? (
-            <table className="w-full text-left border-collapse table-fixed">
-              <thead className="bg-gray-50/50">
-                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                  <th className="w-[30%] px-4 py-4">Cliente</th>
-                  <th className="w-[30%] px-4 py-4">Pesquisa</th>
-                  <th className="w-[20%] px-4 py-4">Data do Envio</th>
-                  <th className="w-[12%] px-4 py-4 text-center">Status</th>
-                  <th className="w-[8%] px-4 py-4 text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {historico.map((envio) => (
-                  <tr key={envio.id} className="group hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-5 overflow-hidden">
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold text-gray-900 truncate">{envio.nomeDestinatario || 'Sem nome'}</span>
-                        <span className="text-xs text-gray-400 font-medium truncate">{envio.emailDestinatario}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-5 overflow-hidden">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500 shrink-0">
-                          <Mail size={14} />
-                        </div>
-                        <span className="text-sm font-bold text-gray-700 truncate">{envio.pesquisa.titulo}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-5 text-sm font-medium text-gray-500 truncate">
-                      {formatDateSafely(envio.createdAt)}
-                    </td>
-                    <td className="px-4 py-5 text-center">
-                      <div className="flex justify-center">
-                        <StatusBadge status={envio.status} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-5 text-center">
-                      <div className="flex justify-center gap-2">
-                         {envio.status === 'ERRO' && (
-                           <button 
-                             onClick={() => handleEdit(envio)}
-                             className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                             title="Corrigir e reenviar"
-                           >
-                             <Edit2 size={16} />
-                           </button>
-                         )}
-                         <CopySurveyLink token={envio.token} status={envio.status} />
-                      </div>
-                    </td>
+            <>
+              <table className="w-full text-left border-collapse table-fixed">
+                <thead className="bg-gray-50/50">
+                  <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                    <th className="w-[30%] px-4 py-4">Cliente</th>
+                    <th className="w-[30%] px-4 py-4">Pesquisa</th>
+                    <th className="w-[20%] px-4 py-4">Data do Envio</th>
+                    <th className="w-[12%] px-4 py-4 text-center">Status</th>
+                    <th className="w-[8%] px-4 py-4 text-center">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {historico.map((envio) => (
+                    <tr key={envio.id} className="group hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-5 overflow-hidden">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-bold text-gray-900 truncate">{envio.nomeDestinatario || 'Sem nome'}</span>
+                          <span className="text-xs text-gray-400 font-medium truncate">{envio.emailDestinatario}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-5 overflow-hidden">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500 shrink-0">
+                            <Mail size={14} />
+                          </div>
+                          <span className="text-sm font-bold text-gray-700 truncate">{envio.pesquisa.titulo}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-5 text-sm font-medium text-gray-500 truncate">
+                        {formatDateSafely(envio.createdAt)}
+                      </td>
+                      <td className="px-4 py-5 text-center">
+                        <div className="flex justify-center">
+                          <StatusBadge status={envio.status} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-5 text-center">
+                        <div className="flex justify-center gap-2">
+                          {envio.status === 'ERRO' && (
+                            <button 
+                              onClick={() => handleEdit(envio)}
+                              className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                              title="Corrigir e reenviar"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                          )}
+                          <CopySurveyLink token={envio.token} status={envio.status} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="px-8 py-5 border-t border-gray-50 flex items-center justify-between bg-gray-50/20">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1 || isPending}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-600 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all shadow-sm"
+                    >
+                      <ChevronLeft size={14} />
+                      Anterior
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages || isPending}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-white border border-indigo-100 rounded-xl hover:bg-indigo-50 disabled:opacity-50 transition-all shadow-sm"
+                    >
+                      Próxima
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="p-12">
               <EmptyState 
                 icon={<Mail size={40} />}
-                title="Ainda não há envios para esta pesquisa"
-                description="Quando você iniciar os envios, o histórico aparecerá aqui para acompanhar resultados e corrigir falhas rapidamente."
-                actionLabel="Ir para Pesquisas"
-                actionHref="/pesquisas"
+                title={searchTerm ? "Nenhum resultado encontrado" : "Ainda não há envios para esta pesquisa"}
+                description={searchTerm ? `Não encontramos nenhum envio correspondente a "${searchTerm}".` : "Quando você iniciar os envios, o histórico aparecerá aqui para acompanhar resultados e corrigir falhas rapidamente."}
+                actionLabel={searchTerm ? "Limpar Busca" : "Ir para Pesquisas"}
+                actionHref={searchTerm ? pathname : "/pesquisas"}
               />
             </div>
           )}

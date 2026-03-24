@@ -1,6 +1,5 @@
 "use server"
 
-import nodemailer from 'nodemailer'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
@@ -26,7 +25,7 @@ export async function processarDisparo(pesquisaId: string) {
     }
 
     // 2. Validar pesquisa - usando select para evitar erro de colunas de data ausentes no prisma local
-    const pesquisa = await (prisma.pesquisa as any).findFirst({
+    const pesquisa = await prisma.pesquisa.findFirst({
       where: { id: pesquisaId, empresaId: dbUser.empresaId },
       select: { id: true, titulo: true }
     })
@@ -50,13 +49,11 @@ export async function processarDisparo(pesquisaId: string) {
       data: { status: 'PROCESSANDO' }
     })
 
-    // Chamar o Worker com o segredo de segurança
+    // Chamar o Worker com o segredo de segurança (padrão fire-and-forget)
     const cronSecret = process.env.CRON_SECRET
     
-    // Obter URL base dinamicamente se não estiver no env
+    // Obter URL base dinamicamente
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL
-    
-    // Em desenvolvimento local, preferir sempre localhost para evitar problemas de rede
     if (process.env.NODE_ENV === 'development') {
       baseUrl = 'http://localhost:3000'
     } else if (!baseUrl) {
@@ -70,41 +67,24 @@ export async function processarDisparo(pesquisaId: string) {
       }
     }
 
-    // Remover barra final para evitar URLs como http://localhost:3000//api/... (Causa 404)
     if (baseUrl) {
       baseUrl = baseUrl.replace(/\/$/, '')
     }
     
-    console.log(`[DISPARO] Chamando worker em: ${baseUrl}/api/disparos/processar`)
+    console.log(`[DISPARO] Iniciando worker em background: ${baseUrl}/api/disparos/processar`)
 
-    try {
-      const response = await fetch(`${baseUrl}/api/disparos/processar`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${cronSecret}`
-        },
-        body: JSON.stringify({ pesquisaId })
-      })
-
-      const responseData = await response.json().catch(() => ({}))
-      console.log(`[DISPARO] Resposta do worker:`, response.status, responseData)
-      
-      if (!response.ok) {
-        await prisma.envio.updateMany({
-          where: { pesquisaId, status: 'PROCESSANDO' },
-          data: { status: 'PENDENTE', erroLog: `Worker falhou (${response.status}): ${JSON.stringify(responseData)}` }
-        })
-        return errorResponse(`Erro no worker: ${response.status}`, 'INTERNAL_ERROR')
-      }
-    } catch (err: any) {
-      console.error('[FETCH WORKER ERROR]', err)
-      await prisma.envio.updateMany({
-        where: { pesquisaId, status: 'PROCESSANDO' },
-        data: { status: 'PENDENTE', erroLog: `Erro de conexão: ${err.message}` }
-      })
-      return errorResponse(`Erro de conexão com o servidor: ${err.message}`, 'INTERNAL_ERROR')
-    }
+    // FIRE-AND-FORGET: Não aguardamos (no await) e usamos keepalive
+    fetch(`${baseUrl}/api/disparos/processar`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cronSecret}`
+      },
+      body: JSON.stringify({ pesquisaId }),
+      keepalive: true
+    }).catch(err => {
+      console.error('[FIRE-AND-FORGET ERROR]', err)
+    })
 
     revalidatePath(`/pesquisas/${pesquisaId}`)
     revalidatePath(`/pesquisas/${pesquisaId}/envios`)
@@ -112,8 +92,9 @@ export async function processarDisparo(pesquisaId: string) {
 
     return successResponse({ count: pendentes.length })
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[ERRO PROCESSAR DISPARO]', error)
-    return errorResponse(error.message || 'Erro interno ao iniciar disparos.', 'INTERNAL_ERROR')
+    const message = error instanceof Error ? error.message : 'Erro interno ao iniciar disparos.'
+    return errorResponse(message, 'INTERNAL_ERROR')
   }
 }
