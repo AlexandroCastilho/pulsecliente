@@ -9,6 +9,7 @@ import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
 import { AUTH_RATE_LIMIT_SECONDS, buildEmailIpRateLimitKey, createRateLimiter } from '@/lib/rate-limit'
+import { v4 as uuidv4 } from 'uuid'
 
 const resendEmailRateLimit = createRateLimiter('@upstash/ratelimit:auth:resend-confirmation')
 const passwordRecoveryRateLimit = createRateLimiter('@upstash/ratelimit:auth:password-recovery')
@@ -295,7 +296,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '')
     
-    const uniqueSuffix = require('uuid').v4().replace(/-/g,'').substring(0,8)
+    const uniqueSuffix = uuidv4().replace(/-/g,'').substring(0,8)
     const slug = `${baseSlug}-${uniqueSuffix}`
 
     await prisma.$transaction(async (tx) => {

@@ -3,7 +3,7 @@
 import { UserCircle } from 'lucide-react'
 
 interface SettingsTabProfileProps {
-  userName: string
+  userName?: string
   userEmail: string
   onNameChange?: (value: string) => void
 }

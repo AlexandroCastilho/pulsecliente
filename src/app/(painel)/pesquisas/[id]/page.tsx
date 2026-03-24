@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -25,6 +26,11 @@ import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 import { CopySurveyLink } from '@/components/CopySurveyLink'
 import { SurveyResponseTable } from '@/components/SurveyResponseTable'
 import SurveyDateHeader from '@/components/SurveyDateHeader'
+
+interface PesquisaDates {
+  dataInicio: Date | null
+  dataFim: Date | null
+}
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -70,7 +76,7 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
   if (!pesquisaBase) notFound()
 
   // Buscar as datas separadamente via SQL bruto para contornar o problema do Prisma Client
-  const dates: any[] = await prisma.$queryRaw`
+  const dates: PesquisaDates[] = await prisma.$queryRaw`
     SELECT "dataInicio", "dataFim" FROM pesquisas WHERE id = ${id}
   `
   
@@ -116,8 +122,8 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
           <div>
             <SurveyDateHeader 
               pesquisaId={pesquisa.id} 
-              dataInicio={(pesquisa as any).dataInicio} 
-              dataFim={(pesquisa as any).dataFim} 
+              dataInicio={pesquisa.dataInicio} 
+              dataFim={pesquisa.dataFim} 
               createdAt={pesquisa.createdAt} 
             />
             <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-none">{pesquisa.titulo}</h1>
@@ -132,7 +138,7 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
             <Send size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
             <span>Monitorar / Novo Envio</span>
           </Link>
-          {(pesquisa as any).dataFim && new Date((pesquisa as any).dataFim) < new Date() ? (
+          {pesquisa.dataFim && new Date(pesquisa.dataFim) < new Date() ? (
             <div className="px-4 py-2.5 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-2.5 shadow-sm">
               <div className={`w-2.5 h-2.5 rounded-full bg-red-500`} />
               <span className="text-xs font-black uppercase tracking-wider">Finalizada</span>
@@ -220,11 +226,29 @@ export default async function PesquisaDetalhesPage({ params }: PageProps) {
   )
 }
 
-function QuestionAnalyticsCard({ pergunta, index, envios }: any) {
+interface EnvioComResposta {
+  status: string
+  resposta: { dados: Prisma.JsonValue } | null
+}
+
+interface PerguntaAnalytics {
+  id: string
+  titulo: string
+  tipo: string
+  opcoes: unknown
+}
+
+interface QuestionAnalyticsCardProps {
+  pergunta: PerguntaAnalytics
+  index: number
+  envios: EnvioComResposta[]
+}
+
+function QuestionAnalyticsCard({ pergunta, index, envios }: QuestionAnalyticsCardProps) {
   const respostas = envios
-    .filter((e: any) => e.status === 'RESPONDIDO' && e.resposta)
-    .map((e: any) => e.resposta.dados[pergunta.id])
-    .filter((r: any) => r !== undefined && r !== null)
+    .filter((e: EnvioComResposta) => e.status === 'RESPONDIDO' && e.resposta)
+    .map((e: EnvioComResposta) => (e.resposta!.dados as Record<string, unknown>)[pergunta.id])
+    .filter((r: unknown) => r !== undefined && r !== null)
 
   const total = respostas.length
 
@@ -351,7 +375,15 @@ function QuestionAnalyticsCard({ pergunta, index, envios }: any) {
   )
 }
 
-function NPSBreakdownItem({ label, count, total, color, sub }: any) {
+interface NPSBreakdownItemProps {
+  label: string
+  count: number
+  total: number
+  color: string
+  sub: string
+}
+
+function NPSBreakdownItem({ label, count, total, color, sub }: NPSBreakdownItemProps) {
   const percent = (count / total) * 100
   return (
     <div className="flex flex-col items-center gap-2">
@@ -371,7 +403,15 @@ function NPSBreakdownItem({ label, count, total, color, sub }: any) {
   )
 }
 
-function MiniStatCard({ label, value, icon, color, description }: any) {
+interface MiniStatCardProps {
+  label: string
+  value: string
+  icon: React.ReactNode
+  color: string
+  description: string
+}
+
+function MiniStatCard({ label, value, icon, color, description }: MiniStatCardProps) {
   return (
     <div className={`bg-white p-7 rounded-3xl border ${color.split(' ').pop()} shadow-sm hover:shadow-md transition-all group overflow-hidden relative`}>
       <div className="flex justify-between items-start relative z-10">

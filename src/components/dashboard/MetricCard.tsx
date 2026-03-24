@@ -1,6 +1,16 @@
 import { AlertCircle } from 'lucide-react'
 
-export function MetricCard({ label, value, trend, subtext, icon, color, tooltip }: any) {
+interface MetricCardProps {
+  label: string
+  value: string | number
+  trend?: string
+  subtext?: string
+  icon?: React.ReactNode
+  color?: string
+  tooltip?: string
+}
+
+export function MetricCard({ label, value, trend, subtext, icon, color, tooltip }: MetricCardProps) {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow group relative">
       <div className="flex justify-between items-start mb-4">

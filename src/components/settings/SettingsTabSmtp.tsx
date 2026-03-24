@@ -6,16 +6,16 @@ interface SettingsTabSmtpProps {
   smtp?: {
     host: string
     port: number
-    user: string
+    user: string | null
     pass: string
-    fromName: string
-    fromEmail: string
+    fromName: string | null
+    fromEmail: string | null
   }
-  onSmtpChange?: (field: string, value: any) => void
+  onSmtpChange?: (field: string, value: string | number) => void
 }
 
 export function SettingsTabSmtp({ smtp, onSmtpChange }: SettingsTabSmtpProps) {
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | number) => {
     onSmtpChange?.(field, value)
   }
 

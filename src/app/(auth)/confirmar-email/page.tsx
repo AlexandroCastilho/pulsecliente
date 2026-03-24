@@ -18,7 +18,7 @@ function ConfirmEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const emailParam = searchParams.get('email')
-  const [email, setEmail] = useState(emailParam || '')
+  const [email, setEmail] = useState(emailParam ?? '')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [cooldown, setCooldown] = useState(0)
@@ -48,16 +48,12 @@ function ConfirmEmailContent() {
     }
   }, [router])
 
-  useEffect(() => {
-    if (emailParam) setEmail(emailParam)
-  }, [emailParam])
+  // Nota: o estado `email` é inicializado diretamente com `emailParam`, por isso o
+  // useEffect de sincronização foi removido (evita setState síncrono no efeito).
 
   useEffect(() => {
     const emailToCheck = email.trim().toLowerCase()
-    if (!emailToCheck) {
-      setCooldown(0)
-      return
-    }
+    if (!emailToCheck) return
 
     const storageKey = getCooldownStorageKey(emailToCheck)
     const storedUntil = window.localStorage.getItem(storageKey)
@@ -68,8 +64,11 @@ function ConfirmEmailContent() {
       setCooldown(remainingSeconds)
     } else {
       window.localStorage.removeItem(storageKey)
+      setCooldown(0)
     }
-  }, [email])
+  // Executado apenas uma vez ao montar, pois `email` vem de `emailParam` (URL).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (cooldown <= 0) return

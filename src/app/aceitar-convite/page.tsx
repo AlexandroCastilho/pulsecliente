@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 "use client"
 
 import { useState, useEffect, useTransition, Suspense } from 'react'
@@ -42,11 +42,11 @@ function AceitarConviteContent() {
     if (!token) return
 
     async function validar() {
-      const res = await validarTokenConvite(token!) as any
+      const res = await validarTokenConvite(token!)
       if (!res.success) {
         setErroToken(res.error.message)
       } else {
-        setConvite(res.data)
+        setConvite(res.data as ConviteData)
       }
       setLoadingToken(false)
     }
@@ -65,7 +65,7 @@ function AceitarConviteContent() {
     }
 
     startTransition(async () => {
-      const res = await finalizarAceiteConvite(token!, senha) as any
+      const res = await finalizarAceiteConvite(token!, senha)
       if (!res.success) {
         toast.error(res.error.message)
       } else {
@@ -129,7 +129,7 @@ function AceitarConviteContent() {
         </div>
         <h1 className="text-2xl font-black text-gray-900 tracking-tight">Você foi convidado!</h1>
         <p className="text-gray-500 font-medium">
-          Olá <span className="text-indigo-600 font-bold">{(convite as any)?.nome}</span>, finalize seu cadastro na empresa <span className="text-gray-900 font-bold">{(convite as any)?.empresa?.nome}</span>.
+          Olá <span className="text-indigo-600 font-bold">{convite?.nome}</span>, finalize seu cadastro na empresa <span className="text-gray-900 font-bold">{convite?.empresa?.nome}</span>.
         </p>
       </div>
 

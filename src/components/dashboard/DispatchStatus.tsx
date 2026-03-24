@@ -30,7 +30,13 @@ export async function DispatchStatus({ empresaId }: { empresaId: string }) {
   )
 }
 
-function StatusItem({ label, percentage, color }: any) {
+interface StatusItemProps {
+  label: string
+  percentage: number
+  color: string
+}
+
+function StatusItem({ label, percentage, color }: StatusItemProps) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">

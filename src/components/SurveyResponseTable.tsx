@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, Fragment } from 'react'
+import { Prisma } from '@prisma/client'
 import { 
   User, 
   ChevronDown, 
@@ -32,7 +33,7 @@ interface Envio {
   createdAt: Date
   enviadoEm: Date | null
   resposta?: {
-    dados: any
+    dados: Prisma.JsonValue
     respondidoEm: Date
   } | null
 }
@@ -49,20 +50,20 @@ export function SurveyResponseTable({ envios, perguntas }: Props) {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
-  const getRespostaFormatada = (pergunta: Pergunta, resposta: any) => {
+  const getRespostaFormatada = (pergunta: Pergunta, resposta: unknown) => {
     if (resposta === undefined || resposta === null) return <span className="text-gray-300 italic">Não respondida</span>
     
     switch (pergunta.tipo) {
       case 'ESCALA_NPS':
         return (
           <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-md font-bold text-xs border ${getNPSColor(Number(resposta))}`}>
-            {resposta}
+            {String(resposta)}
           </span>
         )
       case 'ESTRELAS':
         return (
           <div className="flex items-center gap-1 text-amber-500 font-bold">
-            {resposta} <Star size={12} fill="currentColor" />
+            {String(resposta)} <Star size={12} fill="currentColor" />
           </div>
         )
       default:
@@ -154,7 +155,7 @@ export function SurveyResponseTable({ envios, perguntas }: Props) {
                                 <span className="text-xs font-bold text-gray-500 leading-tight">{pergunta.titulo}</span>
                               </div>
                               <div className="text-sm pl-8">
-                                {getRespostaFormatada(pergunta, (envio.resposta?.dados as any)?.[pergunta.id])}
+                                {getRespostaFormatada(pergunta, (envio.resposta?.dados as Record<string, unknown>)?.[pergunta.id])}
                               </div>
                             </div>
                           ))}

@@ -1,11 +1,12 @@
 "use client"
 
-import { Building2, Image, Lock, Palette } from 'lucide-react'
+import { Building2, Image as ImageIcon, Lock, Palette } from 'lucide-react'
+import NextImage from 'next/image'
 
 interface SettingsTabCompanyProps {
   companyName: string
   companyLogo?: string
-  emailBrandColor: string
+  emailBrandColor?: string
   emailLogoUrl?: string
   emailHeaderText?: string
   plan: string
@@ -124,7 +125,7 @@ export function SettingsTabCompany({
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <Image size={14} className="text-purple-500" />
+              <ImageIcon size={14} className="text-purple-500" />
               Logo do E-mail
             </label>
             <input
@@ -165,10 +166,13 @@ export function SettingsTabCompany({
               style={{ borderColor: emailBrandColor }}
             >
               {emailLogoUrl && (
-                <img
+                <NextImage
                   src={emailLogoUrl}
                   alt="Vista prévia do logo"
-                  className="max-h-12 object-contain"
+                  width={200}
+                  height={48}
+                  className="max-h-12 w-auto object-contain"
+                  unoptimized
                 />
               )}
               <div style={{ color: emailBrandColor }}>

@@ -6,9 +6,18 @@ import { getNotificacoes, marcarComoLida, marcarTodasComoLidas } from '@/actions
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+interface Notificacao {
+  id: string
+  tipo: string
+  titulo: string
+  mensagem: string
+  lida: boolean
+  createdAt: Date | string
+}
+
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false)
-  const [notificacoes, setNotificacoes] = useState<any[]>([])
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([])
   const [loading, setLoading] = useState(true)
   const dropdownRef = useRef<HTMLDivElement>(null)
 

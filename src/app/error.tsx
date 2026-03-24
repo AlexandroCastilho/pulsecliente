@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 
 export default function GlobalError({
@@ -34,12 +35,12 @@ export default function GlobalError({
           >
             Tentar Novamente
           </button>
-          <a
+          <Link
             href="/"
             className="px-8 py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
           >
             Voltar ao Início
-          </a>
+          </Link>
         </div>
       </div>
     </div>

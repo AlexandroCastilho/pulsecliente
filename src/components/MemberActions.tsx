@@ -30,7 +30,7 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf, on
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleAction = async (name: string, action: () => Promise<any>) => {
+  const handleAction = async (name: string, action: () => Promise<{ success: boolean; error?: { message: string } }>) => {
     setActiveAction(name)
     startTransition(async () => {
       try {
@@ -41,7 +41,7 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf, on
         } else if (res?.error) {
           alert(res.error.message)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         alert(sanitizeErrorMessage(err) || "Erro ao realizar ação")
       } finally {
         setActiveAction(null)

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -17,11 +17,36 @@ import { SettingsTabCompany } from '@/components/settings/SettingsTabCompany'
 import { SettingsTabSmtp } from '@/components/settings/SettingsTabSmtp'
 import { SettingsTabPlan } from '@/components/settings/SettingsTabPlan'
 
+interface SmtpData {
+  id: string
+  host: string
+  port: number
+  user: string | null
+  pass: string
+  fromName: string | null
+  fromEmail: string | null
+}
+
+interface SettingsData {
+  user: { nome: string | null; email: string }
+  empresa: {
+    nome: string
+    logo: string | null
+    id: string
+    plano: string
+    assinaturaAtiva: boolean
+    emailBrandColor: string | null
+    emailLogoUrl: string | null
+    emailHeaderText: string | null
+  }
+  smtp: SmtpData | null
+}
+
 export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
   const [checkoutPlanLoading, setCheckoutPlanLoading] = useState<'GROWTH' | 'PREMIUM' | null>(null)
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<SettingsData | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -39,10 +64,8 @@ export default function ConfiguracoesPage() {
     try {
       const res = await saveSettings(formData)
       if (!res.success) {
-        toast.error("Erro ao salvar", {
-          // @ts-ignore
-          description: (res as any).error.message
-        })
+        const errMessage = 'error' in res && res.error ? res.error.message : 'Tente novamente em instantes.'
+        toast.error("Erro ao salvar", { description: errMessage })
         return
       }
 
@@ -77,9 +100,10 @@ export default function ConfiguracoesPage() {
       }
 
       window.location.href = result.url
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Não foi possível abrir o portal de assinatura'
       toast.error('Erro ao abrir assinatura', {
-        description: error?.message || 'Tente novamente em instantes.',
+        description: message,
       })
     } finally {
       setBillingLoading(false)
@@ -91,21 +115,20 @@ export default function ConfiguracoesPage() {
     try {
       const res = await criarCheckoutAssinatura(plan)
       if (!res.success) {
-        toast.error('Erro ao iniciar checkout', {
-          // @ts-ignore
-          description: res.error?.message || (res as any).error?.message || 'Tente novamente em instantes.',
-        })
+        const errMessage = res.error?.message ?? 'Tente novamente em instantes.'
+        toast.error('Erro ao iniciar checkout', { description: errMessage })
         return
       }
 
-      if (!res.data?.url) {
+      const checkoutData = res.data as { url?: string } | null
+      if (!checkoutData?.url) {
         toast.error('Erro ao iniciar checkout', {
           description: 'Houve um problema ao gerar o link de pagamento. Tente novamente.',
         })
         return
       }
 
-      window.location.href = res.data.url
+      window.location.href = checkoutData.url
     } finally {
       setCheckoutPlanLoading(null)
     }
@@ -128,7 +151,7 @@ export default function ConfiguracoesPage() {
       icon: <UserCircle size={18} />,
       content: (
         <SettingsTabProfile
-          userName={data.user.nome}
+          userName={data.user.nome ?? undefined}
           userEmail={data.user.email}
         />
       ),
@@ -140,10 +163,10 @@ export default function ConfiguracoesPage() {
       content: (
         <SettingsTabCompany
           companyName={data.empresa.nome}
-          companyLogo={data.empresa.logo}
-          emailBrandColor={data.empresa.emailBrandColor}
-          emailLogoUrl={data.empresa.emailLogoUrl}
-          emailHeaderText={data.empresa.emailHeaderText}
+          companyLogo={data.empresa.logo ?? undefined}
+          emailBrandColor={data.empresa.emailBrandColor ?? undefined}
+          emailLogoUrl={data.empresa.emailLogoUrl ?? undefined}
+          emailHeaderText={data.empresa.emailHeaderText ?? undefined}
           plan={data.empresa.plano}
         />
       ),
@@ -154,7 +177,7 @@ export default function ConfiguracoesPage() {
       icon: <Mail size={18} />,
       content: (
         <SettingsTabSmtp
-          smtp={data.smtp}
+          smtp={data.smtp ?? undefined}
         />
       ),
     },

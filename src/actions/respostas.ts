@@ -48,7 +48,7 @@ export async function salvarResposta(envioId: string, dados: Record<string, stri
 
     return successResponse(true)
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[ERRO SALVAR RESPOSTA]', error)
     return errorResponse('Erro ao processar sua resposta. Tente novamente mais tarde.', 'INTERNAL_ERROR')
   }

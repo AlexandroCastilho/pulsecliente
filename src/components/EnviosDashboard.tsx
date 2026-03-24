@@ -20,10 +20,28 @@ import { EmptyState } from './EmptyState'
 import { EditResendModal } from './EditResendModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { StatusEnvio } from '@prisma/client'
+
+interface EnvioStats {
+  total: number
+  respondidas: number
+  taxaSucesso: number
+  erros: number
+}
+
+interface Envio {
+  id: string
+  nomeDestinatario: string | null
+  emailDestinatario: string
+  createdAt: Date | string
+  status: StatusEnvio
+  token: string
+  pesquisa: { titulo: string }
+}
 
 interface EnviosDashboardProps {
-  historico: any[]
-  stats: any
+  historico: Envio[]
+  stats: EnvioStats
   totalPages: number
 }
 
@@ -33,13 +51,14 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
 
-  const [selectedEnvio, setSelectedEnvio] = useState<any>(null)
+  const [selectedEnvio, setSelectedEnvio] = useState<Envio | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
 
   const currentPage = Number(searchParams.get('page')) || 1
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- padrão legítimo de hidratação SSR/Client
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -68,7 +87,7 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
     })
   }
 
-  const handleEdit = (envio: any) => {
+  const handleEdit = (envio: Envio) => {
     setSelectedEnvio(envio)
     setIsModalOpen(true)
   }
@@ -247,7 +266,14 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
   )
 }
 
-function StatCard({ label, value, icon, color }: any) {
+interface StatCardProps {
+  label: string
+  value: number | string
+  icon: React.ReactNode
+  color: string
+}
+
+function StatCard({ label, value, icon, color }: StatCardProps) {
   return (
     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
       <div className="flex items-center justify-between mb-4">
