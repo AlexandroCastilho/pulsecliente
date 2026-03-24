@@ -162,6 +162,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('[ERRO WORKER DISPARO]', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

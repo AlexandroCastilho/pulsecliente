@@ -1,36 +1,132 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { reenviarEmailConfirmacao } from '@/actions/auth'
 import { toast } from 'sonner'
-import { useState, Suspense } from 'react'
-import { Infinity as InfinityIcon, Mail, ArrowRight } from 'lucide-react'
+import { useEffect, useState, Suspense } from 'react'
+import { Infinity as InfinityIcon, Mail, ArrowRight, ArrowLeft } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+
+const RESEND_COOLDOWN_SECONDS = 60
+
+function getCooldownStorageKey(email: string) {
+  return `confirm-email-resend-cooldown-until:${email.toLowerCase()}`
+}
 
 function ConfirmEmailContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const email = searchParams.get('email')
+  const emailParam = searchParams.get('email')
+  const [email, setEmail] = useState(emailParam || '')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isResending, setIsResending] = useState(false)
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function redirectIfAuthenticated() {
+      const supabase = createClient()
+      const { data } = await supabase.auth.getSession()
+
+      if (isMounted && data.session) {
+        setIsAuthenticated(true)
+        router.replace('/dashboard')
+        return
+      }
+
+      if (isMounted) {
+        setIsAuthenticated(false)
+      }
+    }
+
+    redirectIfAuthenticated()
+
+    return () => {
+      isMounted = false
+    }
+  }, [router])
+
+  useEffect(() => {
+    if (emailParam) setEmail(emailParam)
+  }, [emailParam])
+
+  useEffect(() => {
+    const emailToCheck = email.trim().toLowerCase()
+    if (!emailToCheck) {
+      setCooldown(0)
+      return
+    }
+
+    const storageKey = getCooldownStorageKey(emailToCheck)
+    const storedUntil = window.localStorage.getItem(storageKey)
+    if (!storedUntil) return
+
+    const remainingSeconds = Math.ceil((Number(storedUntil) - Date.now()) / 1000)
+    if (remainingSeconds > 0) {
+      setCooldown(remainingSeconds)
+    } else {
+      window.localStorage.removeItem(storageKey)
+    }
+  }, [email])
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0))
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [cooldown])
 
   const handleResend = async () => {
-    if (!email) {
+    const emailToResend = email.trim()
+
+    if (!emailToResend) {
       toast.error('E-mail não encontrado.')
       return
     }
 
+    if (cooldown > 0) {
+      toast.error(`Aguarde ${cooldown}s para reenviar novamente.`)
+      return
+    }
+
     setIsResending(true)
-    const result = await reenviarEmailConfirmacao(email)
+    const result = await reenviarEmailConfirmacao(emailToResend)
     
     if (!result.success) {
       toast.error(result.error.message)
     } else {
       toast.success('E-mail de confirmação reenviado!')
+      const cooldownUntil = Date.now() + RESEND_COOLDOWN_SECONDS * 1000
+      window.localStorage.setItem(getCooldownStorageKey(emailToResend), String(cooldownUntil))
+      setCooldown(RESEND_COOLDOWN_SECONDS)
     }
     setIsResending(false)
   }
 
+  useEffect(() => {
+    if (cooldown === 0) {
+      const emailToClear = email.trim().toLowerCase()
+      if (emailToClear) {
+        window.localStorage.removeItem(getCooldownStorageKey(emailToClear))
+      }
+    }
+  }, [cooldown, email])
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-inter">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-inter">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        Página inicial
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2 mb-8">
           <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-200">
@@ -58,23 +154,38 @@ function ConfirmEmailContent() {
 
           <div className="space-y-4">
             <Link
-              href="/login"
+              href={isAuthenticated ? '/dashboard' : '/login'}
               className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 transition-all font-inter items-center gap-2 hover:scale-[1.02] active:scale-95"
             >
-              Ir para o Login
+              {isAuthenticated ? 'Ir para o Dashboard' : 'Ir para o Login'}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
           <div className="mt-8 border-t border-gray-100 pt-8">
+            {!emailParam && (
+              <div className="mb-4 text-left">
+                <label htmlFor="resend-email" className="block text-xs font-semibold text-gray-600 mb-1">
+                  Informe seu e-mail para reenviar
+                </label>
+                <input
+                  id="resend-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+            )}
             <p className="text-xs text-gray-400">
               Não recebeu o e-mail?{' '}
               <button 
                 onClick={handleResend}
-                disabled={isResending}
+                disabled={isResending || cooldown > 0}
                 className="text-indigo-600 font-bold hover:underline disabled:opacity-50 disabled:no-underline"
               >
-                {isResending ? 'Enviando...' : 'Reenviar confirmação'}
+                {isResending ? 'Enviando...' : cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar confirmação'}
               </button>
             </p>
           </div>

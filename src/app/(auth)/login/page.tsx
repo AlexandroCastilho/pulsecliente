@@ -2,11 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/actions/auth'
-import { LogIn, Infinity } from 'lucide-react'
+import { LogIn, Infinity, ArrowLeft } from 'lucide-react'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
+function LoginForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [error, setError] = useState<string | null>(
+    searchParams.get('error') === 'confirmation_failed'
+      ? 'O link de confirmação expirou ou é inválido. Solicite um novo e-mail de confirmação.'
+      : null
+  )
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -20,11 +28,21 @@ export default function LoginPage() {
     if (!result.success) {
       setError(result.error.message)
       setIsLoading(false)
+    } else {
+      router.push('/dashboard')
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        Página inicial
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
@@ -73,12 +91,9 @@ export default function LoginPage() {
                   className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-base"
                   placeholder="••••••••"
                 />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <Link href="/esqueci-senha" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
                     Esqueci minha senha
-                  </Link>
-                  <Link href="/cadastro" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                    Cadastrar-se
                   </Link>
                 </div>
               </div>
@@ -132,5 +147,20 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-gray-200 rounded-full" />
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -56,7 +56,7 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
       {/* Header com Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          label="Total de Disparos" 
+          label="Total de Envios" 
           value={stats?.total || 0} 
           icon={<Send className="text-indigo-500" size={20} />} 
           color="bg-indigo-50"
@@ -68,13 +68,13 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
           color="bg-emerald-50"
         />
         <StatCard 
-          label="Taxa de Entregabilidade" 
+          label="Taxa de Entrega" 
           value={`${stats?.taxaSucesso || 0}%`} 
           icon={<CheckCircle2 className="text-blue-500" size={20} />} 
           color="bg-blue-50"
         />
         <StatCard 
-          label="Erros / Falhas" 
+          label="Falhas de Envio" 
           value={stats?.erros || 0} 
           icon={<AlertCircle className="text-red-500" size={20} />} 
           color="bg-red-50"
@@ -84,8 +84,8 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-8 py-6 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gray-50/30">
           <div>
-            <h3 className="font-bold text-gray-900 text-lg">Histórico de Disparos</h3>
-            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Últimos {historico.length} registros</p>
+            <h3 className="font-bold text-gray-900 text-lg">Histórico de Envios</h3>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Últimos {historico.length} envios</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
               <input 
                 type="text" 
-                placeholder="Buscar por e-mail..." 
+                placeholder="Buscar cliente por e-mail..." 
                 className="pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-100 outline-none transition-all w-64 text-gray-900"
               />
             </div>
@@ -105,9 +105,9 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
             <table className="w-full text-left border-collapse table-fixed">
               <thead className="bg-gray-50/50">
                 <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                  <th className="w-[30%] px-4 py-4">Destinatário</th>
+                  <th className="w-[30%] px-4 py-4">Cliente</th>
                   <th className="w-[30%] px-4 py-4">Pesquisa</th>
-                  <th className="w-[20%] px-4 py-4">Data de Envio</th>
+                  <th className="w-[20%] px-4 py-4">Data do Envio</th>
                   <th className="w-[12%] px-4 py-4 text-center">Status</th>
                   <th className="w-[8%] px-4 py-4 text-center">Ações</th>
                 </tr>
@@ -143,7 +143,7 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
                            <button 
                              onClick={() => handleEdit(envio)}
                              className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                             title="Editar e Reenviar"
+                             title="Corrigir e reenviar"
                            >
                              <Edit2 size={16} />
                            </button>
@@ -159,9 +159,9 @@ export function EnviosDashboard({ historico, stats }: EnviosDashboardProps) {
             <div className="p-12">
               <EmptyState 
                 icon={<Mail size={40} />}
-                title="Sua lista de disparos está vazia"
-                description="Você ainda não realizou nenhum disparo para seus clientes. Selecione uma pesquisa e comece a coletar feedbacks agora mesmo!"
-                actionLabel="Selecionar Pesquisa"
+                title="Ainda não há envios para esta pesquisa"
+                description="Quando você iniciar os envios, o histórico aparecerá aqui para acompanhar resultados e corrigir falhas rapidamente."
+                actionLabel="Ir para Pesquisas"
                 actionHref="/pesquisas"
               />
             </div>
@@ -187,7 +187,7 @@ function StatCard({ label, value, icon, color }: any) {
         <div className={`p-3 rounded-2xl ${color} group-hover:scale-110 transition-transform`}>
           {icon}
         </div>
-        <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Tempo Real</div>
+        <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Atualizado</div>
       </div>
       <h4 className="text-sm font-bold text-gray-400 mb-1">{label}</h4>
       <div className="text-2xl font-black text-gray-900 tracking-tight">{value}</div>

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Trash2, Loader2 } from 'lucide-react'
 import { excluirPesquisa } from '@/actions/pesquisas'
 import { useRouter } from 'next/navigation'
+import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 interface DeleteSurveyButtonProps {
   surveyId: string
@@ -45,7 +46,7 @@ export function DeleteSurveyButton({
         setIsDeleting(false)
       }
     } catch (error) {
-      alert('Ocorreu um erro inesperado.')
+      alert(sanitizeErrorMessage(error))
       setIsConfirming(false)
       setIsDeleting(false)
     } finally {

@@ -8,6 +8,35 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
+import { AUTH_RATE_LIMIT_SECONDS, buildEmailIpRateLimitKey, createRateLimiter } from '@/lib/rate-limit'
+
+const resendEmailRateLimit = createRateLimiter('@upstash/ratelimit:auth:resend-confirmation')
+const passwordRecoveryRateLimit = createRateLimiter('@upstash/ratelimit:auth:password-recovery')
+
+async function getAppUrl() {
+  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
+  if (envAppUrl) {
+    return envAppUrl
+  }
+
+  const requestHeaders = await headers()
+  const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host')
+  const protocol = requestHeaders.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
+
+  if (host) {
+    return `${protocol}://${host}`
+  }
+
+  return 'http://localhost:3000'
+}
+
+async function getClientIdentifier() {
+  const requestHeaders = await headers()
+  const forwardedFor = requestHeaders.get('x-forwarded-for')
+  const realIp = requestHeaders.get('x-real-ip')
+  const ip = forwardedFor?.split(',')[0]?.trim() || realIp || 'unknown'
+  return ip
+}
 
 export async function login(formData: FormData): Promise<ServiceResponse> {
   const email = formData.get('email') as string
@@ -41,10 +70,18 @@ export async function logout() {
       return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
     }
 
+      if (passwordRecoveryRateLimit) {
+        const clientId = await getClientIdentifier()
+        const rateLimitKey = buildEmailIpRateLimitKey(email, clientId)
+        const { success } = await passwordRecoveryRateLimit.limit(rateLimitKey)
+
+        if (!success) {
+          return errorResponse(`Aguarde ${AUTH_RATE_LIMIT_SECONDS} segundos antes de solicitar uma nova recuperação de senha.`, 'VALIDATION_ERROR')
+        }
+      }
+
     const supabase = await createServerClient()
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const appUrl = `${protocol}://${host}`
+    const appUrl = await getAppUrl()
     const redirectTo = `${appUrl}/redefinir-senha`
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -183,13 +220,53 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
   })
 
   if (existingUser) {
-    return errorResponse('Este e-mail já está cadastrado. Tente fazer login.', 'CONFLICT')
+    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(existingUser.id)
+
+    if (authUserData?.user && !authUserError) {
+      return errorResponse('Este e-mail já está cadastrado. Tente fazer login.', 'CONFLICT')
+    }
+
+    const clientId = await getClientIdentifier()
+    console.warn('[AUTH ORPHAN USER CLEANUP]', {
+      email,
+      usuarioId: existingUser.id,
+      clientId,
+      reason: 'Usuário existe no Prisma, mas não foi encontrado no Supabase Auth',
+      timestamp: new Date().toISOString(),
+    })
+
+    try {
+      const auditRecipient = await prisma.usuario.findFirst({
+        where: {
+          empresaId: existingUser.empresaId,
+          role: { in: ['OWNER', 'ADMIN'] },
+          ativo: true,
+        },
+        orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true },
+      })
+
+      if (auditRecipient) {
+        await prisma.notificacao.create({
+          data: {
+            usuarioId: auditRecipient.id,
+            titulo: 'Correção automática de cadastro',
+            mensagem: `Usuário órfão removido automaticamente para permitir novo cadastro: ${email}.`,
+            tipo: 'AUDITORIA',
+          },
+        })
+      }
+    } catch (notificationError) {
+      console.error('[AUTH ORPHAN USER AUDIT LOG ERROR]', notificationError)
+    }
+
+    await prisma.usuario.delete({
+      where: { id: existingUser.id }
+    })
   }
 
   try {
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const appUrl = `${protocol}://${host}`
+    const appUrl = await getAppUrl()
     const supabase = await createServerClient()
 
     // 2. Criar utilizador no Supabase Auth
@@ -198,7 +275,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
       password,
       options: {
         data: { nome },
-        emailRedirectTo: `${appUrl}/confirmar-email?email=${encodeURIComponent(email)}`
+        emailRedirectTo: `${appUrl}/auth/callback?next=/dashboard`
       }
     })
 
@@ -258,16 +335,24 @@ export async function reenviarEmailConfirmacao(email: string): Promise<ServiceRe
   if (!email) return errorResponse('E-mail é obrigatório.', 'VALIDATION_ERROR')
 
   try {
+    if (resendEmailRateLimit) {
+      const clientId = await getClientIdentifier()
+      const rateLimitKey = buildEmailIpRateLimitKey(email, clientId)
+      const { success } = await resendEmailRateLimit.limit(rateLimitKey)
+
+      if (!success) {
+        return errorResponse(`Aguarde ${AUTH_RATE_LIMIT_SECONDS} segundos antes de reenviar o e-mail de confirmação.`, 'VALIDATION_ERROR')
+      }
+    }
+
     const supabase = await createServerClient()
-    const host = (await headers()).get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const appUrl = `${protocol}://${host}`
+    const appUrl = await getAppUrl()
 
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${appUrl}/dashboard`
+        emailRedirectTo: `${appUrl}/auth/callback?next=/dashboard`
       }
     })
 

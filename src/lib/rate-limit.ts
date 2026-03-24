@@ -1,0 +1,30 @@
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+  : null
+
+export const AUTH_RATE_LIMIT_MAX_REQUESTS = 1
+export const AUTH_RATE_LIMIT_WINDOW = '60 s'
+export const AUTH_RATE_LIMIT_SECONDS = 60
+
+type SlidingWindowDuration = Parameters<typeof Ratelimit.slidingWindow>[1]
+
+export function createRateLimiter(prefix: string, maxRequests = AUTH_RATE_LIMIT_MAX_REQUESTS, window: SlidingWindowDuration = AUTH_RATE_LIMIT_WINDOW) {
+  if (!redis) return null
+
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(maxRequests, window),
+    analytics: true,
+    prefix,
+  })
+}
+
+export function buildEmailIpRateLimitKey(email: string, clientId: string) {
+  return `${email.trim().toLowerCase()}:${clientId}`
+}

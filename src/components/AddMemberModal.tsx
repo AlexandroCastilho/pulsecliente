@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { X, UserPlus, Mail, Shield, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { convidarMembro } from '@/actions/equipe'
+import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const [isPending, startTransition] = useTransition()
@@ -29,7 +30,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           setError(res.error?.message || "Erro ao enviar convite")
         }
       } catch (err: any) {
-        setError(err.message || "Erro ao enviar convite")
+        setError(sanitizeErrorMessage(err) || "Erro ao enviar convite")
       }
     })
   }

@@ -71,9 +71,9 @@ export default function EditorPage() {
         setPesquisaIdCriada(result.data.id ?? null)
         setShowSuccess(true)
       } else {
-        const errorMsg = result.error?.message || 'Erro desconhecido'
+        const errorMsg = !result.success ? result.error?.message || 'Erro desconhecido' : 'Erro desconhecido'
         alert('Erro ao salvar: ' + errorMsg)
-        if (result.error?.details) console.error('Detalhes do erro:', result.error.details)
+        if (!result.success && result.error?.details) console.error('Detalhes do erro:', result.error.details)
       }
     } catch (error) {
       alert('Ocorreu um erro inesperado.')

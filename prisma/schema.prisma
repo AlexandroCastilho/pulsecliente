@@ -12,12 +12,16 @@ datasource db {
 model Empresa {
   id         String      @id @default(uuid())
   nome       String
+  logo       String?
   slug       String      @unique
   stripeCustomerId     String? @unique
   stripeSubscriptionId String? @unique
   stripePriceId        String?
   plano                String  @default("FREE")
   assinaturaAtiva      Boolean @default(true)
+  emailBrandColor      String  @default("#6366f1")
+  emailLogoUrl         String?
+  emailHeaderText      String?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   pesquisas  Pesquisa[]

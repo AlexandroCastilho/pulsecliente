@@ -1,16 +1,92 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { redefinirSenha } from '@/actions/auth'
-import { Infinity, KeyRound } from 'lucide-react'
+import { Infinity, KeyRound, ArrowLeft } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 export default function RedefinirSenhaPage() {
-  const [status, setStatus] = useState<'idle' | 'loading'>('idle')
+  const [status, setStatus] = useState<'verifying' | 'idle' | 'loading'>('verifying')
   const [error, setError] = useState<string | null>(null)
+  const [isRecoveryReady, setIsRecoveryReady] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function prepareRecoverySession() {
+      const supabase = createClient()
+      const searchParams = new URLSearchParams(window.location.search)
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+
+      try {
+        const code = searchParams.get('code')
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) throw error
+
+          if (isMounted) {
+            setIsRecoveryReady(true)
+            setStatus('idle')
+            window.history.replaceState({}, document.title, window.location.pathname)
+          }
+          return
+        }
+
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          if (error) throw error
+
+          if (isMounted) {
+            setIsRecoveryReady(true)
+            setStatus('idle')
+            window.history.replaceState({}, document.title, window.location.pathname)
+          }
+          return
+        }
+
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
+          if (isMounted) {
+            setIsRecoveryReady(true)
+            setStatus('idle')
+          }
+          return
+        }
+
+        if (isMounted) {
+          setError('O link de redefinição é inválido ou expirou. Solicite um novo e-mail.')
+          setStatus('idle')
+        }
+      } catch (error) {
+        if (isMounted) {
+          setError(sanitizeErrorMessage(error))
+          setStatus('idle')
+        }
+      }
+    }
+
+    prepareRecoverySession()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (!isRecoveryReady) {
+      setError('O link de redefinição é inválido ou expirou. Solicite um novo e-mail.')
+      return
+    }
+
     setStatus('loading')
     setError(null)
 
@@ -25,7 +101,15 @@ export default function RedefinirSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        Página inicial
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center flex-col items-center gap-2">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
@@ -87,13 +171,13 @@ export default function RedefinirSenhaPage() {
 
             <button
               type="submit"
-              disabled={status === 'loading'}
+              disabled={status === 'loading' || status === 'verifying' || !isRecoveryReady}
               className={`w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all ${
-                status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''
+                status === 'loading' || status === 'verifying' || !isRecoveryReady ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
               <KeyRound className="w-4 h-4" />
-              {status === 'loading' ? 'Salvando...' : 'Salvar Nova Senha'}
+              {status === 'verifying' ? 'Validando link...' : status === 'loading' ? 'Salvando...' : 'Salvar Nova Senha'}
             </button>
 
             <div className="text-center">
