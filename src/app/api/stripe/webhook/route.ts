@@ -26,7 +26,17 @@ export async function POST(request: NextRequest) {
     const event = stripe.webhooks.constructEvent(payload, signature, stripeWebhookSecret)
     const eventId = event.id
 
-    // Interfaces auxiliares para evitar o uso de 'any' em propriedades polimórficas do Stripe
+    // 1. Verificação de Idempotência (Prevenção de Processamento Duplicado)
+    const existingEvent = await prisma.stripeEvent.findUnique({
+      where: { id: eventId }
+    })
+
+    if (existingEvent) {
+      console.log(`[STRIPE_WEBHOOK][IDEMPOTENCIA] Evento ${eventId} já processado anteriormente em ${existingEvent.processedAt}`)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
+    // Interfaces auxiliares
     interface StripeInvoice extends Stripe.Invoice {
       subscription: string | null;
     }
@@ -68,18 +78,24 @@ export async function POST(request: NextRequest) {
           plano = 'PREMIUM'
         }
 
-        await prisma.empresa.update({
-          where: { id: empresaId },
-          data: {
-            plano,
-            assinaturaAtiva: true,
-            stripeSubscriptionId: subscriptionId,
-            stripeCustomerId: invoice.customer as string,
-            stripePriceId: priceId
-          }
-        })
+        // Operação Transacional: Atualiza empresa e registra evento simultaneamente
+        await prisma.$transaction([
+          prisma.empresa.update({
+            where: { id: empresaId },
+            data: {
+              plano,
+              assinaturaAtiva: true,
+              stripeSubscriptionId: subscriptionId,
+              stripeCustomerId: invoice.customer as string,
+              stripePriceId: priceId
+            }
+          }),
+          prisma.stripeEvent.create({
+            data: { id: eventId, type: event.type }
+          })
+        ])
 
-        console.log(`[STRIPE_WEBHOOK][${eventId}] Plano atualizado para ${plano} para a empresa ${empresaId}`)
+        console.log(`[STRIPE_WEBHOOK][IDEMPOTENTE][${eventId}] Plano atualizado para ${plano} (Empresa: ${empresaId})`)
         break
       }
 
@@ -88,26 +104,32 @@ export async function POST(request: NextRequest) {
         const customerId = subscription.customer as string
 
         if (!customerId) {
-          console.warn(`[STRIPE_WEBHOOK][${eventId}] Customer ID ausente no evento de deleção de assinatura ${subscription.id}`)
+          console.warn(`[STRIPE_WEBHOOK][${eventId}] Customer ID ausente no evento de deleção`)
           return NextResponse.json({ received: true })
         }
 
-        await prisma.empresa.update({
-          where: { stripeCustomerId: customerId },
-          data: {
-            plano: 'FREE',
-            assinaturaAtiva: false,
-            stripeSubscriptionId: null,
-            stripePriceId: null
-          }
-        })
+        // Operação Transacional: Remove assinatura e registra evento simultaneamente
+        await prisma.$transaction([
+          prisma.empresa.update({
+            where: { stripeCustomerId: customerId },
+            data: {
+              plano: 'FREE',
+              assinaturaAtiva: false,
+              stripeSubscriptionId: null,
+              stripePriceId: null
+            }
+          }),
+          prisma.stripeEvent.create({
+            data: { id: eventId, type: event.type }
+          })
+        ])
 
-        console.log(`[STRIPE_WEBHOOK][${eventId}] Assinatura cancelada para o cliente ${customerId}`)
+        console.log(`[STRIPE_WEBHOOK][IDEMPOTENTE][${eventId}] Assinatura cancelada (Customer: ${customerId})`)
         break
       }
 
       default:
-        console.log(`[STRIPE_WEBHOOK][${eventId}] Evento não tratado: ${event.type}`)
+        console.log(`[STRIPE_WEBHOOK][EVENTO_IGNORADO][${eventId}] Tipo: ${event.type}`)
         break
     }
 

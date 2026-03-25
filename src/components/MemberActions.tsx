@@ -126,7 +126,7 @@ export function MemberActions({ memberId, currentRole, currentStatus, isSelf, on
             )}
 
             {isSelf && (
-              <div className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center italic">
+              <div className="px-3 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center italic">
                 Sua própria conta
               </div>
             )}

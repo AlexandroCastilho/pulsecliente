@@ -78,9 +78,9 @@ export function SurveyResponseTable({ envios, perguntas }: Props) {
           <thead>
             <tr className="bg-gray-50/50 border-b border-gray-100">
               <th className="w-10 px-4 py-4 text-center"></th>
-              <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-              <th className="w-24 px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
-              <th className="w-32 px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Data</th>
+              <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-left">Cliente</th>
+              <th className="w-24 px-4 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
+              <th className="w-32 px-4 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Data</th>
               <th className="w-20 px-4 py-4 text-right"></th>
             </tr>
           </thead>
@@ -115,7 +115,7 @@ export function SurveyResponseTable({ envios, perguntas }: Props) {
                     </td>
                     <td className="px-4 py-4 text-center overflow-hidden">
                       <div className="flex justify-center">
-                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter border flex items-center justify-center gap-1.5 w-fit ${
+                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-tighter border flex items-center justify-center gap-1.5 w-fit ${
                           envio.status === 'RESPONDIDO' 
                             ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
                             : envio.status === 'ERRO'

@@ -61,8 +61,8 @@ export function Sidebar({ user, isMobile }: SidebarProps) {
                 {user.iniciais}
              </div>
              <div className="flex flex-col">
-                <span className="text-sm font-bold text-white">{user.nome}</span>
-                <span className="text-[11px] text-slate-500 uppercase font-black">{user.empresa}</span>
+                <span className="text-sm font-bold text-white leading-tight">{user.nome}</span>
+                <span className="text-[12px] text-slate-500 uppercase font-black tracking-tight">{user.empresa}</span>
              </div>
           </div>
         )}
@@ -81,13 +81,13 @@ function NavItem({ href, icon, label }: { href: string, icon: React.ReactNode, l
     <Link 
       href={href} 
       aria-current={isActive ? 'page' : undefined}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 border border-transparent ${
         isActive 
-          ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' 
-          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+          ? 'text-white bg-indigo-600 shadow-lg shadow-indigo-600/30 border-indigo-500/50' 
+          : 'text-slate-400 hover:text-white hover:bg-slate-800/40 hover:border-slate-800'
       }`}
     >
-      <span className={`${isActive ? 'text-white' : 'group-hover:text-indigo-400'} transition-colors`}>
+      <span className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400'} transition-colors`}>
         {icon}
       </span>
       {label}

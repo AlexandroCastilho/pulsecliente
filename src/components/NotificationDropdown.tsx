@@ -99,7 +99,7 @@ export function NotificationDropdown() {
       >
         <Bell size={22} className={isOpen ? 'text-indigo-600' : ''} />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center animate-bounce" aria-hidden="true">
+          <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-white flex items-center justify-center animate-bounce" aria-hidden="true">
             {unreadCount}
           </span>
         )}
@@ -112,7 +112,7 @@ export function NotificationDropdown() {
             {unreadCount > 0 && (
               <button 
                 onClick={handleMarkAllAsRead}
-                className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="text-[11px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
               >
                 Ler todas
               </button>
@@ -144,7 +144,7 @@ export function NotificationDropdown() {
                         <p className="text-xs text-gray-500 font-medium line-clamp-2 leading-relaxed">
                           {n.mensagem}
                         </p>
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                        <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tighter">
                           {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ptBR })}
                         </span>
                       </div>

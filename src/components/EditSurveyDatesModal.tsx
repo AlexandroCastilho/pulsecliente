@@ -48,7 +48,7 @@ export default function EditSurveyDatesModal({ pesquisaId, initialDataInicio, in
         <div className="p-8 space-y-6">
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Data de Início</label>
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest pl-1">Data de Início</label>
               <div className="relative">
                 <input 
                   type="date"
@@ -58,11 +58,11 @@ export default function EditSurveyDatesModal({ pesquisaId, initialDataInicio, in
                 />
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
               </div>
-              <p className="text-[10px] text-gray-400 italic font-medium pl-1">A pesquisa só aceitará respostas a partir desta data.</p>
+              <p className="text-[11px] text-gray-400 italic font-medium pl-1">A pesquisa só aceitará respostas a partir desta data.</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Data de Término</label>
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest pl-1">Data de Término</label>
               <div className="relative">
                 <input 
                   type="date"
@@ -72,7 +72,7 @@ export default function EditSurveyDatesModal({ pesquisaId, initialDataInicio, in
                 />
                 <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
               </div>
-              <p className="text-[10px] text-gray-400 italic font-medium pl-1">A pesquisa será movida para &ldquo;Finalizada&rdquo; após esta data.</p>
+              <p className="text-[11px] text-gray-400 italic font-medium pl-1">A pesquisa será movida para &ldquo;Finalizada&rdquo; após esta data.</p>
             </div>
           </div>
         </div>

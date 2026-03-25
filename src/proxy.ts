@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createRateLimiter } from '@/lib/rate-limit'
-import { RATE_LIMIT_GLOBAL, RATE_LIMIT_WINDOW } from '@/lib/constants'
+import { RATE_LIMIT_GLOBAL, RATE_LIMIT_WINDOW, AUTH_ROUTES } from '@/lib/constants'
 
 const ratelimit = createRateLimiter('@upstash/ratelimit', RATE_LIMIT_GLOBAL, RATE_LIMIT_WINDOW)
 
@@ -12,15 +12,15 @@ export async function proxy(request: NextRequest) {
     },
   })
 
-  // 1. Rate Limiting para rotas sensíveis (Login e Recuperação de Senha)
-  if (ratelimit && (
-    request.nextUrl.pathname.startsWith('/login') || 
-    request.nextUrl.pathname.startsWith('/recuperar-senha') ||
-    request.nextUrl.pathname.startsWith('/api/auth')
-  ) && request.method === 'POST') {
+  const pathname = request.nextUrl.pathname
+
+  // 1. Rate Limiting para rotas sensíveis definidas em AUTH_ROUTES
+  const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route))
+
+  if (ratelimit && isAuthRoute && request.method === 'POST') {
     const ip = (request as any).ip ?? "127.0.0.1"
     const { success, limit, reset, remaining } = await ratelimit.limit(
-      `ratelimit_${ip}_${request.nextUrl.pathname}`
+      `ratelimit_${ip}_${pathname}`
     )
 
     if (!success) {

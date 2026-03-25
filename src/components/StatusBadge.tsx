@@ -54,7 +54,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const config = configs[status] || configs.PENDENTE
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border ${config.color}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-tighter border ${config.color}`}>
       {config.icon}
       <span className="sm:hidden">{config.shortLabel}</span>
       <span className="hidden sm:inline">{config.label}</span>

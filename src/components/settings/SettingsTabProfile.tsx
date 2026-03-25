@@ -42,7 +42,7 @@ export function SettingsTabProfile({
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed outline-none text-sm font-medium"
             readOnly
           />
-          <p className="text-[10px] text-gray-400 font-medium italic">
+          <p className="text-[11px] text-gray-400 font-medium italic">
             O e-mail de login não pode ser alterado por aqui.
           </p>
         </div>

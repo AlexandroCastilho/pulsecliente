@@ -17,7 +17,7 @@ export function EquipeHeader() {
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-slate-900 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-600/20 transition-all transform hover:-translate-y-1 active:scale-95"
+          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-slate-900 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg shadow-indigo-600/20 transition-all transform hover:-translate-y-1 active:scale-95"
         >
           <UserPlus size={18} />
           Novo Membro

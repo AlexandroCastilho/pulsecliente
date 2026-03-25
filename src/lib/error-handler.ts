@@ -27,14 +27,15 @@ export function logStructuredError(error: unknown, context?: ErrorContext): void
   }))
 }
 
-export function sanitizeErrorMessage(error: unknown): string {
+export function sanitizeErrorMessage(error: unknown, options: { strict?: boolean } = {}): string {
+  // Log estruturado sempre ocorre internamente para depuração
   logStructuredError(error)
 
-  const message = typeof error === 'string'
+  const rawMessage = typeof error === 'string'
     ? error
     : (error as Record<string, unknown>)?.message as string || "Ocorreu um erro inesperado."
 
-  const lowerMessage = message.toLowerCase()
+  const lowerMessage = rawMessage.toLowerCase()
 
   const knownTranslations: Array<[string, string]> = [
     ['invalid login credentials', 'Credenciais de login inválidas.'],
@@ -58,8 +59,9 @@ export function sanitizeErrorMessage(error: unknown): string {
     ['not allowed', 'Acesso negado. Você não tem permissão para realizar esta ação.'],
     ['duplicate key value violates unique constraint', 'Já existe um registro com esses dados.'],
     ['row-level security', 'Você não tem permissão para acessar este recurso.'],
-    ['failed to fetch', 'Erro de conexão com o servidor. Verifique sua internet e tente novamente.'],
-    ['network request failed', 'Erro de conexão com o servidor. Verifique sua internet e tente novamente.'],
+    ['failed to fetch', 'Erro de conexão com o servidor. Verifique sua internet.'],
+    ['network request failed', 'Erro de conexão com o servidor. Verifique sua internet.'],
+    ['rejeitado pelas políticas de segurança', 'Rejeitado por políticas de segurança. Verifique o SMTP.'],
   ]
 
   // Erros conhecidos do Prisma / Banco
@@ -67,34 +69,30 @@ export function sanitizeErrorMessage(error: unknown): string {
   if (prismaError?.code === 'P2002') {
     const target = prismaError?.meta as Record<string, unknown>
     if ((target?.target as string[])?.includes('email')) {
-      return "Este e-mail já está cadastrado. Tente fazer login."
+      return "Este e-mail já está cadastrado."
     }
     return "Já existe um registro com estes dados."
   }
 
+  // Se for erro do Prisma (começa com P), retorna mensagem genérica para não vazar schema
   if (typeof prismaError?.code === 'string' && prismaError.code.startsWith('P')) {
-    return "Ocorreu um erro de banco de dados. Por favor, tente novamente mais tarde."
+    return "Erro de integridade de dados. A operação não pôde ser concluída."
   }
 
-  // Erro de rate limit (muitos pedidos)
-  if (lowerMessage.includes('rate limit')) {
-    return "Muitas solicitações enviadas em pouco tempo. Por favor, aguarde alguns minutos antes de tentar novamente."
-  }
-
-  // Erros de autenticação
-  if (lowerMessage.includes('permissão') || lowerMessage.includes('not allowed')) {
-    return "Acesso negado. Você não tem permissão para realizar esta ação."
-  }
-
-  // Erros genéricos de conexão
-  if (lowerMessage.includes('fetch') || lowerMessage.includes('network')) {
-    return "Erro de conexão com o servidor. Verifique sua internet."
-  }
-
+  // Tradução direta se houver match
   const matchedTranslation = knownTranslations.find(([pattern]) => lowerMessage.includes(pattern))
   if (matchedTranslation) {
     return matchedTranslation[1]
   }
 
-  return message
+  // Erros de rate limit ou permissão em português (já lançados customizados)
+  if (lowerMessage.includes('rate limit')) return "Muitas solicitações. Aguarde um momento."
+  if (lowerMessage.includes('permissão') || lowerMessage.includes('autorizado')) return "Acesso negado."
+
+  // REGRA DE HARDENING: No modo strict, não retorna a mensagem original se não for conhecida
+  if (options.strict) {
+    return "Ocorreu um erro ao processar sua solicitação. Tente novamente mais tarde."
+  }
+
+  return rawMessage
 }

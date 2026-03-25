@@ -157,7 +157,7 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
             <>
               <table className="w-full text-left border-collapse table-fixed">
                 <thead className="bg-gray-50/50">
-                  <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                  <tr className="text-[11px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
                     <th className="w-[30%] px-4 py-4">Cliente</th>
                     <th className="w-[30%] px-4 py-4">Pesquisa</th>
                     <th className="w-[20%] px-4 py-4">Data do Envio</th>
@@ -212,14 +212,14 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
               {/* Paginação */}
               {totalPages > 1 && (
                 <div className="px-8 py-5 border-t border-gray-50 flex items-center justify-between bg-gray-50/20">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest text-left">
                     Página {currentPage} de {totalPages}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1 || isPending}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-600 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all shadow-sm"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-black uppercase tracking-widest text-gray-600 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all shadow-sm"
                     >
                       <ChevronLeft size={14} />
                       Anterior
@@ -227,7 +227,7 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages || isPending}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-white border border-indigo-100 rounded-xl hover:bg-indigo-50 disabled:opacity-50 transition-all shadow-sm"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-black uppercase tracking-widest text-indigo-600 bg-white border border-indigo-100 rounded-xl hover:bg-indigo-50 disabled:opacity-50 transition-all shadow-sm"
                     >
                       Próxima
                       <ChevronRight size={14} />
@@ -275,7 +275,7 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
         <div className={`p-3 rounded-2xl ${color} group-hover:scale-110 transition-transform`}>
           {icon}
         </div>
-        <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Atualizado</div>
+        <div className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Atualizado</div>
       </div>
       <h4 className="text-sm font-bold text-gray-400 mb-1">{label}</h4>
       <div className="text-2xl font-black text-gray-900 tracking-tight">{value}</div>

@@ -39,14 +39,16 @@ export async function convidarMembro(formData: FormData) {
     
     if (!empresa) throw new Error("Empresa não encontrada.")
 
-    // 1. Verificar se já existe na empresa (como usuário ou convite pendente)
+    // 1. Verificar se já existe (Prevenção de conflitos sem enumerar detalhes excessivos)
     const existingUser = await prisma.usuario.findUnique({ where: { email } })
-    if (existingUser) throw new Error("Este e-mail já pertence a um membro ativo.")
+    if (existingUser) {
+      // Segurança: Embora informemos que já é membro, não detalhamos o perfil.
+      throw new Error("Não foi possível enviar o convite: este endereço já possui um vínculo ativo.")
+    }
 
     const existingInvite = await prisma.convite.findUnique({ where: { email } })
     if (existingInvite && existingInvite.status === 'PENDING') {
-      // Opcional: Reenviar o convite ou apenas avisar
-      throw new Error("Já existe um convite pendente para este e-mail.")
+      throw new Error("Não foi possível enviar o convite: já existe uma solicitação pendente para este endereço.")
     }
 
     // 2. Buscar Configuração SMTP da Empresa
@@ -115,8 +117,9 @@ export async function convidarMembro(formData: FormData) {
     revalidatePath("/equipe")
     return successResponse(true)
   } catch (error) {
+    // Hardening: Log detalhado para admin, mensagem amigável e genérica para o usuário
     console.error('[CONVITE ERROR]', error)
-    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
+    return errorResponse(sanitizeErrorMessage(error, { strict: true }), 'INTERNAL_ERROR')
   }
 }
 
@@ -135,7 +138,8 @@ export async function updateMembroRole(membroId: string, newRole: Role) {
     revalidatePath("/equipe")
     return successResponse(true)
   } catch (error) {
-    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
+    console.error('[UPDATE ROLE ERROR]', error)
+    return errorResponse(sanitizeErrorMessage(error, { strict: true }), 'INTERNAL_ERROR')
   }
 }
 export async function removerConvite(id: string) {
@@ -157,7 +161,8 @@ export async function removerConvite(id: string) {
     revalidatePath("/equipe")
     return successResponse(true)
   } catch (error) {
-    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
+    console.error('[REMOVER CONVITE ERROR]', error)
+    return errorResponse(sanitizeErrorMessage(error, { strict: true }), 'INTERNAL_ERROR')
   }
 }
 
@@ -176,7 +181,8 @@ export async function toggleMembroStatus(membroId: string, currentStatus: boolea
     revalidatePath("/equipe")
     return successResponse(true)
   } catch (error) {
-    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
+    console.error('[TOGGLE STATUS ERROR]', error)
+    return errorResponse(sanitizeErrorMessage(error, { strict: true }), 'INTERNAL_ERROR')
   }
 }
 
@@ -202,6 +208,8 @@ export async function removerMembro(membroId: string) {
     revalidatePath("/equipe")
     return successResponse(true)
   } catch (error) {
-    return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
+    console.error('[REMOVER MEMBRO ERROR]', error)
+    // Hardening: Mensagem genérica mesmo para erros de lógica (ex: remover a si mesmo)
+    return errorResponse(sanitizeErrorMessage(error, { strict: true }), 'INTERNAL_ERROR')
   }
 }

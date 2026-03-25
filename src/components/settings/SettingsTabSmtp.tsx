@@ -130,7 +130,7 @@ export function SettingsTabSmtp({ smtp }: SettingsTabSmtpProps) {
            </label>
 
           <span
-            className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
+            className={`px-3 py-1 text-[11px] font-black uppercase tracking-widest rounded-full ${
               smtp?.host && !useDefault ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }`}
           >
@@ -142,7 +142,7 @@ export function SettingsTabSmtp({ smtp }: SettingsTabSmtpProps) {
       {/* Quick Config */}
       {!useDefault && (
         <div className="px-8 pt-6">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Configuração Rápida</p>
+          <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Configuração Rápida</p>
           <div className="flex flex-wrap gap-2">
             {PRESETS.map(preset => (
               <button
@@ -262,7 +262,7 @@ export function SettingsTabSmtp({ smtp }: SettingsTabSmtpProps) {
         <div className="space-y-4 md:col-span-2 pt-6 border-t border-gray-100 mt-2">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 pl-1">
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 pl-1 mb-1">
                   <ShieldCheck size={14} className="text-indigo-500" />
                   Nome do Remetente
                 </label>
@@ -277,7 +277,7 @@ export function SettingsTabSmtp({ smtp }: SettingsTabSmtpProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 pl-1">
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 pl-1 mb-1">
                   <Mail size={14} className="text-indigo-500" />
                   E-mail do Remetente
                 </label>

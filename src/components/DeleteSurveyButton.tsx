@@ -58,7 +58,7 @@ export function DeleteSurveyButton({
   if (isSuccess) {
     return (
       <div className="flex items-center gap-2 text-emerald-500 animate-in fade-in zoom-in slide-in-from-right-4 duration-500">
-        <span className="text-[10px] font-black uppercase tracking-widest">Excluído</span>
+        <span className="text-[11px] font-black uppercase tracking-widest">Excluído</span>
         <div className="p-2 bg-emerald-50 rounded-lg">
           <Loader2 size={16} className="animate-spin" />
         </div>
@@ -69,7 +69,7 @@ export function DeleteSurveyButton({
   if (isConfirming) {
     return (
       <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-200">
-        <span className="text-[10px] font-bold text-red-500 uppercase tracking-tight hidden sm:inline">Excluir?</span>
+        <span className="text-[11px] font-bold text-red-500 uppercase tracking-tight hidden sm:inline">Excluir?</span>
         <button
           onClick={handleDelete}
           disabled={isDeleting}

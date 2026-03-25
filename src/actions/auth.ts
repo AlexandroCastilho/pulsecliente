@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { createClient } from "@supabase/supabase-js"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { sanitizeErrorMessage } from "@/lib/error-handler"
+import { validatePassword } from "@/lib/validation"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from 'next/headers'
@@ -13,6 +14,8 @@ import { v4 as uuidv4 } from 'uuid'
 
 const resendEmailRateLimit = createRateLimiter('@upstash/ratelimit:auth:resend-confirmation')
 const passwordRecoveryRateLimit = createRateLimiter('@upstash/ratelimit:auth:password-recovery')
+const loginRateLimit = createRateLimiter('@upstash/ratelimit:auth:login')
+const registerRateLimit = createRateLimiter('@upstash/ratelimit:auth:register')
 
 async function getAppUrl() {
   const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
@@ -42,6 +45,16 @@ async function getClientIdentifier() {
 export async function login(formData: FormData): Promise<ServiceResponse> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+
+  // Rate Limit para Login (Prevenção de Brute Force)
+  if (loginRateLimit) {
+    const clientId = await getClientIdentifier()
+    const rateLimitKey = buildEmailIpRateLimitKey(email, clientId)
+    const { success } = await loginRateLimit.limit(rateLimitKey)
+    if (!success) {
+      return errorResponse(`Muitas tentativas de login. Por favor, aguarde ${AUTH_RATE_LIMIT_SECONDS} segundos.`, 'UNAUTHORIZED')
+    }
+  }
 
   const supabase = await createServerClient()
 
@@ -100,8 +113,9 @@ export async function logout() {
     const password = formData.get('password') as string
     const confirmation = formData.get('confirmation') as string
 
-    if (!password || password.length < 6) {
-      return errorResponse('A senha deve ter pelo menos 6 caracteres.', 'VALIDATION_ERROR')
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
+      return errorResponse(passwordValidation.message!, 'VALIDATION_ERROR')
     }
 
     if (password !== confirmation) {
@@ -155,6 +169,12 @@ export async function finalizarAceiteConvite(token: string, senha: string): Prom
 
     if (!convite || convite.status !== 'PENDING' || new Date() > convite.expiresAt) {
       throw new Error("Convite inválido ou expirado.")
+    }
+
+    // Validação de Política de Senha
+    const passwordValidation = validatePassword(senha)
+    if (!passwordValidation.isValid) {
+      return errorResponse(passwordValidation.message!, 'VALIDATION_ERROR')
     }
 
     // 2. Criar usuário no Supabase Auth via Admin
@@ -211,8 +231,19 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
     return errorResponse('Todos os campos são obrigatórios.', 'VALIDATION_ERROR')
   }
 
-  if (password.length < 6) {
-    return errorResponse('A senha deve ter pelo menos 6 caracteres.', 'VALIDATION_ERROR')
+  // Rate Limit para Registro (Prevenção de Spam de Contas)
+  if (registerRateLimit) {
+    const clientId = await getClientIdentifier()
+    const { success } = await registerRateLimit.limit(`reg_${clientId}`)
+    if (!success) {
+      return errorResponse(`Muitas tentativas de cadastro. Por favor, aguarde ${AUTH_RATE_LIMIT_SECONDS} segundos.`, 'VALIDATION_ERROR')
+    }
+  }
+
+  // Validação de Política de Senha
+  const passwordValidation = validatePassword(password)
+  if (!passwordValidation.isValid) {
+    return errorResponse(passwordValidation.message!, 'VALIDATION_ERROR')
   }
 
   // 1.5 Verificar se o e-mail já existe no banco de dados

@@ -62,7 +62,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Nome Completo</label>
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest pl-1">Nome Completo</label>
             <div className="relative">
               <input 
                 name="nome"
@@ -75,7 +75,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">E-mail Corporativo</label>
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest pl-1">E-mail Corporativo</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
@@ -89,7 +89,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Função na Equipe</label>
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest pl-1">Função na Equipe</label>
             <div className="relative">
               <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <select 
@@ -108,7 +108,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
             <button 
               type="submit"
               disabled={isPending}
-              className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? (
                 <Loader2 className="animate-spin" size={18} />

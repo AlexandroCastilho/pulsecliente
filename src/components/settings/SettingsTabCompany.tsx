@@ -92,7 +92,7 @@ export function SettingsTabCompany({
             <h3 className="font-bold text-gray-900">Personalização de E-mail</h3>
           </div>
           {isReadOnly && (
-            <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 rounded-full">
+            <span className="px-3 py-1 text-[11px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 rounded-full">
               Pro
             </span>
           )}
@@ -137,7 +137,7 @@ export function SettingsTabCompany({
               disabled={isReadOnly}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-base text-gray-900"
             />
-            <p className="text-[10px] text-gray-400 font-medium italic">
+            <p className="text-[11px] text-gray-400 font-medium italic">
               Recomendado: 200x50px para melhor visualização
             </p>
           </div>
@@ -153,7 +153,7 @@ export function SettingsTabCompany({
               rows={3}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-base text-gray-900 resize-none"
             />
-            <p className="text-[10px] text-gray-400 font-medium italic">
+            <p className="text-[11px] text-gray-400 font-medium italic">
               Máximo de 200 caracteres. Este texto aparecerá no topo de cada e-mail enviado.
             </p>
           </div>
