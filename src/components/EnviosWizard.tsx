@@ -60,6 +60,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
   const [duplicadosAcumulados, setDuplicadosAcumulados] = useState<string[]>([])
 
   const wizardRef = useRef<HTMLDivElement>(null)
+  const nomeInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (step === 'REVISAO' && wizardRef.current) {
@@ -136,6 +137,11 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
 
     setNomeManual('')
     setEmailManual('')
+    
+    // Focar novamente no campo de nome para facilitar a próxima inserção
+    setTimeout(() => {
+      nomeInputRef.current?.focus()
+    }, 0)
   }
 
   const adicionarContatosEmBloco = () => {
@@ -237,10 +243,10 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
     })
 
     if (temNovosContatos) {
-      setStep('REVISAO')
-    }
-
-    setBlocoManual('')
+       // setStep('REVISAO') - Removido para manter foco no lote
+     }
+ 
+     setBlocoManual('')
   }
 
   const removerContato = (email: string) => {
@@ -487,6 +493,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
                 <label htmlFor="nome-manual" className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Nome</label>
                 <input
                   id="nome-manual"
+                  ref={nomeInputRef}
                   type="text"
                   value={nomeManual}
                   onChange={(e) => setNomeManual(e.target.value)}

@@ -96,14 +96,21 @@ export function Tabs({ tabs, defaultTab }: TabsProps) {
         </div>
       </div>
 
-      <div 
-        id={`panel-${activeTab}`}
-        role="tabpanel"
-        aria-labelledby={`tab-${activeTab}`}
-        className="animate-in fade-in slide-in-from-top-2 duration-300 outline-none"
-        tabIndex={0}
-      >
-        {activeTabData?.content}
+      <div className="relative">
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            id={`panel-${tab.id}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${tab.id}`}
+            tabIndex={0}
+            className={`animate-in fade-in slide-in-from-top-2 duration-300 outline-none ${
+              activeTab === tab.id ? 'block' : 'hidden'
+            }`}
+          >
+            {tab.content}
+          </div>
+        ))}
       </div>
     </div>
   )

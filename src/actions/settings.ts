@@ -8,6 +8,8 @@ import { ServiceResponse, successResponse, errorResponse } from "@/types/respons
 import { encrypt } from "@/lib/crypto"
 import { z } from "zod"
 import { SettingsData, CheckoutData, EmpresaSettings } from "@/types/settings"
+ 
+ const SMTP_PASSWORD_MASK = '••••••••'
 
 const SettingsSchema = z.object({
   userName: z.string().min(2, "Nome curto demais").optional(),
@@ -64,7 +66,7 @@ export async function getSettingsData(): Promise<SettingsData | null> {
         emailLogoUrl: e.emailLogoUrl || null,
         emailHeaderText: e.emailHeaderText || null,
       },
-      smtp: empresa.smtpConfig ? { ...empresa.smtpConfig, pass: '' } : null
+      smtp: empresa.smtpConfig ? { ...empresa.smtpConfig, pass: SMTP_PASSWORD_MASK } : null
     }
   } catch (error) {
     console.error("[GET_SETTINGS_ERROR]", error)
@@ -151,7 +153,8 @@ export async function saveSettings(formData: FormData): Promise<ServiceResponse<
     })
   } else if (data.host) {
     const port = parseInt(data.port || "587")
-    const encryptedPass = data.pass ? encrypt(data.pass) : undefined
+    const isMasked = data.pass === SMTP_PASSWORD_MASK
+    const encryptedPass = (data.pass && !isMasked) ? encrypt(data.pass) : undefined
 
     await prisma.smtpConfig.upsert({
       where: { empresaId: dbUser.empresaId },
