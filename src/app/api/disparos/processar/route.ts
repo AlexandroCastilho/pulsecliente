@@ -115,14 +115,26 @@ export async function POST(req: NextRequest) {
     const appUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 
     // 6. Processamento com Chunking e Paralelismo Controlado
-    const CHUNK_SIZE = 50
+    const CHUNK_SIZE = 20 // Reduzido de 50 para 20 para maior estabilidade SMTP e DB
+    const startTime = Date.now()
+    const MAX_RUNTIME_MS = 50 * 1000 // 50 segundos (margem de segurança para timeout de 60s)
+    
     const chunks = []
     for (let i = 0; i < enviosParaProcessar.length; i += CHUNK_SIZE) {
       chunks.push(enviosParaProcessar.slice(i, i + CHUNK_SIZE))
     }
 
+    let processedCount = 0
+
     for (const [index, chunk] of chunks.entries()) {
-      console.log(`[SMTP] Processando bloco ${index + 1}/${chunks.length} (${chunk.length} envios)`)
+      // Verifica se o tempo de execução excedeu o limite seguro
+      const elapsed = Date.now() - startTime
+      if (elapsed > MAX_RUNTIME_MS) {
+        console.warn(`[SMTP] Interrompendo processamento por segurança (Timeout). Processados: ${processedCount}/${enviosParaProcessar.length}`)
+        break
+      }
+
+      console.log(`[SMTP] Processando bloco ${index + 1}/${chunks.length} (${chunk.length} envios). Tempo decorrido: ${Math.round(elapsed / 1000)}s`)
       
       await Promise.allSettled(chunk.map(async (envio) => {
         try {
@@ -163,6 +175,7 @@ export async function POST(req: NextRequest) {
             where: { id: envio.id },
             data: { status: 'ENVIADO', enviadoEm: new Date(), erroLog: null }
           })
+          processedCount++
         } catch (err: unknown) {
           const errMessage = err instanceof Error ? (err as NodeJS.ErrnoException & { response?: string }).response || err.message : 'Erro no envio'
           console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, errMessage)
@@ -178,7 +191,7 @@ export async function POST(req: NextRequest) {
 
       // Pequeno delay entre blocos para evitar ser bloqueado pelo provedor SMTP
       if (index < chunks.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 500)) // Reduzido para 500ms pois o pooling já ajuda
       }
     }
 

@@ -54,21 +54,33 @@ export async function processarDisparo(pesquisaId: string) {
     
     // Obter URL base dinamicamente
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL
+    
     if (process.env.NODE_ENV === 'development') {
       baseUrl = 'http://localhost:3000'
-    } else if (!baseUrl) {
+    } else {
+      // Tenta obter via headers se não houver env var ou se a env var for parcial
       try {
         const { headers } = await import('next/headers')
-        const host = (await headers()).get('host')
-        const protocol = host?.includes('localhost') ? 'http' : 'https'
-        baseUrl = `${protocol}://${host}`
+        const headerList = await headers()
+        const host = headerList.get('host')
+        const xForwardedProto = headerList.get('x-forwarded-proto')
+        
+        if (!baseUrl && host) {
+          const protocol = xForwardedProto || (host.includes('localhost') ? 'http' : 'https')
+          baseUrl = `${protocol}://${host}`
+        }
       } catch (err) {
-        baseUrl = 'http://localhost:3000'
+        // Fallback final
+        if (!baseUrl) baseUrl = 'https://app.opinaloop.com.br' 
       }
     }
 
     if (baseUrl) {
       baseUrl = baseUrl.replace(/\/$/, '')
+      // Garante protocolo se a env var veio sem
+      if (!baseUrl.startsWith('http')) {
+        baseUrl = `https://${baseUrl}`
+      }
     }
     
     console.log(`[DISPARO] Iniciando worker em background: ${baseUrl}/api/disparos/processar`)

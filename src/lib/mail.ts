@@ -12,6 +12,9 @@ export async function getTransporter(empresaId: string) {
     // (Pode ser configurado via variáveis de ambiente)
     if (process.env.SMTP_HOST) {
       return nodemailer.createTransport({
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_SECURE === 'true',
@@ -35,6 +38,9 @@ export async function getTransporter(empresaId: string) {
   }
 
   return nodemailer.createTransport({
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
     host: smtpConfig.host,
     port: smtpConfig.port,
     secure: smtpConfig.port === 465,

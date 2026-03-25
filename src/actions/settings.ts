@@ -144,8 +144,12 @@ export async function saveSettings(formData: FormData): Promise<ServiceResponse<
   }
 
   // 3. Dados SMTP
-  // Só tenta salvar SMTP se pelo menos o host for preenchido
-  if (data.host) {
+  // Se o host for explicitamente vazio, removemos a configuração para usar o fallback global
+  if (data.host === "") {
+    await prisma.smtpConfig.deleteMany({
+      where: { empresaId: dbUser.empresaId }
+    })
+  } else if (data.host) {
     const port = parseInt(data.port || "587")
     const encryptedPass = data.pass ? encrypt(data.pass) : undefined
 
