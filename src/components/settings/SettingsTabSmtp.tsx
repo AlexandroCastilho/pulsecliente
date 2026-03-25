@@ -291,10 +291,15 @@ export function SettingsTabSmtp({ smtp }: SettingsTabSmtpProps) {
                 />
               </div>
            </div>
-          <p className="text-[10px] text-indigo-400 font-medium italic flex items-center gap-1.5 pl-1">
-            <CheckCircle2 size={12} />
-            E-mails enviados de endereços não autorizados podem cair no spam.
-          </p>
+          <div className="mt-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-3">
+            <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-amber-900">Atenção à Entregabilidade (Gmail/Yahoo)</p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Para evitar erros de <strong>política (5.7.1)</strong>, certifique-se de que o <strong>E-mail do Remetente</strong> seja o mesmo do <strong>Usuário SMTP</strong>. Além disso, verifique se o seu domínio possui registros <strong>SPF, DKIM e DMARC</strong> configurados corretamente.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Test Connection Button */}

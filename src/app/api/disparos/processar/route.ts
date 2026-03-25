@@ -144,6 +144,12 @@ export async function POST(req: NextRequest) {
             from: `"${smtpConfig.fromName}" <${smtpConfig.fromEmail}>`,
             to: envio.emailDestinatario,
             subject: `Pesquisa: ${pesquisa.titulo}`,
+            headers: {
+              'List-Unsubscribe': `<${appUrl}/api/unsubscribe?email=${encodeURIComponent(envio.emailDestinatario)}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              'Precedence': 'bulk',
+              'X-Entity-Ref-ID': envio.id
+            },
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
                 <h2 style="color: #4f46e5;">Olá, ${envio.nomeDestinatario || 'Cliente'}!</h2>
@@ -163,7 +169,7 @@ export async function POST(req: NextRequest) {
                 <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
                 <p style="font-size: 11px; color: #d1d5db; text-align: center;">
                   Não deseja mais receber as nossas pesquisas?
-                  <a href="${appUrl}/unsubscribe?email=${encodeURIComponent(envio.emailDestinatario)}" style="color: #d1d5db; text-decoration: underline;">
+                  <a href="${appUrl}/api/unsubscribe?email=${encodeURIComponent(envio.emailDestinatario)}" style="color: #d1d5db; text-decoration: underline;">
                     Clique aqui para cancelar a subscrição
                   </a>.
                 </p>
@@ -177,7 +183,13 @@ export async function POST(req: NextRequest) {
           })
           processedCount++
         } catch (err: unknown) {
-          const errMessage = err instanceof Error ? (err as NodeJS.ErrnoException & { response?: string }).response || err.message : 'Erro no envio'
+          let errMessage = err instanceof Error ? (err as NodeJS.ErrnoException & { response?: string }).response || err.message : 'Erro no envio'
+          
+          // Tratamento amigável para erro de política (Gmail/Hotmail)
+          if (errMessage.includes('5.7.1') || errMessage.toLowerCase().includes('policy reason')) {
+            errMessage = 'Rejeitado pelas políticas de segurança do provedor. Verifique SPF/DKIM/DMARC ou se o e-mail remetente está autorizado no SMTP.'
+          }
+
           console.error(`[ERRO SMTP] ${envio.emailDestinatario}:`, errMessage)
           await prisma.envio.update({
             where: { id: envio.id },
