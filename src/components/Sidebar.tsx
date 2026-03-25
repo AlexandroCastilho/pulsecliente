@@ -13,6 +13,7 @@ import {
   Infinity
 } from 'lucide-react'
 import { logout } from '@/actions/auth'
+import { usePathname } from 'next/navigation'
 
 interface SidebarProps {
   user: {
@@ -46,7 +47,7 @@ export function Sidebar({ user, isMobile }: SidebarProps) {
         <div className="pt-4 mt-4 border-t border-slate-800/50">
           <button 
             onClick={() => logout()}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all group cursor-pointer"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-red-400 hover:bg-red-500/10 transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             <LogOut size={20} className="group-hover:-translate-x-0.5 transition-transform" />
             Sair da Conta
@@ -61,7 +62,7 @@ export function Sidebar({ user, isMobile }: SidebarProps) {
              </div>
              <div className="flex flex-col">
                 <span className="text-sm font-bold text-white">{user.nome}</span>
-                <span className="text-[10px] text-slate-500 uppercase font-black">{user.empresa}</span>
+                <span className="text-[11px] text-slate-500 uppercase font-black">{user.empresa}</span>
              </div>
           </div>
         )}
@@ -73,9 +74,22 @@ export function Sidebar({ user, isMobile }: SidebarProps) {
 // Sidebar atualizada para nova estrutura de navegação e labels consistentes.
 
 function NavItem({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) {
+  const pathname = usePathname()
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href))
+
   return (
-    <Link href={href} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all group">
-      <span className="group-hover:text-indigo-400 transition-colors">{icon}</span>
+    <Link 
+      href={href} 
+      aria-current={isActive ? 'page' : undefined}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
+        isActive 
+          ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20' 
+          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+      }`}
+    >
+      <span className={`${isActive ? 'text-white' : 'group-hover:text-indigo-400'} transition-colors`}>
+        {icon}
+      </span>
       {label}
     </Link>
   )

@@ -7,6 +7,7 @@ import { Suspense } from 'react'
 
 import { SurveyGrid, GridSkeleton } from '@/components/dashboard/SurveyGrid'
 import { EmptyState } from '@/components/EmptyState'
+import { Button } from '@/components/ui/Button'
 
 export default async function PesquisasPage() {
   const supabase = await createClient()
@@ -35,13 +36,13 @@ export default async function PesquisasPage() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Minhas Pesquisas</h1>
           <p className="text-sm text-gray-500 font-medium">Gerencie suas pesquisas e configure novos disparos.</p>
         </div>
-        <Link 
+        <Button 
           href="/editor" 
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-slate-900 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-600/20 transition-all transform hover:-translate-y-1 active:scale-95"
+          icon={<Plus size={20} />}
+          size="md"
         >
-          <Plus size={20} />
           Nova Pesquisa
-        </Link>
+        </Button>
       </div>
 
       <Suspense fallback={<GridSkeleton />}>

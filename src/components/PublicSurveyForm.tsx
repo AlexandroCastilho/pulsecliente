@@ -10,6 +10,7 @@ import {
   Star,
   Loader2
 } from 'lucide-react'
+import { FeedbackAlert } from '@/components/ui/FeedbackAlert'
 
 import { Prisma } from '@prisma/client'
 
@@ -114,14 +115,13 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
 
   if (concluido) {
     return (
-      <div className="bg-white rounded-3xl shadow-xl p-10 text-center space-y-6 animate-in fade-in zoom-in duration-500">
-        <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
-          <CheckCircle2 size={40} />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Muito Obrigado!</h1>
-          <p className="text-gray-500 font-medium">Sua opinião é fundamental para melhorarmos continuamente nossos serviços.</p>
-        </div>
+      <div className="bg-white rounded-3xl shadow-xl p-10 animate-in fade-in zoom-in duration-500">
+        <FeedbackAlert 
+          type="success"
+          title="Muito Obrigado!"
+          message="Sua opinião é fundamental para melhorarmos continuamente nossos serviços. Seus dados foram salvos com sucesso."
+          className="border-none bg-transparent p-0 shadow-none"
+        />
       </div>
     )
   }
@@ -129,7 +129,14 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
   return (
     <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-5 sm:p-8 md:p-12 relative overflow-hidden flex flex-col min-h-[400px]">
       {/* Barra de Progresso */}
-      <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-100">
+      <div 
+        className="absolute top-0 left-0 w-full h-1.5 bg-gray-100"
+        role="progressbar"
+        aria-valuenow={Math.round(progresso)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Progresso da pesquisa"
+      >
         <div 
           className="h-full bg-indigo-600 transition-all duration-500 ease-out shadow-[0_0_10px_rgba(79,70,229,0.5)]"
           style={{ width: `${progresso}%` }}
@@ -137,12 +144,17 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
       </div>
 
       <div className="flex-1 flex flex-col justify-center py-6">
-        <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4">
+        <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">
           Pergunta {currentStep + 1} de {totalPerguntas}
         </span>
         
-        <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight break-words">
+        <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight break-words flex items-center flex-wrap gap-x-3 gap-y-2">
           {perguntaAtual.titulo}
+          {perguntaAtual.obrigatoria && (
+            <span className="inline-flex items-center px-2 py-1 rounded-lg bg-red-50 text-red-600 text-[11px] font-black uppercase tracking-widest border border-red-100/50">
+              Obrigatória
+            </span>
+          )}
         </h2>
 
         {/* Renderização condicional por tipo de pergunta */}
@@ -150,25 +162,41 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
           
           {/* NPS (0-10) */}
           {perguntaAtual.tipo === 'ESCALA_NPS' && (
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-11 gap-2">
-              {[...Array(11)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleUpdateResposta(i)}
-                  aria-label={`Nota ${i}`}
-                  aria-pressed={respostas[perguntaAtual.id] === i}
-                  onKeyDown={(e) => {
-                    if (e.key === i.toString()) handleUpdateResposta(i)
-                  }}
-                  className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl font-bold transition-all flex items-center justify-center border-2 focus:ring-4 focus:ring-indigo-500/20 focus-visible:ring-indigo-500/40 outline-none text-base ${
-                    respostas[perguntaAtual.id] === i 
-                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105' 
-                    : 'bg-white border-gray-100 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
-                  }`}
-                >
-                  {i}
-                </button>
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-11 gap-2">
+                {[...Array(11)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleUpdateResposta(i)}
+                    aria-label={`Nota ${i}`}
+                    aria-pressed={respostas[perguntaAtual.id] === i}
+                    onKeyDown={(e) => {
+                      if (e.key === i.toString()) handleUpdateResposta(i)
+                    }}
+                    className={`min-h-[44px] min-w-[44px] aspect-square rounded-xl font-bold transition-all flex items-center justify-center border-2 focus:ring-4 focus:ring-indigo-500/20 focus-visible:ring-indigo-500/40 outline-none text-base ${
+                      respostas[perguntaAtual.id] === i 
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105' 
+                      : 'bg-white border-gray-100 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
+                    }`}
+                  >
+                    {i}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between items-center px-1 text-[11px] font-black uppercase tracking-widest text-gray-400 select-none">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-red-400">0-6</span>
+                  <span>Detratores</span>
+                </div>
+                <div className="flex flex-col gap-0.5 text-center">
+                  <span className="text-amber-400">7-8</span>
+                  <span>Neutros</span>
+                </div>
+                <div className="flex flex-col gap-0.5 text-right">
+                  <span className="text-emerald-500">9-10</span>
+                  <span>Promotores</span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -236,9 +264,11 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
         </div>
 
         {erro && (
-          <p className="mt-4 text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl animate-in shake duration-300">
-             {erro}
-          </p>
+          <FeedbackAlert 
+            type="error"
+            message={erro}
+            className="mt-6"
+          />
         )}
       </div>
 
@@ -247,9 +277,9 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
         <button
           onClick={handleBack}
           disabled={currentStep === 0 || enviando}
-          className="flex items-center gap-2 text-gray-400 hover:text-gray-600 font-bold disabled:opacity-0 transition-opacity"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-600 font-bold transition-all disabled:opacity-20 disabled:cursor-not-allowed group"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
           Anterior
         </button>
 

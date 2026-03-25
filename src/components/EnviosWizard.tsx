@@ -14,10 +14,15 @@ import {
   Check,
   PartyPopper,
   MailCheck,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck,
+  FileDown,
+  Activity,
+  AlertTriangle
 } from 'lucide-react'
 import Link from 'next/link'
 import Papa from 'papaparse'
+import { FeedbackAlert } from '@/components/ui/FeedbackAlert'
 import { importarContatos } from '@/actions/envios'
 import { processarDisparo } from '@/actions/disparos'
 import { sanitizeErrorMessage } from '@/lib/error-handler'
@@ -27,7 +32,7 @@ interface Contato {
   email: string
 }
 
-type Step = 'UPLOAD' | 'REVISAO' | 'DISPARO' | 'SUCESSO'
+type Step = 'UPLOAD' | 'REVISAO' | 'QUALIDADE' | 'DISPARO' | 'SUCESSO'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
 
@@ -51,6 +56,8 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
   const [isPending, startTransition] = useTransition()
   const [erro, setErro] = useState<string | null>(null)
   const [countImportados, setCountImportados] = useState(0)
+  const [invalidosAcumulados, setInvalidosAcumulados] = useState<string[]>([])
+  const [duplicadosAcumulados, setDuplicadosAcumulados] = useState<string[]>([])
 
   const wizardRef = useRef<HTMLDivElement>(null)
 
@@ -107,6 +114,11 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       const emailExiste = prev.some((c) => c.email === email)
       const merged = mergeContatos(prev, [{ nome, email }])
       const adicionados = merged.length - prev.length
+      
+      if (adicionados === 0 && emailExiste) {
+        setDuplicadosAcumulados(d => Array.from(new Set([...d, email])))
+      }
+
       setResumoImportacao({
         origem: 'manual',
         adicionados,
@@ -206,6 +218,13 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       const ignoradosInvalidos = linhas.length - contatosValidos.length
       const ignoradosDuplicados = (contatosValidos.length - unicosPorEmail.size) + duplicadosExistentes
 
+      if (exemplosInvalidos.length > 0) {
+        setInvalidosAcumulados(prevInv => Array.from(new Set([...prevInv, ...exemplosInvalidos])))
+      }
+      if (exemplosDuplicados.length > 0) {
+        setDuplicadosAcumulados(prevDup => Array.from(new Set([...prevDup, ...exemplosDuplicados])))
+      }
+
       setResumoImportacao({
         origem: 'bloco',
         adicionados,
@@ -284,6 +303,13 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
             const ignoradosInvalidos = normalizados.length - validos.length
             const ignoradosDuplicados = (validos.length - unicosPorEmail.size) + duplicadosExistentes
 
+            if (exemplosInvalidos.length > 0) {
+              setInvalidosAcumulados(prevInv => Array.from(new Set([...prevInv, ...exemplosInvalidos])))
+            }
+            if (exemplosDuplicados.length > 0) {
+              setDuplicadosAcumulados(prevDup => Array.from(new Set([...prevDup, ...exemplosDuplicados])))
+            }
+
             setResumoImportacao({
               origem: 'csv',
               adicionados,
@@ -313,7 +339,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
         const res = await importarContatos(pesquisaId, contatos)
         if (res.success) {
           setCountImportados(res.data?.count || contatos.length)
-          setStep('DISPARO')
+          setStep('QUALIDADE')
         } else {
           setErro(res.error?.message || 'Não foi possível preparar a lista de clientes.')
         }
@@ -344,6 +370,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
     const steps = [
       { id: 'UPLOAD', label: 'Upload' },
       { id: 'REVISAO', label: 'Revisão' },
+      { id: 'QUALIDADE', label: 'Qualidade' },
       { id: 'DISPARO', label: 'Disparo' }
     ]
     
@@ -356,7 +383,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
               ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 scale-105' 
               : 'bg-white text-gray-400 border border-gray-100'
             }`}>
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${
                 step === s.id ? 'bg-white text-indigo-600' : 'bg-gray-100 text-gray-400'
               }`}>
                 {i + 1}
@@ -574,35 +601,41 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
             )}
 
             {resumoImportacao && (
-              <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
-                <p className="text-sm font-bold text-indigo-700">
-                  Importação ({resumoImportacao.origem}): {resumoImportacao.adicionados} adicionados, {resumoImportacao.ignoradosInvalidos} com dados inválidos e {resumoImportacao.ignoradosDuplicados} que já estavam na lista.
-                </p>
-                {resumoImportacao.exemplosInvalidos.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-2">Exemplos com dados inválidos</p>
-                    <ul className="space-y-1">
-                      {resumoImportacao.exemplosInvalidos.map((linha, index) => (
-                        <li key={`${linha}-${index}`} className="text-xs font-medium text-indigo-700/90">
-                          • {linha}
-                        </li>
-                      ))}
-                    </ul>
+              <FeedbackAlert 
+                type="info"
+                title={`Importação (${resumoImportacao.origem})`}
+                message={
+                  <div className="space-y-4">
+                    <p>
+                      {resumoImportacao.adicionados} adicionados, {resumoImportacao.ignoradosInvalidos} com dados inválidos e {resumoImportacao.ignoradosDuplicados} que já estavam na lista.
+                    </p>
+                    {resumoImportacao.exemplosInvalidos.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-[11px] font-black uppercase tracking-widest opacity-70 mb-2">Exemplos com dados inválidos</p>
+                        <ul className="space-y-1">
+                          {resumoImportacao.exemplosInvalidos.map((linha, index) => (
+                            <li key={`${linha}-${index}`} className="text-xs font-medium">
+                              • {linha}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {resumoImportacao.exemplosDuplicados.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-[11px] font-black uppercase tracking-widest opacity-70 mb-2">Exemplos já existentes na lista</p>
+                        <ul className="space-y-1">
+                          {resumoImportacao.exemplosDuplicados.map((linha, index) => (
+                            <li key={`${linha}-duplicado-${index}`} className="text-xs font-medium">
+                              • {linha}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                )}
-                {resumoImportacao.exemplosDuplicados.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-2">Exemplos já existentes na lista</p>
-                    <ul className="space-y-1">
-                      {resumoImportacao.exemplosDuplicados.map((linha, index) => (
-                        <li key={`${linha}-duplicado-${index}`} className="text-xs font-medium text-indigo-700/90">
-                          • {linha}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+                }
+              />
             )}
           </div>
         </div>
@@ -621,7 +654,12 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
               </div>
             </div>
             <button 
-              onClick={() => { setContatos([]); setStep('UPLOAD'); }}
+              onClick={() => { 
+                setContatos([]); 
+                setStep('UPLOAD');
+                setInvalidosAcumulados([]);
+                setDuplicadosAcumulados([]);
+              }}
               className="text-gray-400 hover:text-red-500 p-2 bg-gray-50 rounded-xl transition-all"
               title="Limpar lista"
             >
@@ -632,7 +670,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
           <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
             <table className="w-full text-left">
               <thead className="bg-gray-50/50 sticky top-0 border-b border-gray-100 backdrop-blur-sm z-10">
-                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <tr className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
                   <th className="px-10 py-4">Nome do Cliente</th>
                   <th className="px-10 py-4">E-mail</th>
                   <th className="px-10 py-4 text-center">Status</th>
@@ -644,7 +682,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
                     <td className="px-10 py-4 font-bold text-gray-700">{c.nome}</td>
                     <td className="px-10 py-4 text-gray-500 font-medium">{c.email}</td>
                     <td className="px-10 py-4 text-center">
-                      <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-amber-100">Pronto</span>
+                      <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[11px] font-black uppercase tracking-tighter border border-amber-100">Pronto</span>
                     </td>
                   </tr>
                 ))}
@@ -671,6 +709,118 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
                 Continuar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {step === 'QUALIDADE' && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 md:p-12">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
+                  <ShieldCheck size={32} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Saúde da Base</h2>
+                  <p className="text-sm text-gray-500 font-medium">Análise de qualidade antes do disparo final.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 bg-gray-50 px-6 py-4 rounded-2xl border border-gray-100">
+                <div className="text-right">
+                  <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Aproveitamento</p>
+                  <p className="text-2xl font-black text-gray-900">
+                    {Math.round((contatos.length / (contatos.length + invalidosAcumulados.length + duplicadosAcumulados.length || 1)) * 100)}%
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full border-4 border-emerald-100 border-t-emerald-500 animate-spin-slow rotate-[45deg]" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Válidos</span>
+                  <Check size={16} className="text-emerald-500" />
+                </div>
+                <p className="text-3xl font-black text-gray-900">{contatos.length}</p>
+                <p className="text-[11px] text-gray-500 font-medium">Prontos para receber o convite.</p>
+              </div>
+
+              <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Inválidos</span>
+                  <AlertCircle size={16} className="text-red-500" />
+                </div>
+                <p className="text-3xl font-black text-gray-900">{invalidosAcumulados.length}</p>
+                <p className="text-[11px] text-gray-500 font-medium">E-mails com erro de digitação.</p>
+              </div>
+
+              <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Duplicados</span>
+                  <Activity size={16} className="text-amber-500" />
+                </div>
+                <p className="text-3xl font-black text-gray-900">{duplicadosAcumulados.length}</p>
+                <p className="text-[11px] text-gray-500 font-medium">Removidos automaticamente.</p>
+              </div>
+            </div>
+
+            {(invalidosAcumulados.length > 0 || duplicadosAcumulados.length > contatos.length * 0.5) && (
+              <div className="mt-10 p-6 rounded-2xl bg-amber-50 border border-amber-100 flex gap-4">
+                <AlertTriangle className="text-amber-600 shrink-0" size={24} />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-amber-900">Atenção com a qualidade da lista</p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    Identificamos um volume considerável de itens inválidos ou duplicados. Recomendamos baixar a lista de erros para higienização antes de prosseguir.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-gray-100">
+              <div className="flex items-center gap-4">
+                {invalidosAcumulados.length > 0 && (
+                  <button 
+                    onClick={() => {
+                      const csv = "data:text/csv;charset=utf-8,Linha\n" + invalidosAcumulados.join("\n")
+                      const encodedUri = encodeURI(csv)
+                      const link = document.createElement("a")
+                      link.setAttribute("href", encodedUri)
+                      link.setAttribute("download", "erros-importacao.csv")
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                    }}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-white border border-gray-200 text-gray-700 hover:border-red-200 hover:text-red-600 transition-all"
+                  >
+                    <FileDown size={18} />
+                    Baixar Inválidos
+                  </button>
+                )}
+                <button 
+                  onClick={() => setStep('REVISAO')}
+                  className="text-gray-400 hover:text-indigo-600 font-bold text-sm transition-colors"
+                >
+                  Voltar para Revisão
+                </button>
+              </div>
+
+              <button 
+                onClick={() => setStep('DISPARO')}
+                className="bg-slate-900 hover:bg-slate-800 text-white px-12 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-slate-900/10 group flex items-center gap-2"
+              >
+                Tudo Certo, Continuar
+                <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-xs text-gray-400 font-medium">
+              Dica: Listas higienizadas aumentam a taxa de abertura em até 40%.
+            </p>
           </div>
         </div>
       )}
@@ -716,12 +866,12 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       )}
 
       {erro && (
-        <div className="bg-red-50 border border-red-100 p-6 rounded-3xl flex items-center gap-4 text-red-700 animate-in shake duration-500 shadow-xl shadow-red-100/50">
-          <div className="p-2 bg-red-100 rounded-lg">
-            <AlertCircle size={24} className="shrink-0" />
-          </div>
-          <p className="text-sm font-bold leading-relaxed">{erro}</p>
-        </div>
+        <FeedbackAlert 
+          type="error" 
+          title="Erro no Processamento" 
+          message={erro} 
+          className="mt-6"
+        />
       )}
     </div>
   )

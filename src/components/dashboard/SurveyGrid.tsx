@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import Link from 'next/link'
 import { Calendar, BarChart3, Send, ChevronRight, Clock } from 'lucide-react'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
+import { Button } from '@/components/ui/Button'
 
 export async function SurveyGrid({ empresaId }: { empresaId: string }) {
   const pesquisas = await prisma.pesquisa.findMany({
@@ -35,7 +36,7 @@ export async function SurveyGrid({ empresaId }: { empresaId: string }) {
             : 'bg-gray-100 text-gray-600 border border-gray-200'
 
         return (
-          <div key={p.id} className="relative bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col hover:-translate-y-1 duration-300">
+          <div key={p.id} className="relative bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col hover:-translate-y-1 duration-300 focus-within:ring-2 focus-within:ring-indigo-500 active:scale-[0.98]">
               <div className="absolute top-6 right-6 z-20">
                 <DeleteSurveyButton surveyId={p.id} surveyTitle={p.titulo} />
               </div>
@@ -55,18 +56,18 @@ export async function SurveyGrid({ empresaId }: { empresaId: string }) {
                 </h3>
                 
                 <div className="flex flex-col gap-2 mt-auto">
-                  <div className="flex items-center gap-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  <div className="flex items-center gap-4 text-xs text-gray-500 font-bold uppercase tracking-widest leading-none">
                     <div className="flex items-center gap-1.5">
-                      <Calendar size={14} className="text-gray-300" />
+                      <Calendar size={14} className="text-gray-400" />
                       {new Date(p.createdAt).toLocaleDateString('pt-BR')}
                     </div>
                   </div>
 
                   {(p.dataInicio || p.dataFim) && (
-                    <div className="flex items-center gap-1.5 text-[9px] font-black text-indigo-400 uppercase tracking-tighter bg-indigo-50/50 w-fit px-2 py-0.5 rounded-md border border-indigo-100/50">
+                    <div className="flex items-center gap-1.5 text-[11px] font-black text-indigo-600 uppercase tracking-tighter bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100 mt-2">
                       <Clock size={12} />
                       {p.dataInicio ? new Date(p.dataInicio).toLocaleDateString('pt-BR') : 'Início imediato'} 
-                      <span className="mx-1 text-indigo-200">/</span>
+                      <span className="mx-1 text-indigo-300 inline-block">/</span>
                       {p.dataFim ? new Date(p.dataFim).toLocaleDateString('pt-BR') : 'Sem prazo'}
                     </div>
                   )}
@@ -74,13 +75,15 @@ export async function SurveyGrid({ empresaId }: { empresaId: string }) {
               </Link>
 
             <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between">
-              <Link 
+              <Button 
                 href={`/pesquisas/${p.id}/envios`}
-                className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-black uppercase tracking-widest text-[10px] transition-colors group/btn"
+                variant="ghost"
+                size="sm"
+                icon={<Send size={14} />}
+                className="text-indigo-600 hover:text-indigo-700 font-black uppercase tracking-widest text-xs z-30"
               >
-                <Send size={14} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                 Configurar Disparo
-              </Link>
+              </Button>
               <ChevronRight size={18} className="text-gray-300 group-hover:text-indigo-400 transition-colors" />
             </div>
           </div>

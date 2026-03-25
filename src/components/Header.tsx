@@ -32,7 +32,7 @@ export function Header({ user }: HeaderProps) {
             <span className="text-sm font-bold text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">
               {user.nome || "Admin"}
             </span>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-tight">
+            <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest leading-tight">
               {user.empresa || "Minha Empresa"}
             </span>
           </div>

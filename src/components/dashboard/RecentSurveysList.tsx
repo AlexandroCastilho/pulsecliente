@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import Link from 'next/link'
 import { MessageSquare, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 export async function RecentSurveysList({ empresaId }: { empresaId: string }) {
   const pesquisas = await prisma.pesquisa.findMany({
@@ -21,7 +22,14 @@ export async function RecentSurveysList({ empresaId }: { empresaId: string }) {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
         <h3 className="font-bold text-gray-900">Pesquisas Recentes</h3>
-        <Link href="/pesquisas" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">Ver todas</Link>
+        <Button 
+          href="/pesquisas" 
+          variant="ghost" 
+          size="sm"
+          className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+        >
+          Ver todas
+        </Button>
       </div>
       <div className="divide-y divide-gray-100">
         {pesquisas.length > 0 ? (
@@ -38,9 +46,14 @@ export async function RecentSurveysList({ empresaId }: { empresaId: string }) {
         ) : (
           <div className="p-10 text-center">
             <p className="text-gray-400 text-sm font-medium">Nenhuma pesquisa criada ainda.</p>
-            <Link href="/editor" className="text-indigo-600 text-xs font-bold mt-2 inline-block hover:underline">
+            <Button 
+              href="/editor" 
+              variant="ghost" 
+              size="sm" 
+              className="text-indigo-600 text-xs font-bold mt-2"
+            >
               Criar minha primeira pesquisa
-            </Link>
+            </Button>
           </div>
         )}
       </div>

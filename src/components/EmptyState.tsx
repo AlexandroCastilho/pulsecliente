@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { LucideIcon } from 'lucide-react'
-import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
 
 interface EmptyStateProps {
   icon: React.ReactNode
@@ -34,12 +34,9 @@ export function EmptyState({
       </p>
       
       {actionHref && actionLabel && (
-        <Link 
-          href={actionHref}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-600/20 transition-all transform hover:-translate-y-1 active:scale-95"
-        >
+        <Button href={actionHref} size="md">
           {actionLabel}
-        </Link>
+        </Button>
       )}
     </motion.div>
   )

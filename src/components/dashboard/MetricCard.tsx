@@ -22,12 +22,12 @@ export function MetricCard({ label, value, trend, subtext, icon, color, tooltip 
         </span>
       </div>
       <div>
-        <h4 className="text-sm font-semibold text-gray-500 mb-1 flex items-center gap-1">
+        <h4 className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
           {label}
           {tooltip && (
             <div className="group/tip relative inline-block">
-              <AlertCircle size={10} className="text-red-400 cursor-help" />
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 font-medium text-center shadow-xl normal-case tracking-normal">
+              <AlertCircle size={14} className="text-red-400 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 text-xs rounded-lg opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 font-medium text-center shadow-xl normal-case tracking-normal">
                 {tooltip}
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900"></div>
               </div>
@@ -35,7 +35,7 @@ export function MetricCard({ label, value, trend, subtext, icon, color, tooltip 
           )}
         </h4>
         <div className={`text-3xl font-bold tracking-tight ${color || 'text-gray-900'}`}>{value}</div>
-        <p className="mt-2 text-xs font-medium text-gray-400 italic">{subtext}</p>
+        <p className="mt-2 text-xs font-medium text-gray-600 italic">{subtext}</p>
       </div>
     </div>
   )
