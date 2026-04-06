@@ -307,7 +307,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
       password,
       options: {
         data: { nome },
-        emailRedirectTo: `${appUrl}/auth/callback?next=/dashboard`
+        emailRedirectTo: `${appUrl}/auth/callback?next=/auth/sucesso`
       }
     })
 
@@ -384,7 +384,7 @@ export async function reenviarEmailConfirmacao(email: string): Promise<ServiceRe
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${appUrl}/auth/callback?next=/dashboard`
+        emailRedirectTo: `${appUrl}/auth/callback?next=/auth/sucesso`
       }
     })
 
