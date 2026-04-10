@@ -33,10 +33,12 @@ loadEnv(path.resolve(__dirname, '..', '.env.local'))
 loadEnv(path.resolve(__dirname, '..', '.env'))
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const DATABASE_URL = process.env.DATABASE_URL
 const DIRECT_URL = process.env.DIRECT_URL
+const SUPABASE_PUBLIC_KEY = SUPABASE_PUBLISHABLE_KEY || SUPABASE_ANON_KEY
 
 async function run() {
   console.log('')
@@ -49,6 +51,7 @@ async function run() {
   console.log('[1] VARIAVEIS DE AMBIENTE')
   console.log('---------------------------------------------------')
   console.log('  SUPABASE_URL:          ' + (SUPABASE_URL ? 'OK -> ' + SUPABASE_URL : 'AUSENTE'))
+  console.log('  SUPABASE_PUBLISHABLE:  ' + (SUPABASE_PUBLISHABLE_KEY ? 'OK -> ' + SUPABASE_PUBLISHABLE_KEY.substring(0,25) + '...' : 'AUSENTE'))
   console.log('  SUPABASE_ANON_KEY:     ' + (SUPABASE_ANON_KEY ? 'OK -> ' + SUPABASE_ANON_KEY.substring(0,25) + '...' : 'AUSENTE'))
   console.log('  SERVICE_ROLE_KEY:      ' + (SUPABASE_SERVICE_ROLE_KEY ? 'OK (definida)' : 'AUSENTE'))
   console.log('  DATABASE_URL:          ' + (DATABASE_URL ? 'OK (definida)' : 'AUSENTE'))
@@ -62,10 +65,11 @@ async function run() {
   console.log('[2] SUPABASE REST API')
   console.log('---------------------------------------------------')
   try {
+    if (!SUPABASE_PUBLIC_KEY) throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ou NEXT_PUBLIC_SUPABASE_ANON_KEY nao definida')
     const healthRes = await fetch(SUPABASE_URL + '/rest/v1/', {
       headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_PUBLIC_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_PUBLIC_KEY,
       }
     })
     console.log('  Status HTTP: ' + healthRes.status + ' ' + healthRes.statusText)
@@ -84,10 +88,11 @@ async function run() {
   console.log('[3] SUPABASE AUTH')
   console.log('---------------------------------------------------')
   try {
+    if (!SUPABASE_PUBLIC_KEY) throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ou NEXT_PUBLIC_SUPABASE_ANON_KEY nao definida')
     const authRes = await fetch(SUPABASE_URL + '/auth/v1/settings', {
       headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_PUBLIC_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_PUBLIC_KEY,
       }
     })
     console.log('  Status HTTP: ' + authRes.status + ' ' + authRes.statusText)
@@ -139,7 +144,7 @@ async function run() {
   // 5. Tabelas via PostgREST
   console.log('[5] VERIFICACAO DE TABELAS VIA POSTGREST')
   console.log('---------------------------------------------------')
-  const authKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
+  const authKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_PUBLIC_KEY
   const tables = ['empresas', 'usuarios', 'pesquisas', 'perguntas', 'envios', 'respostas', 'smtp_configs', 'notificacoes', 'convites', 'stripe_events']
   for (const table of tables) {
     try {
