@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { PerguntaInput, TipoPergunta } from '@/types/pesquisa'
 import { salvarPesquisa } from '@/actions/pesquisas'
-import { ServiceResponse } from '@/types/responses'
 
 export default function EditorPage() {
   const router = useRouter()
@@ -66,7 +65,13 @@ export default function EditorPage() {
         descricao,
         dataInicio,
         dataFim,
-        perguntas: perguntas.map(({ id, ...rest }) => rest)
+        perguntas: perguntas.map((pergunta) => ({
+          titulo: pergunta.titulo,
+          tipo: pergunta.tipo,
+          opcoes: pergunta.opcoes,
+          obrigatoria: pergunta.obrigatoria,
+          ordem: pergunta.ordem,
+        }))
       })
 
       if (result.success && result.data) {
@@ -76,7 +81,7 @@ export default function EditorPage() {
         const errorMsg = !result.success ? result.error?.message || 'Erro desconhecido' : 'Erro desconhecido'
         alert('Erro ao salvar: ' + errorMsg)
       }
-    } catch (error) {
+    } catch {
       alert('Ocorreu um erro inesperado.')
     } finally {
       setIsSaving(false)
@@ -261,8 +266,8 @@ export default function EditorPage() {
                   <div className="space-y-2">
                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Resumo Visual</p>
                     <div className="flex gap-1.5 overflow-hidden active:cursor-grab">
-                      {perguntas.map((p, i) => (
-                        <div key={i} className="w-6 h-6 rounded-md bg-white border border-indigo-200 flex items-center justify-center flex-shrink-0">
+                      {perguntas.map((p) => (
+                        <div key={p.id} className="w-6 h-6 rounded-md bg-white border border-indigo-200 flex items-center justify-center flex-shrink-0">
                           {p.tipo === 'TEXTO_LIVRE' && <Type size={10} className="text-indigo-400" />}
                           {p.tipo === 'ESCALA_NPS' && <Hash size={10} className="text-indigo-400" />}
                           {p.tipo === 'MULTIPLA_ESCOLHA' && <ListChecks size={10} className="text-indigo-400" />}
@@ -327,11 +332,10 @@ export default function EditorPage() {
                     <p className="text-sm font-medium">Use as ferramentas na lateral para começar.</p>
                   </div>
                 ) : (
-                  perguntas.map((p, idx) => (
+                  perguntas.map((p) => (
                     <QuestionCard 
                       key={p.id} 
                       pergunta={p} 
-                      index={idx}
                       readOnly={step === 3}
                       onRemove={() => removerPergunta(p.id!)}
                       onChange={(updates) => atualizarPergunta(p.id!, updates)}
@@ -386,9 +390,8 @@ function AddButton({ onClick, icon, label, desc }: { onClick: () => void, icon: 
   )
 }
 
-function QuestionCard({ pergunta, index, onRemove, onChange, readOnly }: { 
+function QuestionCard({ pergunta, onRemove, onChange, readOnly }: { 
   pergunta: PerguntaInput, 
-  index: number, 
   readOnly?: boolean,
   onRemove: () => void, 
   onChange: (updates: Partial<PerguntaInput>) => void 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { 
   Search, 
   Mail,
@@ -91,7 +91,7 @@ export function EnviosDashboard({ historico, stats, totalPages }: EnviosDashboar
     if (!mounted) return '...'
     try {
       return format(new Date(date), "dd 'de' MMM, HH:mm", { locale: ptBR })
-    } catch (e) {
+    } catch {
       return 'Data inválida'
     }
   }

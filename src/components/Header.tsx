@@ -1,9 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { Search, Settings, User as UserIcon } from 'lucide-react'
 import { NotificationDropdown } from './NotificationDropdown'
-import { logout } from '@/actions/auth'
 
 interface HeaderProps {
   user: {

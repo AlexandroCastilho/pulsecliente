@@ -84,7 +84,7 @@ export default function EquipePage() {
       } else {
         toast.error(res.error?.message || "Erro ao cancelar convite")
       }
-    } catch (_err) {
+    } catch {
       toast.error("Erro ao processar cancelamento")
     }
   }

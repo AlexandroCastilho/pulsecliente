@@ -8,14 +8,12 @@ import { sanitizeErrorMessage } from '@/lib/error-handler'
 
 interface DeleteSurveyButtonProps {
   surveyId: string
-  surveyTitle: string
   redirectToList?: boolean
   variant?: 'icon' | 'full'
 }
 
 export function DeleteSurveyButton({ 
   surveyId, 
-  surveyTitle, 
   redirectToList = false,
   variant = 'icon'
 }: DeleteSurveyButtonProps) {

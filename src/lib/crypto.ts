@@ -2,8 +2,6 @@ import crypto from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12
-const AUTH_TAG_LENGTH = 16
-
 export function encrypt(text: string): string {
   const rawKey = (process.env.SMTP_ENCRYPTION_KEY || '').trim().replace(/^["']|["']$/g, '');
   const key = Buffer.from(rawKey, 'hex')

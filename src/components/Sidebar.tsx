@@ -4,9 +4,7 @@ import Link from 'next/link'
 import {
   LayoutDashboard,
   PieChart,
-  Send,
   Users,
-  Mail,
   Settings,
   LogOut,
   Activity,

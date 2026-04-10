@@ -3,11 +3,18 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/Sidebar'
 import { Header } from '@/components/Header'
-import { Menu, X, Activity, Infinity } from 'lucide-react'
+import { Menu, X, Infinity } from 'lucide-react'
+
+type DashboardUserData = {
+  nome: string
+  email: string
+  empresa: string
+  iniciais: string
+}
 
 interface DashboardWrapperProps {
   children: React.ReactNode
-  userData: any
+  userData: DashboardUserData
 }
 
 export function DashboardWrapper({ children, userData }: DashboardWrapperProps) {

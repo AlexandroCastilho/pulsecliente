@@ -1,7 +1,6 @@
 "use client"
 
 import { motion } from 'framer-motion'
-import { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 interface EmptyStateProps {

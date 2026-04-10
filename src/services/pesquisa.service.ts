@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import { PesquisaInput } from '@/types/pesquisa'
 import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
@@ -25,7 +26,7 @@ export class PesquisaService {
               create: dados.perguntas.map((p, index) => ({
                 titulo: p.titulo,
                 tipo: p.tipo,
-                opcoes: p.tipo === 'MULTIPLA_ESCOLHA' ? (p.opcoes || []) : null,
+                opcoes: p.tipo === 'MULTIPLA_ESCOLHA' ? (p.opcoes || []) : Prisma.JsonNull,
                 obrigatoria: p.obrigatoria,
                 ordem: index,
               }))

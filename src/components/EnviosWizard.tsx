@@ -32,6 +32,17 @@ interface Contato {
   email: string
 }
 
+interface CsvContatoRow {
+  nome?: string
+  Nome?: string
+  name?: string
+  Name?: string
+  email?: string
+  Email?: string
+  mail?: string
+  Mail?: string
+}
+
 type Step = 'UPLOAD' | 'REVISAO' | 'QUALIDADE' | 'DISPARO' | 'SUCESSO'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
@@ -264,7 +275,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const data = results.data as any[]
+        const data = results.data as CsvContatoRow[]
         const normalizados = data
           .map(row => ({
             nome: row.nome || row.Nome || row.name || row.Name || 'Cliente',
@@ -349,7 +360,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
         } else {
           setErro(res.error?.message || 'Não foi possível preparar a lista de clientes.')
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setErro(sanitizeErrorMessage(err) || 'Ocorreu um problema inesperado ao preparar a lista de clientes.')
       }
     })
@@ -366,7 +377,7 @@ export function EnviosWizard({ pesquisaId }: { pesquisaId: string }) {
         } else {
           setErro(res.error?.message || 'Não foi possível iniciar os envios agora.')
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setErro(sanitizeErrorMessage(err) || 'Ocorreu um problema inesperado ao iniciar os envios.')
       }
     })

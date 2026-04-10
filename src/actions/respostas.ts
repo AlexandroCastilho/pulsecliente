@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
+import { successResponse, errorResponse } from '@/types/responses'
 
 export async function salvarResposta(envioId: string, dados: Record<string, string | string[] | number>) {
   try {

@@ -5,7 +5,7 @@ import { getAuthenticatedUser } from "@/lib/auth-guard"
 import { revalidatePath } from "next/cache"
 import { Role } from "@prisma/client"
 import { sanitizeErrorMessage } from "@/lib/error-handler"
-import { ServiceResponse, successResponse, errorResponse } from "@/types/responses"
+import { successResponse, errorResponse } from "@/types/responses"
 
 import crypto from 'crypto'
 import { getTransporter } from "@/lib/mail"

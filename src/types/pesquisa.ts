@@ -4,7 +4,7 @@ export interface PerguntaInput {
   id?: string
   titulo: string
   tipo: TipoPergunta
-  opcoes?: string[] | any
+  opcoes?: string[] | null
   obrigatoria: boolean
   ordem: number
 }

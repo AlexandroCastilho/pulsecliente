@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { ServiceResponse, successResponse, errorResponse } from '@/types/responses'
+import { successResponse, errorResponse } from '@/types/responses'
 
 export async function processarDisparo(pesquisaId: string) {
   try {
@@ -69,7 +69,7 @@ export async function processarDisparo(pesquisaId: string) {
           const protocol = xForwardedProto || (host.includes('localhost') ? 'http' : 'https')
           baseUrl = `${protocol}://${host}`
         }
-      } catch (err) {
+      } catch {
         // Fallback final
         if (!baseUrl) baseUrl = 'https://app.opinaloop.com.br' 
       }

@@ -3,14 +3,33 @@ import { getAuthenticatedUser } from '@/lib/auth-guard'
 import prisma from '@/lib/prisma'
 import { sanitizeErrorMessage } from '@/lib/error-handler'
 
+type MembroPayload = {
+  id: string
+  nome: string
+  email: string
+  role: string
+  ativo: boolean
+  createdAt: Date
+}
+
+type ConvitePayload = {
+  id: string
+  nome: string
+  email: string
+  role: string
+  status: string
+  empresaId: string
+  expiresAt: Date
+  createdAt: Date
+  updatedAt: Date
+  token: string
+}
+
 export async function GET() {
   try {
-    // 1. Verificação de Autenticação e Perfil Ativo (Hardening)
-    // getAuthenticatedUser já valida sessão, existência no DB e status ativo.
     const user = await getAuthenticatedUser()
 
-    // 2. Busca de Membros (Base)
-    const membrosRaw = await prisma.usuario.findMany({
+    const membrosRaw: MembroPayload[] = await prisma.usuario.findMany({
       where: { empresaId: user.empresaId },
       orderBy: [
         { role: 'asc' },
@@ -26,30 +45,27 @@ export async function GET() {
       }
     })
 
-    // 3. Lógica de Controle de Acesso por Role (RBAC)
-    // OWNER e ADMIN veem tudo. MEMBER tem payload reduzido.
     const isGestor = ['OWNER', 'ADMIN'].includes(user.role)
 
-    let convites: any[] | null = null
-    let membrosRes: any[] = membrosRaw
+    let convites: ConvitePayload[] | null = null
+    let membrosRes: MembroPayload[] = membrosRaw
 
     if (isGestor) {
       convites = await prisma.convite.findMany({
-        where: { 
+        where: {
           empresaId: user.empresaId,
           status: 'PENDING'
         },
         orderBy: { createdAt: 'desc' }
-      })
+      }) as ConvitePayload[]
     } else {
-      // Segurança: Membros comuns não devem ver convites pendentes (privacidade/enumeração)
-      membrosRes = membrosRaw.map(m => ({
-        id: m.id,
-        nome: m.nome,
-        role: m.role,
-        ativo: m.ativo,
-        email: m.email,
-        createdAt: m.createdAt
+      membrosRes = membrosRaw.map((membro) => ({
+        id: membro.id,
+        nome: membro.nome,
+        role: membro.role,
+        ativo: membro.ativo,
+        email: membro.email,
+        createdAt: membro.createdAt
       }))
     }
 
@@ -62,12 +78,10 @@ export async function GET() {
       membros: membrosRes,
       convites
     })
-
   } catch (error) {
-    // Hardening: Log detalhado interno, resposta genérica externa
     console.error('[API EQUIPE ERROR]', error)
     return NextResponse.json(
-      { error: sanitizeErrorMessage(error, { strict: true }) }, 
+      { error: sanitizeErrorMessage(error, { strict: true }) },
       { status: error instanceof Error && error.message.includes('Acesso negado') ? 403 : 500 }
     )
   }

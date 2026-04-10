@@ -29,7 +29,7 @@ export function AddMemberModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
         } else {
           setError(res.error?.message || "Erro ao enviar convite")
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(sanitizeErrorMessage(err) || "Erro ao enviar convite")
       }
     })

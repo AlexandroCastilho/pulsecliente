@@ -17,6 +17,17 @@ const passwordRecoveryRateLimit = createRateLimiter('@upstash/ratelimit:auth:pas
 const loginRateLimit = createRateLimiter('@upstash/ratelimit:auth:login')
 const registerRateLimit = createRateLimiter('@upstash/ratelimit:auth:register')
 
+async function deleteAuthUserIfPresent(userId: string, context: string) {
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+  if (error) {
+    console.error(`[${context} AUTH CLEANUP ERROR]`, {
+      userId,
+      message: error.message,
+    })
+  }
+}
+
 async function getAppUrl() {
   const envAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
   if (envAppUrl) {
@@ -155,12 +166,14 @@ export async function validarTokenConvite(token: string): Promise<ServiceRespons
     }
 
     return successResponse(convite)
-  } catch (_error) {
+  } catch {
     return errorResponse("Erro ao validar convite.", 'INTERNAL_ERROR')
   }
 }
 
 export async function finalizarAceiteConvite(token: string, senha: string): Promise<ServiceResponse> {
+  let createdAuthUserId: string | null = null
+
   try {
     // 1. Validar convite novamente
     const convite = await prisma.convite.findUnique({
@@ -194,6 +207,7 @@ export async function finalizarAceiteConvite(token: string, senha: string): Prom
     }
 
     const authUserId = authData.user?.id
+    createdAuthUserId = authUserId ?? null
     if (!authUserId) throw new Error("Erro ao obter ID do usuário.")
 
     // 3. Criar registro na tabela Usuario do Prisma
@@ -216,11 +230,17 @@ export async function finalizarAceiteConvite(token: string, senha: string): Prom
 
     return successResponse(true)
   } catch (error) {
+    if (createdAuthUserId) {
+      await deleteAuthUserIfPresent(createdAuthUserId, 'ACEITE CONVITE')
+    }
+
     console.error('[ACEITE CONVITE ERROR]', error)
     return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }
 }
 export async function registrarConta(formData: FormData): Promise<ServiceResponse<{ requiresVerification: boolean }>> {
+  let createdAuthUserId: string | null = null
+
   const nome = formData.get('nome') as string
   const nomeEmpresa = formData.get('empresa') as string
   const email = formData.get('email') as string
@@ -316,6 +336,7 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
     }
 
     const authUserId = authData.user?.id
+    createdAuthUserId = authUserId ?? null
     if (!authUserId) throw new Error("Erro ao obter ID do usuário.")
 
     // 3. Criar Empresa e Usuário no Prisma via Transação
@@ -358,6 +379,10 @@ export async function registrarConta(formData: FormData): Promise<ServiceRespons
     const requiresVerification = !!(authData.user && !authData.session);
     return successResponse({ requiresVerification })
   } catch (error) {
+    if (createdAuthUserId) {
+      await deleteAuthUserIfPresent(createdAuthUserId, 'REGISTRO')
+    }
+
     console.error('[REGISTRO ERROR]', error)
     return errorResponse(sanitizeErrorMessage(error), 'INTERNAL_ERROR')
   }

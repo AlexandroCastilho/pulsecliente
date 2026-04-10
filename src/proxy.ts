@@ -13,12 +13,11 @@ export async function proxy(request: NextRequest) {
   })
 
   const pathname = request.nextUrl.pathname
-
-  // 1. Rate Limiting para rotas sensíveis definidas em AUTH_ROUTES
   const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route))
 
   if (ratelimit && isAuthRoute && request.method === 'POST') {
-    const ip = (request as any).ip ?? "127.0.0.1"
+    const forwardedFor = request.headers.get('x-forwarded-for')
+    const ip = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '127.0.0.1'
     const { success, limit, reset, remaining } = await ratelimit.limit(
       `ratelimit_${ip}_${pathname}`
     )
@@ -35,7 +34,6 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // 2. Proteção de Rotas via Supabase Auth
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -45,7 +43,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
             request,
           })
@@ -59,11 +57,10 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protger rotas do painel
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard') || 
-                           request.nextUrl.pathname.startsWith('/pesquisas') || 
-                           request.nextUrl.pathname.startsWith('/configuracoes') ||
-                           request.nextUrl.pathname.startsWith('/equipe')
+  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/pesquisas') ||
+    request.nextUrl.pathname.startsWith('/configuracoes') ||
+    request.nextUrl.pathname.startsWith('/equipe')
 
   if (isDashboardRoute && !user) {
     const url = request.nextUrl.clone()
@@ -71,7 +68,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirecionar usuário logado se tentar acessar login/cadastro
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/cadastro')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
@@ -83,13 +79,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

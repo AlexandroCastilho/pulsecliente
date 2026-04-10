@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { Calendar, BarChart3, Send, ChevronRight, Clock } from 'lucide-react'
 import { DeleteSurveyButton } from '@/components/DeleteSurveyButton'
 import { Button } from '@/components/ui/Button'
@@ -39,7 +38,7 @@ export function SurveyCard({ pesquisa: p }: SurveyCardProps) {
     >
       {/* Botão de Excluir - z-20 para ficar acima do clique do card */}
       <div className="absolute top-6 right-6 z-20" onClick={(e) => e.stopPropagation()}>
-        <DeleteSurveyButton surveyId={p.id} surveyTitle={p.titulo} />
+        <DeleteSurveyButton surveyId={p.id} />
       </div>
 
       <div className="p-8 flex-1">

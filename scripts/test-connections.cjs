@@ -3,7 +3,9 @@
  * Testa: Supabase API, Supabase Auth, Database via Prisma
  * Sem dependências externas (lê .env manualmente)
  */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fs = require('fs')
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path')
 
 // Carregar .env manualmente
@@ -171,6 +173,7 @@ async function run() {
   console.log('[6] PRISMA CLIENT (Conexao direta ao banco)')
   console.log('---------------------------------------------------')
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient } = require('@prisma/client')
     const prisma = new PrismaClient()
     

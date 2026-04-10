@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Suspense } from 'react'
 

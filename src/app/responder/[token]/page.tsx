@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         images: ["/og-image.png"],
       }
     }
-  } catch (error) {
+  } catch {
     return {
       title: "Opinaloop",
       description: "Plataforma de Pesquisas de Satisfação"

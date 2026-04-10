@@ -19,7 +19,6 @@ export function Tabs({ tabs, defaultTab }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
   const tabListRef = useRef<HTMLDivElement>(null)
 
-  const activeTabData = tabs.find((tab) => tab.id === activeTab)
   const activeIndex = tabs.findIndex((tab) => tab.id === activeTab)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

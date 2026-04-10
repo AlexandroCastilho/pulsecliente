@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/actions/auth'
-import { LogIn, Infinity, ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Infinity, ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Suspense } from 'react'
 import { FeedbackAlert } from '@/components/ui/FeedbackAlert'
 

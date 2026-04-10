@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { salvarResposta } from '@/actions/respostas'
 import { 
-  CheckCircle2, 
   ChevronRight, 
   ChevronLeft,
   SendHorizontal,
@@ -91,7 +90,7 @@ export default function PublicSurveyForm({ envio, pesquisa }: Props) {
       } else {
         setErro(res.error?.message || 'Erro ao salvar resposta.')
       }
-    } catch (_err: unknown) {
+    } catch {
       setErro('Erro de conexão. Tente novamente.')
     } finally {
       setEnviando(false)
